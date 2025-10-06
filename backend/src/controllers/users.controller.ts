@@ -64,3 +64,13 @@ export async function getPublicProfile(req: Request, res: Response, next: NextFu
     return next(err);
   }
 }
+
+export async function getProfileScoreboard(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params;
+    const scoreboard = await StatsService.getUserScoreboard(id);
+    return res.json(scoreboard);
+  } catch (err) {
+    return next(err);
+  }
+}
