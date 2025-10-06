@@ -46,3 +46,21 @@ export async function updateById(req: Request, res: Response, next: NextFunction
     return next(err);
   }
 }
+
+export async function getPublicProfile(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params;
+    const page = parsePagination(req.query, { page: 1, limit: 20 }, 100);
+    const { skip, limit } = toMongoPagination(page);
+
+    const profile = await UsersService.getPublicProfile({
+      userId: id,
+      skip,
+      limit,
+    });
+
+    return res.json(profile);
+  } catch (err) {
+    return next(err);
+  }
+}
