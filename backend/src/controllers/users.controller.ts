@@ -25,3 +25,13 @@ export async function updateMe(req: AuthenticatedRequest, res: Response, next: N
     return next(err);
   }
 }
+
+export async function getById(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params;
+    const user = await UsersService.getById(id);
+    return res.json(user);
+  } catch (err) {
+    return next(err);
+  }
+}
