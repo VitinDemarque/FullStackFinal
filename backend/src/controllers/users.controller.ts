@@ -35,3 +35,14 @@ export async function getById(req: Request, res: Response, next: NextFunction) {
     return next(err);
   }
 }
+
+export async function updateById(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params;
+    const payload = req.body ?? {};
+    const updated = await UsersService.updateById(id, payload);
+    return res.json(updated);
+  } catch (err) {
+    return next(err);
+  }
+}
