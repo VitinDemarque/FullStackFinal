@@ -15,3 +15,13 @@ export async function getMe(req: AuthenticatedRequest, res: Response, next: Next
   }
 }
 
+export async function updateMe(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new NotFoundError('User not in token');
+    const payload = req.body ?? {};
+    const updated = await UsersService.updateById(req.user.user_id, payload);
+    return res.json(updated);
+  } catch (err) {
+    return next(err);
+  }
+}
