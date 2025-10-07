@@ -31,3 +31,38 @@ export async function getById(req: Request, res: Response, next: NextFunction) {
     return next(err);
   }
 }
+
+export async function create(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new BadRequestError('Missing user id');
+    const payload = req.body ?? {};
+    const created = await ExercisesService.create(req.user.user_id, payload);
+    return res.status(201).json(created);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export async function update(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new BadRequestError('Missing user id');
+    const { id } = req.params;
+    const payload = req.body ?? {};
+    const updated = await ExercisesService.update(req.user.user_id, id, payload);
+    return res.json(updated);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export async function remove(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new BadRequestError('Missing user id');
+    const { id } = req.params;
+    await ExercisesService.remove(req.user.user_id, id);
+    return res.status(204).send();
+  } catch (err) {
+    return next(err);
+  }
+}
+
