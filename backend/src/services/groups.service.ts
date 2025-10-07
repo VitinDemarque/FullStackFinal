@@ -83,3 +83,36 @@ export async function remove(requestUserId: string, id: string) {
     g.deleteOne()
   ]);
 }
+
+export async function join(userId: string, groupId: string) {
+  const g = await Group.findById(groupId).lean<IGroup | null>();
+  if (!g) throw new NotFoundError('Group not found');
+
+  // se privado, regra: só via addMember por owner/mod
+  if (g.visibility === 'PRIVATE') {
+    throw new ForbiddenError('Private group: ask a moderator');
+  }
+
+  const exists = await GroupMember.findOne({
+    groupId: new Types.ObjectId(groupId),
+    userId: new Types.ObjectId(userId)
+  }).lean<IGroupMember | null>();
+
+  if (exists) return { joined: true };
+
+  await GroupMember.create({
+    groupId: new Types.ObjectId(groupId),
+    userId: new Types.ObjectId(userId),
+    role: 'MEMBER'
+  });
+
+  return { joined: true };
+}
+
+export async function leave(userId: string, groupId: string) {
+  await GroupMember.deleteOne({
+    groupId: new Types.ObjectId(groupId),
+    userId: new Types.ObjectId(userId)
+  });
+  return { left: true };
+}
