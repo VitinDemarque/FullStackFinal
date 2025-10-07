@@ -158,3 +158,31 @@ export async function setMemberRole(
   );
   return { updated: true };
 }
+
+async function assertModeratorOrOwner(requestUserId: string, groupId: string) {
+  const g = await Group.findById(groupId).lean<IGroup | null>();
+  if (!g) throw new NotFoundError('Group not found');
+
+  if (String(g.ownerUserId) === requestUserId) return;
+
+  const member = await GroupMember.findOne({
+    groupId: new Types.ObjectId(groupId),
+    userId: new Types.ObjectId(requestUserId)
+  }).lean<IGroupMember | null>();
+
+  if (!member || member.role !== 'MODERATOR') {
+    throw new ForbiddenError('Only owner or moderator can manage members');
+  }
+}
+
+function sanitize(g: IGroup) {
+  return {
+    id: String(g._id),
+    ownerUserId: String(g.ownerUserId),
+    name: g.name,
+    description: g.description ?? null,
+    visibility: g.visibility,
+    createdAt: g.createdAt,
+    updatedAt: g.updatedAt
+  };
+}
