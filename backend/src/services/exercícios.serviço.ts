@@ -100,5 +100,23 @@ export async function remove(userId: string, id: string) {
   await ex.deleteOne();
 }
 
+export async function publish(userId: string, id: string) {
+  const ex = await Exercise.findById(id);
+  if (!ex) throw new NotFoundError('Exercise not found');
+  if (String(ex.authorUserId) !== userId) throw new ForbiddenError('Only author can publish');
+  ex.status = 'PUBLISHED';
+  await ex.save();
+  return sanitize(ex.toObject());
+}
+
+export async function unpublish(userId: string, id: string) {
+  const ex = await Exercise.findById(id);
+  if (!ex) throw new NotFoundError('Exercise not found');
+  if (String(ex.authorUserId) !== userId) throw new ForbiddenError('Only author can unpublish');
+  ex.status = 'DRAFT';
+  await ex.save();
+  return sanitize(ex.toObject());
+}
+
 
 
