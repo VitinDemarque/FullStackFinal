@@ -66,3 +66,48 @@ export async function remove(req: AuthenticatedRequest, res: Response, next: Nex
   }
 }
 
+export async function publish(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new BadRequestError('Missing user id');
+    const updated = await ExercisesService.publish(req.user.user_id, req.params.id);
+    return res.json(updated);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export async function unpublish(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new BadRequestError('Missing user id');
+    const updated = await ExercisesService.unpublish(req.user.user_id, req.params.id);
+    return res.json(updated);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export async function setVisibility(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new BadRequestError('Missing user id');
+    const { isPublic } = req.body ?? {};
+    if (typeof isPublic !== 'boolean') {
+      throw new BadRequestError('isPublic must be boolean');
+    }
+    const updated = await ExercisesService.setVisibility(req.user.user_id, req.params.id, isPublic);
+    return res.json(updated);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export async function listMine(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new BadRequestError('Missing user id');
+    const page = parsePagination(req.query);
+    const { skip, limit } = toMongoPagination(page);
+    const result = await ExercisesService.list({ authorId: req.user.user_id, skip, limit });
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+}
