@@ -116,3 +116,45 @@ export async function leave(userId: string, groupId: string) {
   });
   return { left: true };
 }
+
+export async function addMember(requestUserId: string, groupId: string, targetUserId: string) {
+  await assertModeratorOrOwner(requestUserId, groupId);
+
+  const exists = await GroupMember.findOne({
+    groupId: new Types.ObjectId(groupId),
+    userId: new Types.ObjectId(targetUserId)
+  }).lean<IGroupMember | null>();
+
+  if (exists) return { added: true };
+
+  await GroupMember.create({
+    groupId: new Types.ObjectId(groupId),
+    userId: new Types.ObjectId(targetUserId),
+    role: 'MEMBER'
+  });
+
+  return { added: true };
+}
+
+export async function removeMember(requestUserId: string, groupId: string, targetUserId: string) {
+  await assertModeratorOrOwner(requestUserId, groupId);
+  await GroupMember.deleteOne({
+    groupId: new Types.ObjectId(groupId),
+    userId: new Types.ObjectId(targetUserId)
+  });
+  return { removed: true };
+}
+
+export async function setMemberRole(
+  requestUserId: string,
+  groupId: string,
+  targetUserId: string,
+  role: 'MEMBER' | 'MODERATOR'
+) {
+  await assertModeratorOrOwner(requestUserId, groupId);
+  await GroupMember.updateOne(
+    { groupId: new Types.ObjectId(groupId), userId: new Types.ObjectId(targetUserId) },
+    { $set: { role } }
+  );
+  return { updated: true };
+}
