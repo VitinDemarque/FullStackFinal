@@ -118,5 +118,30 @@ export async function unpublish(userId: string, id: string) {
   return sanitize(ex.toObject());
 }
 
+export async function setVisibility(userId: string, id: string, isPublic: boolean) {
+  const ex = await Exercise.findById(id);
+  if (!ex) throw new NotFoundError('Exercise not found');
+  if (String(ex.authorUserId) !== userId) throw new ForbiddenError('Only author can change visibility');
+  ex.isPublic = !!isPublic;
+  await ex.save();
+  return sanitize(ex.toObject());
+}
+
+function sanitize(e: any) {
+  return {
+    id: String(e._id),
+    authorUserId: String(e.authorUserId),
+    languageId: e.languageId ? String(e.languageId) : null,
+    title: e.title,
+    description: e.description,
+    difficulty: e.difficulty,
+    baseXp: e.baseXp,
+    isPublic: !!e.isPublic,
+    codeTemplate: e.codeTemplate,
+    status: e.status,
+    createdAt: e.createdAt,
+    updatedAt: e.updatedAt
+  };
+}
 
 
