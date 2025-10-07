@@ -38,3 +38,48 @@ export async function getById(id: string) {
     }))
   };
 }
+
+export async function create(ownerUserId: string, payload: Partial<IGroup>) {
+  const g = await Group.create({
+    ownerUserId: new Types.ObjectId(ownerUserId),
+    name: payload.name ?? 'New Group',
+    description: payload.description ?? '',
+    visibility: payload.visibility ?? 'PUBLIC'
+  });
+
+  await GroupMember.create({
+    groupId: g._id,
+    userId: new Types.ObjectId(ownerUserId),
+    role: 'MODERATOR'
+  });
+
+  return sanitize(g.toObject() as IGroup);
+}
+
+export async function update(requestUserId: string, id: string, payload: Partial<IGroup>) {
+  const g = await Group.findById(id);
+  if (!g) throw new NotFoundError('Group not found');
+  if (String(g.ownerUserId) !== requestUserId) {
+    throw new ForbiddenError('Only owner can update group');
+  }
+
+  if (payload.name !== undefined) g.name = payload.name;
+  if (payload.description !== undefined) g.description = payload.description;
+  if (payload.visibility !== undefined) g.visibility = payload.visibility;
+
+  await g.save();
+  return sanitize(g.toObject() as IGroup);
+}
+
+export async function remove(requestUserId: string, id: string) {
+  const g = await Group.findById(id);
+  if (!g) return; // idempotente
+  if (String(g.ownerUserId) !== requestUserId) {
+    throw new ForbiddenError('Only owner can delete group');
+  }
+
+  await Promise.all([
+    GroupMember.deleteMany({ groupId: g._id }),
+    g.deleteOne()
+  ]);
+}
