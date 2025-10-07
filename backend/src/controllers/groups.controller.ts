@@ -56,3 +56,23 @@ export async function remove(req: AuthenticatedRequest, res: Response, next: Nex
     return next(err);
   }
 }
+
+export async function join(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new BadRequestError('Missing user id');
+    const result = await GroupsService.join(req.user.user_id, req.params.id);
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export async function leave(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new BadRequestError('Missing user id');
+    const result = await GroupsService.leave(req.user.user_id, req.params.id);
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+}
