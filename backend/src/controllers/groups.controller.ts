@@ -76,3 +76,37 @@ export async function leave(req: AuthenticatedRequest, res: Response, next: Next
     return next(err);
   }
 }
+
+export async function addMember(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new BadRequestError('Missing user id');
+    const { id, userId } = req.params;
+    const result = await GroupsService.addMember(req.user.user_id, id, userId);
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export async function removeMember(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new BadRequestError('Missing user id');
+    const { id, userId } = req.params;
+    const result = await GroupsService.removeMember(req.user.user_id, id, userId);
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export async function setMemberRole(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new BadRequestError('Missing user id');
+    const { id, userId } = req.params;
+    const { role } = req.body ?? {};
+    const result = await GroupsService.setMemberRole(req.user.user_id, id, userId, role);
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+}
