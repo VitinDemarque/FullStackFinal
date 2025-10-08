@@ -85,10 +85,12 @@ export async function login(input: LoginInput) {
 }
 
 export async function refresh(refreshToken: string) {
-
+  // Simplificado — em produção, valide o refresh com verifyToken e/ou whitelist
   if (!refreshToken) throw new BadRequestError('refreshToken is required');
 
-
+  // **ATENÇÃO**: aqui deveríamos usar verifyToken() e checar jti/whitelist.
+  // Para simplificar, vamos apenas retornar erro caso não exista.
+  // Implementação real: salve refresh em uma collection, associe a userId, verifique expiração/rotacione.
 
   throw new UnauthorizedError('Refresh flow not implemented (add verify/whitelist)');
 }
