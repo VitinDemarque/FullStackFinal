@@ -28,3 +28,14 @@ export async function login(req: Request, res: Response, next: NextFunction) {
     return next(err);
   }
 }
+
+export async function refreshToken(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { refreshToken } = req.body ?? {};
+    if (!refreshToken) throw new BadRequestError('Missing refreshToken');
+    const result = await AuthService.refresh(refreshToken);
+    return res.status(200).json(result);
+  } catch (err) {
+    return next(err);
+  }
+}
