@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../middlewares/auth';
-import * as ExercisesService from '../services/exercícios.serviço';
+import * as ExercisesService from '../services/exercises.service';
 import { parsePagination, toMongoPagination } from '../utils/pagination';
 import { BadRequestError } from '../utils/httpErrors';
 

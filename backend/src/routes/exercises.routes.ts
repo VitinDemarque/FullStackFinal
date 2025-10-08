@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import * as ExercisesController from '../controllers/exercícios.controller';
+import * as ExercisesController from '../controllers/exercises.controller';
 import { auth, requireOwnership } from '../middlewares/auth';
 
 const router = Router();
