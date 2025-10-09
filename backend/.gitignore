@@ -13,3 +13,7 @@ lerna-debug.log*
 .pnp.*
 .pnp.js
 .cache
+
+# Postman
+*.postman_collection.json
+*.postman_environment.json

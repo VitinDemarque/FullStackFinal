@@ -1,13 +1,17 @@
-import Header from '@components/Layout/Header'
+import Navbar from '@components/Layout/Navbar'
+import HeroSection from '@components/HeroSection'
+import VideoSection from '@components/VideoSection'
+import TestimonialsSection from '@components/TestimonialsSection'
+import Footer from '@components/Footer'
 
 export default function HomePage() {
   return (
-    <div>
-      <Header />
-      <main style={{ padding: '2rem' }}>
-        <h1>Bem-vindo à Plataforma de Ranking</h1>
-        <p>Plataforma para exercícios de programação com sistema de ranking.</p>
-      </main>
+    <div className="min-h-screen bg-white">
+      <Navbar />
+      <HeroSection />
+      <VideoSection />
+      <TestimonialsSection />
+      <Footer />
     </div>
   )
 }
