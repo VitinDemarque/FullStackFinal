@@ -8,8 +8,9 @@ const tsJestTransformCfg = createDefaultPreset().transform;
 module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
+  // define o ambiente de execucao dos testes, node pois o projeto é backend, se fosse front seria jsdom
 
-  roots: ["<rootDir>/tests"],
+  roots: ["<rootDir>src/tests"],
   // Onde o Jest vai procurar os testes
 
   moduleFileExtensions: ["ts", "js", "json"],
