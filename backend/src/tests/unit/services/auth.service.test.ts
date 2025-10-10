@@ -11,6 +11,11 @@ jest.mock('@/models/College.model');
 jest.mock('@/utils/bcrypt');
 jest.mock('@/utils/jwt');
 
+// 🔧 helper para simular .lean()
+const mockLean = (returnValue: any) => ({
+  lean: jest.fn().mockResolvedValue(returnValue)
+});
+
 describe('auth.service - signup', () => {
   const mockUserData = {
     name: 'João',
@@ -26,11 +31,11 @@ describe('auth.service - signup', () => {
   it('deve criar um novo usuário com sucesso', async () => {
     // 1. Nenhum usuário existente
     (User.findOne as jest.Mock)
-      .mockResolvedValueOnce(null) // email
-      .mockResolvedValueOnce(null); // handle
+      .mockReturnValueOnce(mockLean(null)) // email
+      .mockReturnValueOnce(mockLean(null)); // handle
 
     // 2. College válido
-    (College.findById as jest.Mock).mockResolvedValueOnce({ _id: '123', name: 'USP' });
+    (College.findById as jest.Mock).mockReturnValueOnce(mockLean({ _id: '123', name: 'USP' }));
 
     // 3. Hash e criação do user
     (hashPassword as jest.Mock).mockResolvedValueOnce('hashedPassword');
@@ -47,7 +52,7 @@ describe('auth.service - signup', () => {
       .mockReturnValueOnce('accessToken')
       .mockReturnValueOnce('refreshToken');
 
-    const result = await signup({ ...mockUserData, collegeId: '123' });
+    const result = await signup({ ...mockUserData, collegeId: '507f1f77bcf86cd799439011' });
 
     expect(User.findOne).toHaveBeenCalledTimes(2);
     expect(User.create).toHaveBeenCalledWith(expect.objectContaining({
@@ -69,26 +74,26 @@ describe('auth.service - signup', () => {
   });
 
   it('deve lançar erro se o email já estiver em uso', async () => {
-    (User.findOne as jest.Mock).mockResolvedValueOnce({ id: '1' });
+    (User.findOne as jest.Mock).mockReturnValueOnce(mockLean({ id: '1' }));
 
     await expect(signup(mockUserData)).rejects.toThrow(ConflictError);
   });
 
   it('deve lançar erro se o handle já estiver em uso', async () => {
     (User.findOne as jest.Mock)
-      .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce({ id: '1' });
+      .mockReturnValueOnce(mockLean(null))
+      .mockReturnValueOnce(mockLean({ id: '1' }));
 
     await expect(signup(mockUserData)).rejects.toThrow(ConflictError);
   });
 
   it('deve lançar erro se a collegeId for inválida', async () => {
     (User.findOne as jest.Mock)
-      .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce(null);
-    (College.findById as jest.Mock).mockResolvedValueOnce(null);
+      .mockReturnValueOnce(mockLean(null))
+      .mockReturnValueOnce(mockLean(null));
+    (College.findById as jest.Mock).mockReturnValueOnce(mockLean(null));
 
-    await expect(signup({ ...mockUserData, collegeId: '999' }))
+    await expect(signup({ ...mockUserData, collegeId: '507f1f77bcf86cd799439099' }))
       .rejects.toThrow(NotFoundError);
   });
 });
