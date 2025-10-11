@@ -45,7 +45,19 @@ api.interceptors.response.use(
       if (error.response.status === 401) {
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
-        window.location.href = '/login'
+        
+        // Emitir evento customizado para logout
+        window.dispatchEvent(new CustomEvent('auth:unauthorized'))
+        
+        // Fallback: se não estiver logado ainda, redirecionar
+        if (window.location.pathname !== '/login' && window.location.pathname !== '/signup') {
+          // Usar setTimeout para evitar problemas de sincronização
+          setTimeout(() => {
+            if (!localStorage.getItem('accessToken')) {
+              window.location.href = '/login'
+            }
+          }, 100)
+        }
       }
 
       return Promise.reject(apiError)

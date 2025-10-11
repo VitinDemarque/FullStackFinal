@@ -19,22 +19,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Load user on mount
   useEffect(() => {
-    loadUser()
-  }, [])
+    let isMounted = true
 
-  async function loadUser() {
-    try {
-      if (authService.isAuthenticated()) {
-        const currentUser = await authService.getCurrentUser()
-        setUser(currentUser)
+    async function initializeAuth() {
+      try {
+        if (authService.isAuthenticated()) {
+          const currentUser = await authService.getCurrentUser()
+          if (isMounted) {
+            setUser(currentUser)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load user:', error)
+        // Só faz logout se o erro for 401 (não autorizado)
+        const apiError = error as any
+        if (apiError.statusCode === 401) {
+          authService.logout()
+          if (isMounted) {
+            setUser(null)
+          }
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false)
+        }
       }
-    } catch (error) {
-      console.error('Failed to load user:', error)
-      authService.logout()
-    } finally {
-      setLoading(false)
     }
-  }
+
+    initializeAuth()
+
+    // Listener para evento de 401 não autorizado
+    const handleUnauthorized = () => {
+      if (isMounted) {
+        setUser(null)
+        setLoading(false)
+      }
+    }
+
+    window.addEventListener('auth:unauthorized', handleUnauthorized)
+
+    return () => {
+      isMounted = false
+      window.removeEventListener('auth:unauthorized', handleUnauthorized)
+    }
+  }, [])
 
   async function login(credentials: LoginCredentials) {
     const response = await authService.login(credentials)

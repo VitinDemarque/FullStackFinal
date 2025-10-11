@@ -1,0 +1,146 @@
+// ============================================
+// ERROR HANDLER - Tratamento centralizado de erros
+// ============================================
+
+import type { ApiError } from '../types'
+
+export interface ErrorHandlerResult {
+  message: string
+  title: string
+  canRetry: boolean
+}
+
+/**
+ * Trata erros de forma centralizada e retorna mensagens amigáveis
+ */
+export function handleApiError(error: any): ErrorHandlerResult {
+  // Erro de rede/conexão
+  if (!navigator.onLine) {
+    return {
+      title: 'Sem Conexão',
+      message: 'Verifique sua conexão com a internet e tente novamente.',
+      canRetry: true,
+    }
+  }
+
+  // Timeout ou servidor não respondendo
+  if (error.code === 'ECONNREFUSED' || error.statusCode === 0 || error.code === 'ECONNABORTED') {
+    return {
+      title: 'Servidor Indisponível',
+      message: 'Não foi possível conectar ao servidor. Tente novamente em alguns instantes.',
+      canRetry: true,
+    }
+  }
+
+  // Erros HTTP com status code
+  const apiError = error as ApiError
+
+  switch (apiError.statusCode) {
+    case 400:
+      return {
+        title: 'Dados Inválidos',
+        message: apiError.message || 'Por favor, verifique os dados preenchidos e tente novamente.',
+        canRetry: false,
+      }
+
+    case 401:
+      return {
+        title: 'Não Autorizado',
+        message: 'E-mail ou senha incorretos. Por favor, tente novamente.',
+        canRetry: false,
+      }
+
+    case 403:
+      return {
+        title: 'Acesso Negado',
+        message: 'Você não tem permissão para acessar este recurso.',
+        canRetry: false,
+      }
+
+    case 404:
+      return {
+        title: 'Não Encontrado',
+        message: apiError.message || 'O recurso solicitado não foi encontrado.',
+        canRetry: false,
+      }
+
+    case 409:
+      return {
+        title: 'Conflito',
+        message: apiError.message || 'Já existe um registro com estes dados.',
+        canRetry: false,
+      }
+
+    case 422:
+      return {
+        title: 'Validação Falhou',
+        message: apiError.message || 'Os dados fornecidos não são válidos.',
+        canRetry: false,
+      }
+
+    case 429:
+      return {
+        title: 'Muitas Tentativas',
+        message: 'Você fez muitas requisições. Por favor, aguarde alguns minutos.',
+        canRetry: true,
+      }
+
+    case 500:
+    case 502:
+    case 503:
+    case 504:
+      return {
+        title: 'Erro no Servidor',
+        message: 'Ocorreu um erro no servidor. Nossa equipe já foi notificada.',
+        canRetry: true,
+      }
+
+    default:
+      return {
+        title: 'Erro Desconhecido',
+        message: apiError.message || 'Ocorreu um erro inesperado. Tente novamente.',
+        canRetry: true,
+      }
+  }
+}
+
+/**
+ * Trata erros específicos de autenticação
+ */
+export function handleAuthError(error: any): string {
+  const result = handleApiError(error)
+
+  // Mensagens específicas para auth
+  if (error.statusCode === 401) {
+    return 'E-mail ou senha incorretos. Verifique suas credenciais.'
+  }
+
+  if (error.statusCode === 404) {
+    return 'Usuário não encontrado. Verifique seu e-mail ou cadastre-se.'
+  }
+
+  if (error.statusCode === 409) {
+    return 'Este e-mail já está cadastrado. Tente fazer login ou use outro e-mail.'
+  }
+
+  return result.message
+}
+
+/**
+ * Log de erros (pode ser enviado para serviço de monitoramento)
+ */
+export function logError(error: any, context?: string) {
+  console.error(`[Error${context ? ` - ${context}` : ''}]:`, {
+    message: error.message,
+    statusCode: error.statusCode,
+    details: error.details,
+    stack: error.stack,
+    timestamp: new Date().toISOString(),
+  })
+
+  // TODO: Enviar para serviço de monitoramento (Sentry, etc)
+  // if (import.meta.env.PROD) {
+  //   sendToMonitoring(error, context)
+  // }
+}
+

@@ -3,12 +3,13 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@contexts/AuthContext";
 import { FaGoogle, FaFacebook, FaArrowLeft } from "react-icons/fa";
 import Notification from "@components/Notification";
+import ErrorAlert from "@components/ErrorAlert";
+import { useErrorHandler } from "@hooks/useErrorHandler";
 import "./AuthPages.css";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState<{
     type: "success" | "error";
@@ -17,10 +18,11 @@ export default function LoginPage() {
 
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { error, setError, clearError } = useErrorHandler();
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setError("");
+    clearError();
     setNotification(null);
     setLoading(true);
 
@@ -38,37 +40,19 @@ export default function LoginPage() {
         navigate("/dashboard");
       }, 1500);
     } catch (err: any) {
-      // Extrair mensagem de erro da API
-      let errorMessage = "Erro ao fazer login";
-
-      if (err.response?.data?.message) {
-        errorMessage = err.response.data.message;
-      } else if (err.message) {
-        errorMessage = err.message;
-      }
-
-      // Tratar erros específicos
-      if (err.response?.status === 401) {
-        errorMessage = "E-mail ou senha incorretos. Tente novamente.";
-      } else if (err.response?.status === 404) {
-        errorMessage = "Usuário não encontrado. Verifique seu e-mail.";
-      } else if (err.response?.status === 400) {
-        errorMessage = "Por favor, preencha todos os campos corretamente.";
-      } else if (!navigator.onLine) {
-        errorMessage = "Sem conexão com a internet. Verifique sua conexão.";
-      } else if (err.code === "ECONNREFUSED" || err.statusCode === 0) {
-        errorMessage =
-          "Não foi possível conectar ao servidor. Tente novamente.";
-      }
-
-      setError(errorMessage);
+      setError(err, "Login");
       setNotification({
         type: "error",
-        message: errorMessage,
+        message: err.message || "Erro ao fazer login",
       });
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleRetry() {
+    clearError();
+    handleSubmit(new Event('submit') as any);
   }
 
   return (
@@ -98,7 +82,7 @@ export default function LoginPage() {
           <span className="bracket">{"}"}</span>
         </h1>
 
-        {error && <div className="error-message">{error}</div>}
+        {error && <ErrorAlert error={error} onClose={clearError} onRetry={error.canRetry ? handleRetry : undefined} />}
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">

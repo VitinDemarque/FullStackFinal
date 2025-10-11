@@ -1,4 +1,8 @@
 // Export all services
 export { authService } from './auth.service'
 export { userService } from './user.service'
+export { exercisesService } from './exercises.service'
+export { statsService } from './stats.service'
+export { collegesService } from './colleges.service'
+export { badgesService } from './badges.service'
 export { api, apiRequest } from './api'
