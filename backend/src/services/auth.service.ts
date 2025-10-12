@@ -1,10 +1,8 @@
 import { Types } from 'mongoose';
 import { hashPassword, comparePassword } from '../utils/bcrypt';
-import { signToken } from '../utils/jwt';
+import { verifyToken, signToken, UserTokenPayload } from '../utils/jwt';
 import { BadRequestError, ConflictError, NotFoundError, UnauthorizedError } from '../utils/httpErrors';
-
-// Models esperados
-import User from '../models/User.model';
+import User, { IUser } from '../models/User.model';
 import College from '../models/College.model';
 
 export interface SignupInput {
@@ -84,15 +82,38 @@ export async function login(input: LoginInput) {
   };
 }
 
-export async function refresh(refreshToken: string) {
-  // Simplificado — em produção, valide o refresh com verifyToken e/ou whitelist
-  if (!refreshToken) throw new BadRequestError('refreshToken is required');
+export async function refreshToken(oldRefreshToken: string) {
+  if (!oldRefreshToken) throw new BadRequestError('refreshToken is required');
 
-  // **ATENÇÃO**: aqui deveríamos usar verifyToken() e checar jti/whitelist.
-  // Para simplificar, vamos apenas retornar erro caso não exista.
-  // Implementação real: salve refresh em uma collection, associe a userId, verifique expiração/rotacione.
+  // Verifica o token
+  const result = verifyToken(oldRefreshToken);
+  if (!result.valid || !result.decoded) throw new UnauthorizedError('Invalid refresh token');
 
-  throw new UnauthorizedError('Refresh flow not implemented (add verify/whitelist)');
+  const payload = result.decoded;
+
+  // Busca usuário com tipagem explícita
+  const user = await User.findById(payload.user_id).lean<IUser | null>();
+  if (!user) throw new UnauthorizedError('User not found');
+
+  // Cria novos tokens
+  const newAccessToken = signToken({
+    user_id: user._id.toString(),
+    email: user.email,
+    role: user.role,
+    collegeId: user.collegeId ? user.collegeId.toString() : undefined
+  });
+
+  const newRefreshToken = signToken({
+    user_id: user._id.toString(),
+    email: user.email
+  });
+
+  return {
+    tokens: {
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken
+    }
+  };
 }
 
 function sanitizeUser(u: any) {
