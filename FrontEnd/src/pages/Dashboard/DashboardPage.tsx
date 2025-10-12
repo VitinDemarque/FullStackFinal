@@ -2,36 +2,56 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@contexts/AuthContext'
 import { FaCode, FaTrophy, FaDumbbell, FaFire, FaStar } from 'react-icons/fa'
 import AuthenticatedLayout from '@components/Layout/AuthenticatedLayout'
+import { exercisesService, statsService } from '@services/index'
+import type { Exercise } from '../../types'
 import './DashboardPage.css'
 
-interface Exercise {
-  id: string
-  title: string
-  difficulty: string
-  xp: number
-  language: string
+interface DashboardStats {
+  languages: number
+  challenges: number
+  exercises: number
 }
 
 export default function DashboardPage() {
   const { user } = useAuth()
-  const [inProgress, setInProgress] = useState({
-    languages: 5,
-    challenges: 12,
-    exercises: 8,
+  const [stats, setStats] = useState<DashboardStats>({
+    languages: 0,
+    challenges: 0,
+    exercises: 0,
   })
   const [recommendations, setRecommendations] = useState<Exercise[]>([])
+  const [weekProgress, setWeekProgress] = useState(0)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Mock de dados - substituir por chamadas à API
-    setRecommendations([
-      { id: '1', title: 'Arrays e Loops', difficulty: 'Fácil', xp: 50, language: 'Python' },
-      { id: '2', title: 'Funções Recursivas', difficulty: 'Médio', xp: 100, language: 'JavaScript' },
-      { id: '3', title: 'Algoritmos de Ordenação', difficulty: 'Difícil', xp: 150, language: 'Java' },
-      { id: '4', title: 'Estruturas de Dados', difficulty: 'Médio', xp: 120, language: 'C++' },
-      { id: '5', title: 'Programação Orientada', difficulty: 'Médio', xp: 110, language: 'Python' },
-      { id: '6', title: 'API REST', difficulty: 'Difícil', xp: 180, language: 'Node.js' },
-    ])
-  }, [])
+    if (user) {
+      loadDashboardData()
+    }
+  }, [user])
+
+  async function loadDashboardData() {
+    try {
+      setLoading(true)
+      
+      // Carregar stats e recomendações em paralelo
+      const [dashboardStats, exercisesList] = await Promise.all([
+        statsService.getDashboardStats(user!.id),
+        exercisesService.getRecommendations(6),
+      ])
+
+      setStats({
+        languages: dashboardStats.languages,
+        challenges: dashboardStats.challenges,
+        exercises: dashboardStats.exercises,
+      })
+      setWeekProgress(dashboardStats.weekProgress)
+      setRecommendations(exercisesList)
+    } catch (error) {
+      console.error('Erro ao carregar dados do dashboard:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <AuthenticatedLayout>
@@ -82,21 +102,21 @@ export default function DashboardPage() {
             <div className="progress-card card-purple">
               <FaCode className="progress-icon" />
               <div className="progress-info">
-                <h3>{inProgress.languages}</h3>
+                <h3>{loading ? '...' : stats.languages}</h3>
                 <p>Linguagens</p>
               </div>
             </div>
             <div className="progress-card card-blue">
               <FaTrophy className="progress-icon" />
               <div className="progress-info">
-                <h3>{inProgress.challenges}</h3>
+                <h3>{loading ? '...' : stats.challenges}</h3>
                 <p>Desafios</p>
               </div>
             </div>
             <div className="progress-card card-green">
               <FaDumbbell className="progress-icon" />
               <div className="progress-info">
-                <h3>{inProgress.exercises}</h3>
+                <h3>{loading ? '...' : stats.exercises}</h3>
                 <p>Exercícios</p>
               </div>
             </div>
@@ -117,9 +137,9 @@ export default function DashboardPage() {
                 para desbloquear novas conquistas.
               </p>
               <div className="progress-bar">
-                <div className="progress-fill" style={{ width: '65%' }}></div>
+                <div className="progress-fill" style={{ width: `${weekProgress}%` }}></div>
               </div>
-              <p className="progress-text">65% dos desafios completos esta semana</p>
+              <p className="progress-text">{weekProgress}% dos desafios completos esta semana</p>
             </div>
           </div>
         </section>
@@ -131,28 +151,57 @@ export default function DashboardPage() {
             Recomendações
           </h2>
           <div className="recommendations-grid">
-            {recommendations.map((exercise) => (
-              <div key={exercise.id} className="exercise-card">
-                <div className="card-header">
-                  <span className={`difficulty-badge ${exercise.difficulty.toLowerCase()}`}>
-                    {exercise.difficulty}
-                  </span>
-                  <span className="xp-badge">
-                    <FaStar /> {exercise.xp} XP
-                  </span>
+            {loading ? (
+              // Loading skeleton
+              Array.from({ length: 6 }).map((_, index) => (
+                <div key={`skeleton-${index}`} className="exercise-card skeleton">
+                  <div className="skeleton-header"></div>
+                  <div className="skeleton-body"></div>
+                  <div className="skeleton-footer"></div>
                 </div>
-                <div className="card-body">
-                  <h3 className="card-title">{exercise.title}</h3>
-                  <p className="card-language">
-                    <FaCode /> {exercise.language}
-                  </p>
-                </div>
-                <div className="card-footer">
-                  <button className="btn-start">Começar</button>
-                  <button className="btn-details">Detalhes</button>
-                </div>
+              ))
+            ) : recommendations.length > 0 ? (
+              recommendations.map((exercise) => {
+                // Mapear dificuldade numérica para texto
+                const difficultyMap: Record<number, string> = {
+                  1: 'Fácil',
+                  2: 'Médio',
+                  3: 'Difícil',
+                  4: 'Expert',
+                }
+                const difficultyText = difficultyMap[exercise.difficulty] || 'Médio'
+                
+                return (
+                  <div key={exercise.id} className="exercise-card">
+                    <div className="card-header">
+                      <span className={`difficulty-badge ${difficultyText.toLowerCase()}`}>
+                        {difficultyText}
+                      </span>
+                      <span className="xp-badge">
+                        <FaStar /> {exercise.baseXp} XP
+                      </span>
+                    </div>
+                    <div className="card-body">
+                      <h3 className="card-title">{exercise.title}</h3>
+                      <p className="card-language">
+                        <FaCode /> {exercise.languageId || 'Multi-linguagem'}
+                      </p>
+                    </div>
+                    <div className="card-footer">
+                      <button className="btn-start">Começar</button>
+                      <button className="btn-details">Detalhes</button>
+                    </div>
+                  </div>
+                )
+              })
+            ) : (
+              <div className="no-recommendations">
+                <p>Nenhuma recomendação disponível no momento.</p>
+                <button onClick={loadDashboardData} className="btn-refresh">
+                  Recarregar
+                </button>
               </div>
-            ))}
+            )}
           </div>
         </section>
       </div>

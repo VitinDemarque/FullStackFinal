@@ -3,12 +3,11 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@contexts/AuthContext";
 import { FaArrowLeft } from "react-icons/fa";
 import Notification from "@components/Notification";
+import ErrorAlert from "@components/ErrorAlert";
+import { useErrorHandler } from "@hooks/useErrorHandler";
+import { collegesService } from "@services/index";
+import type { College } from "../../types";
 import "./AuthPages.css";
-
-interface College {
-  _id: string;
-  name: string;
-}
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -20,7 +19,7 @@ export default function SignupPage() {
     college: "",
   });
   const [colleges, setColleges] = useState<College[]>([]);
-  const [error, setError] = useState("");
+  const [loadingColleges, setLoadingColleges] = useState(true);
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState<{
     type: "success" | "error";
@@ -29,21 +28,34 @@ export default function SignupPage() {
 
   const { signup } = useAuth();
   const navigate = useNavigate();
+  const { error, setError, clearError } = useErrorHandler();
 
   useEffect(() => {
-    // Mock de faculdades - você pode buscar da API depois
-    setColleges([
-      { _id: "1", name: "Universidade de São Paulo (USP)" },
-      { _id: "2", name: "Universidade Federal do Rio de Janeiro (UFRJ)" },
-      { _id: "3", name: "Universidade Estadual de Campinas (UNICAMP)" },
-      { _id: "4", name: "Universidade Federal de Minas Gerais (UFMG)" },
-      { _id: "5", name: "Pontifícia Universidade Católica (PUC)" },
-    ]);
+    loadColleges();
   }, []);
+
+  async function loadColleges() {
+    setLoadingColleges(true);
+    try {
+      const response = await collegesService.getAll();
+      setColleges(response.items);
+    } catch (error) {
+      console.error("Erro ao carregar faculdades:", error);
+      // Fallback manual caso o serviço falhe completamente
+      setColleges([
+        { id: '1', name: 'Faculdade de Minas', acronym: 'FAMINAS', city: 'Muriaé', state: 'MG' },
+        { id: '2', name: 'Universidade de São Paulo', acronym: 'USP', city: 'São Paulo', state: 'SP' },
+        { id: '3', name: 'Universidade Federal de Minas Gerais', acronym: 'UFMG', city: 'Belo Horizonte', state: 'MG' },
+        { id: '4', name: 'Pontifícia Universidade Católica', acronym: 'PUC-SP', city: 'São Paulo', state: 'SP' },
+      ]);
+    } finally {
+      setLoadingColleges(false);
+    }
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setError("");
+    clearError();
     setNotification(null);
     setLoading(true);
 
@@ -70,41 +82,19 @@ export default function SignupPage() {
         navigate("/dashboard");
       }, 2000);
     } catch (err: any) {
-      // Extrair mensagem de erro da API
-      let errorMessage = "Erro ao criar conta";
-
-      if (err.response?.data?.message) {
-        errorMessage = err.response.data.message;
-      } else if (err.message) {
-        errorMessage = err.message;
-      }
-
-      // Tratar erros específicos
-      if (err.response?.status === 409) {
-        errorMessage = "Este e-mail já está cadastrado. Tente fazer login.";
-      } else if (err.response?.status === 400) {
-        if (err.response.data?.details) {
-          // Erros de validação
-          const details = err.response.data.details;
-          if (Array.isArray(details)) {
-            errorMessage = details.map((d: any) => d.message).join(", ");
-          }
-        }
-      } else if (!navigator.onLine) {
-        errorMessage = "Sem conexão com a internet. Verifique sua conexão.";
-      } else if (err.code === "ECONNREFUSED" || err.statusCode === 0) {
-        errorMessage =
-          "Não foi possível conectar ao servidor. Tente novamente.";
-      }
-
-      setError(errorMessage);
+      setError(err, "Signup");
       setNotification({
         type: "error",
-        message: errorMessage,
+        message: err.message || "Erro ao criar conta",
       });
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleRetry() {
+    clearError();
+    handleSubmit(new Event('submit') as any);
   }
 
   function handleChange(
@@ -138,14 +128,14 @@ export default function SignupPage() {
             <FaArrowLeft /> Voltar para Home
           </Link>
 
-          <h1 className="auth-title">
-            <span className="bracket">{"{"}</span>Cadastro
-            <span className="bracket">{"}"}</span>
-          </h1>
+        <h1 className="auth-title">
+          <span className="bracket">{"{"}</span>Cadastro
+          <span className="bracket">{"}"}</span>
+        </h1>
 
-          {error && <div className="error-message">{error}</div>}
+        {error && <ErrorAlert error={error} onClose={clearError} onRetry={error.canRetry ? handleRetry : undefined} />}
 
-          <form onSubmit={handleSubmit} className="auth-form">
+        <form onSubmit={handleSubmit} className="auth-form">
             <div className="form-row">
               <div className="form-group">
                 <label>Nome Completo</label>
@@ -182,11 +172,14 @@ export default function SignupPage() {
                 onChange={handleChange}
                 required
                 className="form-input form-select"
+                disabled={loadingColleges}
               >
-                <option value="">Selecione sua Faculdade</option>
+                <option value="">
+                  {loadingColleges ? 'Carregando faculdades...' : 'Selecione sua Faculdade'}
+                </option>
                 {colleges.map((college) => (
-                  <option key={college._id} value={college._id}>
-                    {college.name}
+                  <option key={college.id} value={college.id}>
+                    {college.name} {college.acronym ? `(${college.acronym})` : ''}
                   </option>
                 ))}
               </select>

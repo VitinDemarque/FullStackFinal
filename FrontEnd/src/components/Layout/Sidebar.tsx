@@ -1,10 +1,11 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { FaHome, FaCode, FaTrophy, FaStar, FaUser, FaCog, FaSignOutAlt, FaChartLine } from 'react-icons/fa'
 import { useAuth } from '@contexts/AuthContext'
 import './Sidebar.css'
 
 export default function Sidebar() {
   const location = useLocation()
+  const navigate = useNavigate()
   const { user, logout } = useAuth()
 
   const menuItems = [
@@ -19,7 +20,7 @@ export default function Sidebar() {
 
   const handleLogout = () => {
     logout()
-    window.location.href = '/login'
+    navigate('/login', { replace: true })
   }
 
   return (
