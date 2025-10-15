@@ -11,12 +11,12 @@ export interface CreateForumInput {
 }
 
 export async function getAll() {
-  // TODO: Buscar fóruns públicos (aleatórios ou ordenados)
+  // O que fazer: Buscar fóruns públicos (aleatórios ou ordenados)
   return await Forum.find({ privacyStatus: 'PUBLIC' }).lean<IForum[]>();
 }
 
 export async function search(query: string) {
-  // TODO: Implementar busca por nome e palavras-chave
+  // O que fazer: Implementar busca por nome e palavras-chave
   return await Forum.find({
     $or: [
       { name: new RegExp(query, 'i') },
@@ -33,7 +33,7 @@ export async function getById(id: string) {
 }
 
 export async function create(userId: string, payload: CreateForumInput) {
-  // TODO: Criar fórum e registrar dono
+  // O que fazer: Criar fórum e registrar dono
   const created = await Forum.create({
     ...payload,
     ownerUserId: new Types.ObjectId(userId),
@@ -43,14 +43,14 @@ export async function create(userId: string, payload: CreateForumInput) {
 }
 
 export async function update(forumId: string, userId: string, payload: Partial<IForum>) {
-  // TODO: Validar permissões (dono/moderador)
+  // O que fazer: Validar permissões (dono/moderador)
   const updated = await Forum.findByIdAndUpdate(forumId, payload, { new: true, runValidators: true }).lean<IForum | null>();
   if (!updated) throw new NotFoundError('Forum not found');
   return updated;
 }
 
 export async function remove(forumId: string, userId: string) {
-  // TODO: Verificar permissões e confirmações de moderação
+  // O que fazer: Verificar permissões e confirmações de moderação
   const deleted = await Forum.findByIdAndDelete(forumId).lean<IForum | null>();
   if (!deleted) throw new NotFoundError('Forum not found');
   return deleted;
