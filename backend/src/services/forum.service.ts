@@ -1,57 +1,159 @@
 import { Types } from 'mongoose';
 import Forum, { IForum } from '../models/forum.model';
 import { NotFoundError, BadRequestError } from '../utils/httpErrors';
+import { parsePagination, toMongoPagination } from '../utils/pagination';
 
-export interface CreateForumInput {
-  name: string;
-  keywords: string[];
-  subject: string;
-  description: string;
-  privacyStatus: 'PUBLIC' | 'PRIVATE';
+// Buscar fóruns públicos (com paginação)
+export async function listarPublicos(query: any) {
+  const paginacao = parsePagination(query, { page: 1, limit: 10 }, 50);
+  const { skip, limit } = toMongoPagination(paginacao);
+
+  const foruns = await Forum.find({ privacidade: 'PUBLICO', status: 'ATIVO' })
+    .sort({ ultimaAtividade: -1 })
+    .skip(skip)
+    .limit(limit)
+    .lean<IForum[]>();
+
+  return foruns;
 }
 
-export async function getAll() {
-  // O que fazer: Buscar fóruns públicos (aleatórios ou ordenados)
-  return await Forum.find({ privacyStatus: 'PUBLIC' }).lean<IForum[]>();
+// Buscar fóruns aleatórios (para exibir na página inicial)
+export async function listarAleatoriosPublicos(qtd = 5) {
+  const foruns = await Forum.aggregate([
+    { $match: { privacidade: 'PUBLICO', status: 'ATIVO' } },
+    { $sample: { size: qtd } }
+  ]);
+  return foruns;
 }
 
-export async function search(query: string) {
-  // O que fazer: Implementar busca por nome e palavras-chave
-  return await Forum.find({
+// Pesquisar fóruns por nome, assunto ou palavras-chave
+export async function pesquisar(termo: string, query: any) {
+  const paginacao = parsePagination(query, { page: 1, limit: 10 }, 50);
+  const { skip, limit } = toMongoPagination(paginacao);
+
+  const foruns = await Forum.find({
     $or: [
-      { name: new RegExp(query, 'i') },
-      { subject: new RegExp(query, 'i') },
-      { keywords: { $in: [new RegExp(query, 'i')] } }
+      { nome: new RegExp(termo, 'i') },
+      { assunto: new RegExp(termo, 'i') },
+      { palavrasChave: { $in: [new RegExp(termo, 'i')] } }
     ]
-  }).lean<IForum[]>();
+  })
+    .skip(skip)
+    .limit(limit)
+    .lean<IForum[]>();
+
+  return foruns;
 }
 
-export async function getById(id: string) {
+// Obter um fórum pelo ID
+export async function obterPorId(id: string) {
   const forum = await Forum.findById(id).lean<IForum | null>();
-  if (!forum) throw new NotFoundError('Forum not found');
+  if (!forum) throw new NotFoundError('Fórum não encontrado');
   return forum;
 }
 
-export async function create(userId: string, payload: CreateForumInput) {
-  // O que fazer: Criar fórum e registrar dono
-  const created = await Forum.create({
+// Criar um novo fórum
+export async function criar(usuarioId: string, payload: Partial<IForum>) {
+  if (!payload.nome || !payload.assunto) throw new BadRequestError('Nome e assunto são obrigatórios');
+
+  const novoForum = await Forum.create({
     ...payload,
-    ownerUserId: new Types.ObjectId(userId),
-    moderators: [new Types.ObjectId(userId)]
+    donoUsuarioId: new Types.ObjectId(usuarioId),
+    moderadores: [{ usuarioId: new Types.ObjectId(usuarioId), desde: new Date(), aprovado: true }]
   });
-  return created.toObject();
+
+  return novoForum.toObject();
 }
 
-export async function update(forumId: string, userId: string, payload: Partial<IForum>) {
-  // O que fazer: Validar permissões (dono/moderador)
-  const updated = await Forum.findByIdAndUpdate(forumId, payload, { new: true, runValidators: true }).lean<IForum | null>();
-  if (!updated) throw new NotFoundError('Forum not found');
-  return updated;
+// Atualizar informações de um fórum, com a regra de negocio implementada
+export async function atualizar(id: string, usuarioId: string, payload: Partial<IForum>) {
+  const forum = await Forum.findById(id).lean<IForum | null>();
+  if (!forum) throw new NotFoundError('Fórum não encontrado');
+
+  const seDono = String(forum.donoUsuarioId) === usuarioId;
+  const seModerador = forum.moderadores?.some(m => String(m.usuarioId) === usuarioId);
+
+  if (!seDono && !seModerador) {
+    throw new BadRequestError('Apenas o dono ou moderadores podem alterar este fórum.');
+  }
+
+  // Se for moderador, criar registro de mudança pendente de aprovação
+  const camposPermitidos = ['nome', 'assunto', 'palavrasChave', 'descricao'];
+  const atualizacoes: any = {};
+
+  for (const campo of camposPermitidos) {
+    if (payload[campo as keyof IForum] !== undefined) {
+      atualizacoes[campo] = payload[campo as keyof IForum];
+    }
+  }
+
+  if (Object.keys(atualizacoes).length === 0) {
+    throw new BadRequestError('Nenhum campo válido para atualização foi informado.');
+  }
+
+  // Dono pode atualizar diretamente
+  const atualizado = await Forum.findByIdAndUpdate(
+    id,
+    { ...atualizacoes, atualizadoEm: new Date() },
+    { new: true, runValidators: true }
+  ).lean<IForum | null>();
+
+  if (!atualizado) throw new NotFoundError('Fórum não encontrado');
+
+  // Registrar a mudança no histórico (mesmo que feita diretamente)
+  await Forum.findByIdAndUpdate(id, {
+    $push: {
+      mudancas: {
+        camposAlterados: Object.keys(atualizacoes),
+        usuarioAutorId: usuarioId,
+        aprovado: seDono, // se o dono fez, já é aprovado
+        data: new Date(),
+      },
+    },
+  });
+
+  return atualizado;
 }
 
-export async function remove(forumId: string, userId: string) {
-  // O que fazer: Verificar permissões e confirmações de moderação
-  const deleted = await Forum.findByIdAndDelete(forumId).lean<IForum | null>();
-  if (!deleted) throw new NotFoundError('Forum not found');
-  return deleted;
+//Excluir um fórum (após confirmações)
+export async function excluir(id: string, usuarioId: string) {
+  const forum = await Forum.findById(id).lean<IForum | null>();
+  if (!forum) throw new NotFoundError('Fórum não encontrado');
+
+  const seDono = String(forum.donoUsuarioId) === usuarioId;
+  const seModerador = forum.moderadores?.some(m => String(m.usuarioId) === usuarioId);
+
+  if (!seDono && !seModerador) {
+    throw new BadRequestError('Somente o dono ou moderadores podem solicitar exclusão.');
+  }
+
+  // Inicializar votos, se não existirem
+  const votos = forum.votosExclusao ?? [];
+  const jaVotou = votos.some(v => String(v.usuarioId) === usuarioId);
+
+  if (jaVotou) {
+    throw new BadRequestError('Este usuário já registrou voto para exclusão.');
+  }
+
+  votos.push({ usuarioId: new Types.ObjectId(usuarioId), data: new Date() });
+
+  const totalVotantes = 1 + (forum.moderadores?.length ?? 0); // dono + moderadores
+  const totalVotos = votos.length;
+  const todosConcordaram = totalVotos >= totalVotantes;
+
+  if (todosConcordaram) {
+    const deletado = await Forum.findByIdAndDelete(id).lean<IForum | null>();
+    if (!deletado) throw new NotFoundError('Fórum não encontrado');
+    return { mensagem: 'Fórum excluído com sucesso.', forum: deletado };
+  }
+
+  // Caso ainda faltem confirmações
+  await Forum.findByIdAndUpdate(id, {
+    $set: { status: 'PENDENTE_EXCLUSAO', votosExclusao: votos },
+  });
+
+  return {
+    mensagem: `Exclusão pendente — ${totalVotos}/${totalVotantes} confirmações registradas.`,
+    pendente: true,
+  };
 }

@@ -4,22 +4,25 @@ import { auth } from '../middlewares/auth';
 
 const router = Router();
 
-// Get todos os foruns
-router.get('/', ForumController.getAll);
+// Get foruns publicos
+router.get('/', ForumController.listarPublicos);
+
+// Get forum aleatorio (para exibir na página inicial)
+router.get('/aleatorios', ForumController.listarAleatorios);
 
 // Get foruns por pesquisa
-router.get('/search', ForumController.search);
+router.get('/pesquisar', ForumController.pesquisar);
 
 // Get forum por ID
-router.get('/:id', ForumController.getById);
+router.get('/:id', ForumController.obterPorId);
 
 // Criação de fórum
-router.post('/', auth(), ForumController.create);
+router.post('/', auth(), ForumController.criar);
 
 // Atualizar forum
-router.patch('/:id', auth(), ForumController.update);
+router.patch('/:id', auth(), ForumController.atualizar);
 
 // Deletar forum
-router.delete('/:id', auth(), ForumController.remove);
+router.delete('/:id', auth(), ForumController.excluir);
 
 export default router;
