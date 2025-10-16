@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import Forum, { IForum } from '../models/forum.model';
+import Forum, { IForum } from '../models/Forum.model';
 import { NotFoundError, BadRequestError } from '../utils/httpErrors';
 import { parsePagination, toMongoPagination } from '../utils/pagination';
 
