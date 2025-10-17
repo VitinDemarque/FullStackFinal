@@ -1,4 +1,10 @@
-jest.mock('../../../models/College.model', () => ({
+// comando de teste para esse arquivo: npm test -- src/tests/unit/services/colleges.service.test.ts --verbose
+
+import * as collegesService from '@/services/colleges.service';
+import College from '@/models/College.model';
+import { ConflictError, NotFoundError } from '@/utils/httpErrors';
+
+jest.mock('@/models/College.model', () => ({
   find: jest.fn(),
   countDocuments: jest.fn(),
   findById: jest.fn(),
@@ -7,10 +13,6 @@ jest.mock('../../../models/College.model', () => ({
   findByIdAndUpdate: jest.fn(),
   findByIdAndDelete: jest.fn(),
 }));
-
-import * as collegesService from '@/services/colleges.service';
-import College from '@/models/College.model';
-import { ConflictError, NotFoundError } from '@/utils/httpErrors';
 
 /*
 

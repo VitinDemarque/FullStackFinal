@@ -1,3 +1,9 @@
+// comando de teste para esse arquivo: npm test -- src/tests/unit/services/languages.service.test.ts --verbose
+
+import * as languageService from '@/services/languages.service';
+import Language from '@/models/Language.model';
+import { ConflictError, NotFoundError } from '@/utils/httpErrors';
+
 jest.mock('../../../models/Language.model', () => ({
   find: jest.fn(),
   countDocuments: jest.fn(),
@@ -7,10 +13,6 @@ jest.mock('../../../models/Language.model', () => ({
   findByIdAndUpdate: jest.fn(),
   findByIdAndDelete: jest.fn(),
 }));
-
-import * as languageService from '@/services/languages.service';
-import Language from '@/models/Language.model';
-import { ConflictError, NotFoundError } from '@/utils/httpErrors';
 
 /*
 

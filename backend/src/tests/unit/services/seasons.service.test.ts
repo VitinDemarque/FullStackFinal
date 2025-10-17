@@ -1,3 +1,9 @@
+// comando de teste para esse arquivo: npm test -- src/tests/unit/services/seasons.service.test.ts --verbose
+
+import * as seasonService from '@/services/seasons.service';
+import Season from '@/models/Season.model';
+import { BadRequestError, NotFoundError } from '@/utils/httpErrors';
+
 /*
 
 Funcao                  Cobertura
@@ -10,10 +16,6 @@ Funcao                  Cobertura
   deactivate              Desativa ou lanca erro
 
 */
-
-import * as seasonService from '@/services/seasons.service';
-import Season from '@/models/Season.model';
-import { BadRequestError, NotFoundError } from '@/utils/httpErrors';
 
 // Mock do modelo Mongoose
 jest.mock('../../../models/Season.model', () => ({

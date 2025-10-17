@@ -1,3 +1,5 @@
+// comando de teste para esse arquivo: npm test -- src/tests/unit/services/levels.service.test.ts --verbose
+
 import * as levelService from '@/services/levels.service';
 import LevelRule from '@/models/LevelRule.model';
 import { NotFoundError } from '@/utils/httpErrors';

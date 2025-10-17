@@ -5,7 +5,7 @@ import { auth } from '../middlewares/auth';
 const router = Router();
 
 // Get foruns publicos
-router.get('/', ForumController.listarPublicos);
+router.get('/foruns', ForumController.listarPublicos);
 
 // Get forum aleatorio (para exibir na página inicial)
 router.get('/aleatorios', ForumController.listarAleatorios);

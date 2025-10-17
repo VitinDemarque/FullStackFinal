@@ -1,10 +1,18 @@
+// comando de teste para esse arquivo: npm test -- src/tests/unit/services/badges.service.test.ts --verbose
+
+// Imports após os mocks
+import * as badgesService from '@/services/badges.service';
+import Badge from '@/models/Badge.model';
+import UserBadge from '@/models/UserBadge.model';
+import { NotFoundError } from '@/utils/httpErrors';
+
 jest.mock('mongoose', () => ({
   Types: {
     ObjectId: jest.fn((val) => val), // sempre retorna a string original
   },
 }));
 
-// ✅ 2️⃣ Mocks dos models (antes de importar o service)
+// Mocks dos models (antes de importar o service)
 jest.mock('../../../models/Badge.model', () => ({
   find: jest.fn(),
   countDocuments: jest.fn(),
@@ -17,12 +25,6 @@ jest.mock('../../../models/Badge.model', () => ({
 jest.mock('../../../models/UserBadge.model', () => ({
   updateOne: jest.fn(),
 }));
-
-// ✅ 3️⃣ Imports após os mocks
-import * as badgesService from '../../../services/badges.service';
-import Badge from '../../../models/Badge.model';
-import UserBadge from '../../../models/UserBadge.model';
-import { NotFoundError } from '../../../utils/httpErrors';
 
 /*
 

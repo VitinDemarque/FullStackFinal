@@ -1,4 +1,14 @@
-// ✅ 1️⃣ Mock dos Models
+// comando de teste para esse arquivo: npm test -- src/tests/unit/services/exercises.service.test.ts --verbose
+
+// Imports após mocks
+import * as exercisesService from '@/services/exercises.service';
+import Exercise from '@/models/Exercise.model';
+import Language from '@/models/Language.model';
+import UserStat from '@/models/UserStat.model';
+import { ForbiddenError, NotFoundError } from '@/utils/httpErrors';
+import { Types } from 'mongoose';
+
+// Mock dos Models
 jest.mock('../../../models/Exercise.model', () => ({
   find: jest.fn(),
   countDocuments: jest.fn(),
@@ -11,14 +21,6 @@ jest.mock('../../../models/Language.model', () => ({
 jest.mock('../../../models/UserStat.model', () => ({
   updateOne: jest.fn(),
 }));
-
-// ✅ 2️⃣ Imports após mocks
-import * as exercisesService from '@/services/exercises.service';
-import Exercise from '@/models/Exercise.model';
-import Language from '@/models/Language.model';
-import UserStat from '@/models/UserStat.model';
-import { ForbiddenError, NotFoundError } from '@/utils/httpErrors';
-import { Types } from 'mongoose';
 
 /*
 
@@ -36,7 +38,6 @@ import { Types } from 'mongoose';
 
 */
 
-// ✅ Corrige o erro 01 — Mock seguro de ObjectId
 jest.spyOn(Types, 'ObjectId').mockImplementation((id?: any) => id as unknown as any);
 
 describe('exercises.service', () => {
@@ -48,7 +49,7 @@ describe('exercises.service', () => {
     jest.clearAllMocks();
   });
 
-  // ✅ list()
+  // Verificando a funcao list
   describe('list', () => {
     it('deve listar exercícios com filtros aplicados', async () => {
       const mockExercises = [
@@ -93,7 +94,7 @@ describe('exercises.service', () => {
     });
   });
 
-  // ✅ getById()
+  // Verificando a funcao getById
   describe('getById', () => {
     it('deve retornar exercício se encontrado', async () => {
       const mockEx = { _id: exId, authorUserId: userId, status: 'DRAFT' };
@@ -114,7 +115,7 @@ describe('exercises.service', () => {
     });
   });
 
-  // ✅ create()
+  // Verificando a funcao create
   describe('create', () => {
     it('deve criar exercício e atualizar estatísticas', async () => {
       (Language.findById as jest.Mock).mockReturnValueOnce({
@@ -156,7 +157,7 @@ describe('exercises.service', () => {
     });
   });
 
-  // ✅ update()
+  // Verificando a funcao update
   describe('update', () => {
     it('deve atualizar exercício se for autor', async () => {
       const mockEx: any = {
@@ -206,7 +207,7 @@ describe('exercises.service', () => {
     });
   });
 
-  // ✅ remove()
+  // Verificando a funcao remove
   describe('remove', () => {
     it('deve deletar se for autor', async () => {
       const mockEx: any = { authorUserId: userId, deleteOne: jest.fn() };
@@ -230,7 +231,7 @@ describe('exercises.service', () => {
     });
   });
 
-  // ✅ publish(), unpublish(), setVisibility()
+  // Verificando as funcoes  publish, unpublish, setVisibility
   describe('publish / unpublish / setVisibility', () => {
     const mockExBase = (authorId: string): any => ({
       _id: exId,

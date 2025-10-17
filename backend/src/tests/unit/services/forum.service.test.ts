@@ -1,0 +1,1 @@
+// comando de teste para esse arquivo: npm test -- src/tests/unit/services/forum.service.test.ts --verbose

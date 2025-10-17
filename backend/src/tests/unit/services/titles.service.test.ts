@@ -1,3 +1,5 @@
+// comando de teste para esse arquivo: npm test -- src/tests/unit/services/titles.service.test.ts --verbose
+
 import { Types } from 'mongoose';
 import * as titlesService from '@/services/titles.service';
 import Title from '@/models/Title.model';
@@ -50,14 +52,12 @@ describe('titles.service', () => {
     });
   });
 
-  // ✅ PRIMEIRA CORREÇÃO
   describe('getById', () => {
     it('deve retornar title por ID', async () => {
       (Title.findById as jest.Mock).mockReturnValue({
         lean: jest.fn().mockResolvedValue(mockTitle as unknown as ITitle)
       });
 
-      // 👇 Cast duplo para unknown -> ITitle
       const result = (await titlesService.getById(mockTitleId)) as unknown as ITitle;
       expect(result._id).toBe(mockTitleId);
     });
@@ -92,14 +92,12 @@ describe('titles.service', () => {
     });
   });
 
-  // ✅ SEGUNDA CORREÇÃO
   describe('update', () => {
     it('deve atualizar title existente', async () => {
       (Title.findByIdAndUpdate as jest.Mock).mockReturnValue({
         lean: jest.fn().mockResolvedValue(mockTitle as unknown as ITitle)
       });
 
-      // 👇 Cast duplo novamente
       const result = (await titlesService.update(mockTitleId, { name: 'Legend' })) as unknown as ITitle;
       expect(result._id).toBe(mockTitleId);
       expect(Title.findByIdAndUpdate).toHaveBeenCalledWith(

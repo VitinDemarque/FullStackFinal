@@ -1,12 +1,14 @@
+// comando de teste para esse arquivo: npm test -- src/tests/unit/services/leaderboards.service.test.ts --verbose
+
+import * as leaderboardService from '@/services/leaderboards.service';
+import Submission from '@/models/Submission.model';
+import { BadRequestError } from '@/utils/httpErrors';
+
 jest.mock('../../../models/Submission.model', () => ({
   aggregate: jest.fn(),
 }));
 jest.mock('../../../models/Exercise.model', () => ({}));
 jest.mock('../../../models/User.model', () => ({}));
-
-import * as leaderboardService from '@/services/leaderboards.service';
-import Submission from '@/models/Submission.model';
-import { BadRequestError } from '@/utils/httpErrors';
 
 /*
 

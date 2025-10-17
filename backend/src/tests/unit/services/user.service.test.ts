@@ -1,3 +1,5 @@
+// comando de teste para esse arquivo: npm test -- src/tests/unit/services/user.service.test.ts --verbose
+
 import * as userService from '@/services/users.service';
 import User from '@/models/User.model';
 import Exercise from '@/models/Exercise.model';

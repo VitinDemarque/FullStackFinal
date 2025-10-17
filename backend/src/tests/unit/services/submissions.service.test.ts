@@ -1,3 +1,5 @@
+// comando de teste para esse arquivo: npm test -- src/tests/unit/services/submissions.service.test.ts --verbose
+
 import { Types } from 'mongoose';
 import * as submissionsService from '@/services/submissions.service';
 import Submission from '@/models/Submission.model';

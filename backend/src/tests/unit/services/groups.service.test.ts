@@ -1,3 +1,11 @@
+// comando de teste para esse arquivo: npm test -- src/tests/unit/services/groups.service.test.ts --verbose
+
+import * as groupsService from '@/services/groups.service';
+import Group from '@/models/Group.model';
+import GroupMember from '@/models/GroupMember.model';
+import { ForbiddenError, NotFoundError } from '@/utils/httpErrors';
+import { Types } from 'mongoose';
+
 jest.mock('../../../models/Group.model', () => ({
   find: jest.fn(),
   countDocuments: jest.fn(),
@@ -12,12 +20,6 @@ jest.mock('../../../models/GroupMember.model', () => ({
   deleteMany: jest.fn(),
   updateOne: jest.fn(),
 }));
-
-import * as groupsService from '@/services/groups.service';
-import Group from '@/models/Group.model';
-import GroupMember from '@/models/GroupMember.model';
-import { ForbiddenError, NotFoundError } from '@/utils/httpErrors';
-import { Types } from 'mongoose';
 
 /*
 
