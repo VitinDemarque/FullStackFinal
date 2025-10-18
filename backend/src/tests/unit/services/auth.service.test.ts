@@ -99,25 +99,48 @@ describe('auth.service', () => {
       handle: mockUserData.handle,
       passwordHash: 'hashedPassword',
       role: 'USER',
+      name: mockUserData.name,
+      avatarUrl: null,
+      bio: null,
+      level: 1,
+      xpTotal: 0,
+      collegeId: '507f1f77bcf86cd799439011',
     };
 
     it('deve autenticar com sucesso', async () => {
+      // Mocka o retorno do banco (usuário encontrado)
       (User.findOne as jest.Mock).mockReturnValueOnce(mockLean(mockUser));
+
+      // Mocka comparação de senha como verdadeira
       (comparePassword as jest.Mock).mockResolvedValueOnce(true);
+
+      // Mocka geração de tokens
       (signToken as jest.Mock)
         .mockReturnValueOnce('accessToken')
         .mockReturnValueOnce('refreshToken');
 
+      // Executa o login
       const result = await login({ email: mockUserData.email, password: '123456' });
 
+      // Valida resultado
       expect(result).toEqual({
-        user: expect.objectContaining({ email: mockUserData.email }),
-        tokens: { accessToken: 'accessToken', refreshToken: 'refreshToken' },
+        user: expect.objectContaining({
+          email: mockUserData.email,
+          handle: mockUserData.handle,
+          name: mockUserData.name,
+          role: 'USER',
+          collegeId: '507f1f77bcf86cd799439011',
+        }),
+        tokens: {
+          accessToken: 'accessToken',
+          refreshToken: 'refreshToken',
+        },
       });
     });
 
     it('deve lançar UnauthorizedError se usuário não existir', async () => {
       (User.findOne as jest.Mock).mockReturnValueOnce(mockLean(null));
+
       await expect(login({ email: mockUserData.email, password: '123456' }))
         .rejects.toThrow(UnauthorizedError);
     });
@@ -125,6 +148,7 @@ describe('auth.service', () => {
     it('deve lançar UnauthorizedError se senha for inválida', async () => {
       (User.findOne as jest.Mock).mockReturnValueOnce(mockLean(mockUser));
       (comparePassword as jest.Mock).mockResolvedValueOnce(false);
+
       await expect(login({ email: mockUserData.email, password: 'errada' }))
         .rejects.toThrow(UnauthorizedError);
     });

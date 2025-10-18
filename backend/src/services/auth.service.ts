@@ -4,6 +4,7 @@ import { verifyToken, signToken, UserTokenPayload } from '../utils/jwt';
 import { BadRequestError, ConflictError, NotFoundError, UnauthorizedError } from '../utils/httpErrors';
 import User, { IUser } from '../models/User.model';
 import College from '../models/College.model';
+import { sanitizeUser } from '@/utils/sanitizeUser';
 
 export interface SignupInput {
   name: string;
@@ -18,6 +19,8 @@ export interface LoginInput {
   password: string;
 }
 
+
+// Logout
 export async function signup(input: SignupInput) {
   const { name, email, password, handle, collegeId } = input;
 
@@ -59,6 +62,7 @@ export async function signup(input: SignupInput) {
   };
 }
 
+// Login
 export async function login(input: LoginInput) {
   const { email, password } = input;
   const user = await User.findOne({ email });
@@ -82,6 +86,7 @@ export async function login(input: LoginInput) {
   };
 }
 
+// Refresh token
 export async function refreshToken(oldRefreshToken: string) {
   if (!oldRefreshToken) throw new BadRequestError('refreshToken is required');
 
@@ -113,20 +118,5 @@ export async function refreshToken(oldRefreshToken: string) {
       accessToken: newAccessToken,
       refreshToken: newRefreshToken
     }
-  };
-}
-
-function sanitizeUser(u: any) {
-  return {
-    id: String(u._id),
-    name: u.name,
-    email: u.email,
-    handle: u.handle,
-    collegeId: u.collegeId ? String(u.collegeId) : null,
-    level: u.level,
-    xpTotal: u.xpTotal,
-    avatarUrl: u.avatarUrl ?? null,
-    bio: u.bio ?? null,
-    role: u.role ?? 'USER'
   };
 }
