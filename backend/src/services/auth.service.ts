@@ -4,7 +4,7 @@ import { verifyToken, signToken, UserTokenPayload } from '../utils/jwt';
 import { BadRequestError, ConflictError, NotFoundError, UnauthorizedError } from '../utils/httpErrors';
 import User, { IUser } from '../models/User.model';
 import College from '../models/College.model';
-import { sanitizeUser } from '@/utils/sanitizeUser';
+import { sanitizeUser } from '../utils/sanitizeUser';
 
 export interface SignupInput {
   name: string;
