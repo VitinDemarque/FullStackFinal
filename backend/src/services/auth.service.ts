@@ -56,8 +56,10 @@ export async function signup(input: SignupInput) {
   // refresh opcional: poderia salvar em collection de tokens/whitelist
   const refreshToken = signToken({ user_id: String(doc._id), email: doc.email }, { expiresIn: '7d' });
 
+  // Const criada para gratir que estaremos passando um objeto, buscando evitar inconsistencias de tipo
+  const userObj = doc.toObject ? doc.toObject() : doc;
   return {
-    user: sanitizeUser(doc),
+    user: sanitizeUser(userObj),
     tokens: { accessToken, refreshToken }
   };
 }
@@ -65,7 +67,8 @@ export async function signup(input: SignupInput) {
 // Login
 export async function login(input: LoginInput) {
   const { email, password } = input;
-  const user = await User.findOne({ email });
+  // o const user esta com o .lean<IUser | null>(), pois o Mongoose e o TypeScript estavam interpretando com tipos diferentes
+  const user = await User.findOne({ email }).lean<IUser | null>();
   if (!user) throw new UnauthorizedError('Invalid credentials');
 
   const ok = await comparePassword(password, user.passwordHash);
@@ -108,10 +111,10 @@ export async function refreshToken(oldRefreshToken: string) {
     collegeId: user.collegeId ? user.collegeId.toString() : undefined
   });
 
-  const newRefreshToken = signToken({
-    user_id: user._id.toString(),
-    email: user.email
-  });
+  const newRefreshToken = signToken(
+    { user_id: user._id.toString(), email: user.email },
+    { expiresIn: '7d'}
+  );
 
   return {
     tokens: {

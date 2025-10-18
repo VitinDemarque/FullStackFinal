@@ -1,13 +1,13 @@
-import { IUser } from '../models/User.model';
+import { IUser } from '@/models/User.model';
 
-export function sanitizeUser(user: Partial<IUser> | any) {
+export function sanitizeUser(user: IUser) {
   if (!user) return null;
 
   return {
-    id: String(user._id ?? user.id ?? ''),
-    name: user.name ?? null,
-    email: user.email ?? null,
-    handle: user.handle ?? null,
+    id: String(user._id),
+    name: user.name,
+    email: user.email,
+    handle: user.handle,
     role: user.role ?? 'USER',
     collegeId: user.collegeId ? String(user.collegeId) : null,
     avatarUrl: user.avatarUrl ?? null,

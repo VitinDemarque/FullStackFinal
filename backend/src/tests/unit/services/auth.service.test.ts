@@ -20,12 +20,19 @@ const mockLean = (returnValue: any) => ({
 
 describe('auth.service', () => {
   const mockUserData = {
+    _id: '9999',
     name: 'João',
     email: 'joao@email.com',
     password: '123456',
     handle: 'joaoteste',
+    passwordHash: 'hashedPassword',
+    role: 'USER',
+    collegeId: '507f1f77bcf86cd799439011',
+    avatarUrl: null,
+    bio: null,
+    level: 1,
+    xpTotal: 0
   };
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -91,7 +98,7 @@ describe('auth.service', () => {
   });
 
 
-  // Teste do login
+  // Mock dos dados para o teste de login
   describe('login', () => {
     const mockUser = {
       _id: 'user123',
@@ -155,7 +162,6 @@ describe('auth.service', () => {
   });
 
   // Teste REFRESH TOKEN
-  // Estamos pulando este teste pois ainda nao implementamos o refresh
   describe.skip('refresh', () => {
     it('deve gerar novos tokens com sucesso', async () => {
       (verifyToken as jest.Mock).mockReturnValueOnce({ userId: 'user123' });
