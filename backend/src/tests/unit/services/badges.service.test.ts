@@ -1,19 +1,27 @@
 // comando de teste para esse arquivo: npm test -- src/tests/unit/services/badges.service.test.ts --verbose
 
-// Imports após os mocks
+// Imports
 import * as badgesService from '@/services/badges.service';
 import Badge from '@/models/Badge.model';
 import UserBadge from '@/models/UserBadge.model';
 import { NotFoundError } from '@/utils/httpErrors';
 
-jest.mock('mongoose', () => ({
-  Types: {
-    ObjectId: jest.fn((val) => val), // sempre retorna a string original
-  },
-}));
+// Estamos expecificando que retorne a string original qual o Types object ID for chamado, evitando que o Jest crie um mockConstructor e preservando outras funcionalidades do mongoose
+jest.mock('mongoose', () => {
+  const actualMongoose = jest.requireActual('mongoose');
+  return {
+    ...actualMongoose,
+    Types: {
+      ...actualMongoose.Types,
+      ObjectId: jest.fn((id?: string) => ({
+        toString: () => id ?? 'mocked-object-id'
+      })),
+    },
+  };
+});
 
 // Mocks dos models (antes de importar o service)
-jest.mock('../../../models/Badge.model', () => ({
+jest.mock('@/models/Badge.model', () => ({
   find: jest.fn(),
   countDocuments: jest.fn(),
   findById: jest.fn(),
@@ -22,7 +30,7 @@ jest.mock('../../../models/Badge.model', () => ({
   findByIdAndDelete: jest.fn(),
 }));
 
-jest.mock('../../../models/UserBadge.model', () => ({
+jest.mock('@/models/UserBadge.model', () => ({
   updateOne: jest.fn(),
 }));
 
@@ -154,11 +162,8 @@ describe('badges.service', () => {
 
       const [filter, update, options] = (UserBadge.updateOne as jest.Mock).mock.calls[0];
 
-      // ✅ filter agora deve conter os valores originais, não objetos vazios
-      expect(filter).toEqual({
-        userId: mockUserId,
-        badgeId: mockBadgeId,
-      });
+      expect(filter.userId.toString()).toBe(mockUserId);
+      expect(filter.badgeId.toString()).toBe(mockBadgeId);// Utilizamos o expect para garantir um boa comunicacao entre o badges.service e o mockConstructor, permitindo que eles se comuniquem de forma mais precisa
       expect(update).toMatchObject({
         $setOnInsert: { awardedAt: expect.any(Date) },
         $set: { source: 'sourceXYZ' },
@@ -173,10 +178,9 @@ describe('badges.service', () => {
 
       const [filter, update, options] = (UserBadge.updateOne as jest.Mock).mock.calls[0];
 
-      expect(filter).toEqual({
-        userId: mockUserId,
-        badgeId: mockBadgeId,
-      });
+      // Fazemos isso para garantir que o ObjectId se transforma em string, permitindo a comparacao correta
+      expect(filter.userId.toString()).toBe(mockUserId);
+      expect(filter.badgeId.toString()).toBe(mockBadgeId);
       expect(update).toMatchObject({
         $setOnInsert: { awardedAt: expect.any(Date) },
         $set: { source: null },
