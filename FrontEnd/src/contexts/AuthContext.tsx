@@ -8,6 +8,7 @@ interface AuthContextData {
   login: (credentials: LoginCredentials) => Promise<void>
   signup: (data: SignupData) => Promise<void>
   logout: () => void
+  updateUser: (userData: Partial<User>) => void
   isAuthenticated: boolean
 }
 
@@ -26,6 +27,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (authService.isAuthenticated()) {
           const currentUser = await authService.getCurrentUser()
           if (isMounted) {
+            // Carregar foto do localStorage se existir
+            const localAvatar = localStorage.getItem(`avatar_${currentUser.id}`)
+            if (localAvatar) {
+              currentUser.avatarUrl = localAvatar
+            }
             setUser(currentUser)
           }
         }
@@ -66,6 +72,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function login(credentials: LoginCredentials) {
     const response = await authService.login(credentials)
+    // Carregar foto do localStorage se existir
+    const localAvatar = localStorage.getItem(`avatar_${response.user.id}`)
+    if (localAvatar) {
+      response.user.avatarUrl = localAvatar
+    }
     setUser(response.user)
   }
 
@@ -79,6 +90,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }
 
+  function updateUser(userData: Partial<User>) {
+    if (user) {
+      setUser({ ...user, ...userData })
+    }
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -87,6 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         signup,
         logout,
+        updateUser,
         isAuthenticated: !!user,
       }}
     >

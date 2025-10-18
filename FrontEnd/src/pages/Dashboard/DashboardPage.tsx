@@ -5,7 +5,13 @@ import { exercisesService, statsService } from "@services/index";
 import { useFetch } from "@hooks/useFetch";
 import type { Exercise } from "../../types";
 import type { DashboardStats as DashboardStatsType } from "@services/stats.service";
-import "./DashboardPage.css";
+import {
+  SkeletonCard,
+  SkeletonHeader,
+  SkeletonBody,
+  SkeletonFooter,
+} from "@/styles/components/Skeleton";
+import * as S from "@/styles/pages/Dashboard/styles";
 
 interface DashboardData {
   stats: DashboardStatsType;
@@ -43,143 +49,115 @@ export default function DashboardPage() {
 
   return (
     <AuthenticatedLayout>
-      <div className="dashboard-page">
-        <div className="dashboard-container">
+      <S.DashboardPage>
+        <S.DashboardContainer>
           {error && (
-            <div
-              style={{
-                padding: "1rem",
-                margin: "1rem 0",
-                backgroundColor: "#fee",
-                border: "1px solid #fcc",
-                borderRadius: "8px",
-                color: "#c33",
-              }}
-            >
+            <S.ErrorAlert>
               <strong>Erro ao carregar dados:</strong> {error.message}
-              <button
-                onClick={refetch}
-                style={{
-                  marginLeft: "1rem",
-                  padding: "0.5rem 1rem",
-                  backgroundColor: "#c33",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
-              >
-                Tentar novamente
-              </button>
-            </div>
+              <button onClick={refetch}>Tentar novamente</button>
+            </S.ErrorAlert>
           )}
 
-          <section className="dashboard-hero">
-            <div className="hero-content">
-              <h1 className="hero-title">
-                <span className="bracket">{"{"}</span>
+          <S.HeroSection>
+            <S.HeroContent>
+              <S.HeroTitle>
+                <S.Bracket>{"{"}</S.Bracket>
                 Hello World!
-                <span className="bracket">{"}"}</span>
-              </h1>
-              <p className="hero-description">
+                <S.Bracket>{"}"}</S.Bracket>
+              </S.HeroTitle>
+              <S.HeroDescription>
                 Bem-vindo de volta, <strong>{user?.name}</strong>! Continue sua
                 jornada de aprendizado e conquiste novos desafios. Você está
                 indo muito bem!
-              </p>
-              <button className="btn-action">
-                <FaFire className="btn-icon" />
+              </S.HeroDescription>
+              <S.ActionButton>
+                <FaFire />
                 Iniciar Desafio
-              </button>
-            </div>
-            <div className="hero-stats">
-              <div className="stat-card">
-                <FaTrophy className="stat-icon trophy" />
+              </S.ActionButton>
+            </S.HeroContent>
+            <S.HeroStats>
+              <S.StatCard variant="trophy">
+                <FaTrophy />
                 <div>
-                  <p className="stat-value">Level {user?.level || 1}</p>
-                  <p className="stat-label">Seu Nível</p>
+                  <S.StatValue>Level {user?.level || 1}</S.StatValue>
+                  <S.StatLabel>Seu Nível</S.StatLabel>
                 </div>
-              </div>
-              <div className="stat-card">
-                <FaStar className="stat-icon star" />
+              </S.StatCard>
+              <S.StatCard variant="star">
+                <FaStar />
                 <div>
-                  <p className="stat-value">{user?.xpTotal || 0} XP</p>
-                  <p className="stat-label">Experiência</p>
+                  <S.StatValue>{user?.xpTotal || 0} XP</S.StatValue>
+                  <S.StatLabel>Experiência</S.StatLabel>
                 </div>
-              </div>
-            </div>
-          </section>
+              </S.StatCard>
+            </S.HeroStats>
+          </S.HeroSection>
 
-          <section className="dashboard-section">
-            <h2 className="section-title">
-              <FaFire className="title-icon" />
+          <S.Section>
+            <S.SectionTitle>
+              <FaFire />
               Em Andamento
-            </h2>
-            <div className="progress-grid">
-              <div className="progress-card card-purple">
-                <FaCode className="progress-icon" />
-                <div className="progress-info">
+            </S.SectionTitle>
+            <S.ProgressGrid>
+              <S.ProgressCard variant="purple">
+                <FaCode />
+                <S.ProgressInfo>
                   <h3>{loading ? "..." : stats.languages}</h3>
                   <p>Linguagens</p>
-                </div>
-              </div>
-              <div className="progress-card card-blue">
-                <FaTrophy className="progress-icon" />
-                <div className="progress-info">
+                </S.ProgressInfo>
+              </S.ProgressCard>
+              <S.ProgressCard variant="blue">
+                <FaTrophy />
+                <S.ProgressInfo>
                   <h3>{loading ? "..." : stats.challenges}</h3>
                   <p>Desafios</p>
-                </div>
-              </div>
-              <div className="progress-card card-green">
-                <FaDumbbell className="progress-icon" />
-                <div className="progress-info">
+                </S.ProgressInfo>
+              </S.ProgressCard>
+              <S.ProgressCard variant="green">
+                <FaDumbbell />
+                <S.ProgressInfo>
                   <h3>{loading ? "..." : stats.exercises}</h3>
                   <p>Exercícios</p>
-                </div>
-              </div>
-            </div>
-          </section>
+                </S.ProgressInfo>
+              </S.ProgressCard>
+            </S.ProgressGrid>
+          </S.Section>
 
-          <section className="dashboard-section">
-            <h2 className="section-title">
-              <FaCode className="title-icon" />
+          <S.Section>
+            <S.SectionTitle>
+              <FaCode />
               Em Desenvolvimento
-            </h2>
-            <div className="development-banner">
-              <div className="banner-content">
+            </S.SectionTitle>
+            <S.DevelopmentBanner>
+              <S.BannerContent>
                 <h3>🚀 Continue Aprendendo!</h3>
                 <p>
                   Você está progredindo bem! Mantenha o ritmo e complete seus
                   desafios para desbloquear novas conquistas.
                 </p>
-                <div className="progress-bar">
-                  <div
-                    className="progress-fill"
-                    style={{ width: `${weekProgress}%` }}
-                  ></div>
-                </div>
-                <p className="progress-text">
+                <S.ProgressBar>
+                  <S.ProgressFill progress={weekProgress} />
+                </S.ProgressBar>
+                <S.ProgressText>
                   {weekProgress}% dos desafios completos esta semana
-                </p>
-              </div>
-            </div>
-          </section>
+                </S.ProgressText>
+              </S.BannerContent>
+            </S.DevelopmentBanner>
+          </S.Section>
 
-          <section className="dashboard-section">
-            <h2 className="section-title">
-              <FaStar className="title-icon" />
+          <S.Section>
+            <S.SectionTitle>
+              <FaStar />
               Recomendações
-            </h2>
-            <div className="recommendations-grid">
+            </S.SectionTitle>
+            <S.RecommendationsGrid>
               {loading ? (
                 Array.from({ length: 6 }).map((_, index) => (
-                  <div
-                    key={`skeleton-${index}`}
-                    className="exercise-card skeleton"
-                  >
-                    <div className="skeleton-header"></div>
-                    <div className="skeleton-body"></div>
-                    <div className="skeleton-footer"></div>
-                  </div>
+                  <SkeletonCard key={`skeleton-${index}`}>
+                    <SkeletonHeader />
+                    <SkeletonBody />
+                    <SkeletonFooter />
+                  </SkeletonCard>
                 ))
               ) : recommendations.length > 0 ? (
                 recommendations.map((exercise) => {
@@ -193,42 +171,42 @@ export default function DashboardPage() {
                     difficultyMap[exercise.difficulty] || "Médio";
 
                   return (
-                    <div key={exercise.id} className="exercise-card">
-                      <div className="card-header">
-                        <span
-                          className={`difficulty-badge ${difficultyText.toLowerCase()}`}
+                    <S.ExerciseCard key={exercise.id}>
+                      <S.CardHeader>
+                        <S.DifficultyBadge
+                          difficulty={difficultyText.toLowerCase() as any}
                         >
                           {difficultyText}
-                        </span>
-                        <span className="xp-badge">
+                        </S.DifficultyBadge>
+                        <S.XpBadge>
                           <FaStar /> {exercise.baseXp} XP
-                        </span>
-                      </div>
-                      <div className="card-body">
-                        <h3 className="card-title">{exercise.title}</h3>
-                        <p className="card-language">
+                        </S.XpBadge>
+                      </S.CardHeader>
+                      <S.CardBody>
+                        <S.CardTitle>{exercise.title}</S.CardTitle>
+                        <S.CardLanguage>
                           <FaCode /> {exercise.languageId || "Multi-linguagem"}
-                        </p>
-                      </div>
-                      <div className="card-footer">
-                        <button className="btn-start">Começar</button>
-                        <button className="btn-details">Detalhes</button>
-                      </div>
-                    </div>
+                        </S.CardLanguage>
+                      </S.CardBody>
+                      <S.CardFooter>
+                        <S.StartButton>Começar</S.StartButton>
+                        <S.DetailsButton>Detalhes</S.DetailsButton>
+                      </S.CardFooter>
+                    </S.ExerciseCard>
                   );
                 })
               ) : (
-                <div className="no-recommendations">
+                <S.NoRecommendations>
                   <p>Nenhuma recomendação disponível no momento.</p>
-                  <button onClick={refetch} className="btn-refresh">
+                  <S.RefreshButton onClick={refetch}>
                     Recarregar
-                  </button>
-                </div>
+                  </S.RefreshButton>
+                </S.NoRecommendations>
               )}
-            </div>
-          </section>
-        </div>
-      </div>
+            </S.RecommendationsGrid>
+          </S.Section>
+        </S.DashboardContainer>
+      </S.DashboardPage>
     </AuthenticatedLayout>
   );
 }

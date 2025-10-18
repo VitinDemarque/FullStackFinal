@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { FaCheckCircle, FaExclamationCircle, FaTimes } from 'react-icons/fa'
-import './Notification.css'
+import * as S from '@/styles/components/Notification/styles'
 
 interface NotificationProps {
   type: 'success' | 'error'
@@ -19,27 +19,23 @@ export default function Notification({ type, message, onClose, duration = 5000 }
   }, [duration, onClose])
 
   return (
-    <div className={`notification notification-${type}`}>
-      <div className="notification-content">
-        <div className="notification-icon">
-          {type === 'success' ? (
-            <FaCheckCircle className="icon-success" />
-          ) : (
-            <FaExclamationCircle className="icon-error" />
-          )}
-        </div>
-        <div className="notification-message">
-          <h4 className="notification-title">
+    <S.NotificationContainer type={type}>
+      <S.NotificationContent>
+        <S.NotificationIcon type={type}>
+          {type === 'success' ? <FaCheckCircle /> : <FaExclamationCircle />}
+        </S.NotificationIcon>
+        <S.NotificationMessage>
+          <S.NotificationTitle>
             {type === 'success' ? 'Sucesso!' : 'Erro!'}
-          </h4>
-          <p className="notification-text">{message}</p>
-        </div>
-        <button className="notification-close" onClick={onClose}>
+          </S.NotificationTitle>
+          <S.NotificationText>{message}</S.NotificationText>
+        </S.NotificationMessage>
+        <S.NotificationCloseButton onClick={onClose}>
           <FaTimes />
-        </button>
-      </div>
-      <div className={`notification-progress notification-progress-${type}`} />
-    </div>
+        </S.NotificationCloseButton>
+      </S.NotificationContent>
+      <S.NotificationProgress type={type} />
+    </S.NotificationContainer>
   )
 }
 

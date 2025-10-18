@@ -5,7 +5,7 @@ import { FaGoogle, FaFacebook, FaArrowLeft } from "react-icons/fa";
 import Notification from "@components/Notification";
 import ErrorAlert from "@components/ErrorAlert";
 import { useErrorHandler } from "@hooks/useErrorHandler";
-import "./AuthPages.css";
+import * as S from "@/styles/pages/Auth/styles";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -57,7 +57,6 @@ export default function LoginPage() {
 
   return (
     <>
-      {/* Notificação */}
       {notification && (
         <Notification
           type={notification.type}
@@ -66,79 +65,83 @@ export default function LoginPage() {
         />
       )}
 
-      <div className="auth-container">
-      {/* Formas geométricas decorativas */}
-      <div className="shape shape-blue-top"></div>
-      <div className="shape shape-yellow-bottom"></div>
+      <S.AuthContainer>
+        <S.Shape variant="blue-top" />
+        <S.Shape variant="yellow-bottom" />
 
-      {/* Card de Login */}
-      <div className="auth-card">
-        <Link to="/" className="back-button">
-          <FaArrowLeft /> Voltar para Home
-        </Link>
+        <S.AuthCard>
+          <S.BackButton as={Link} to="/">
+            <FaArrowLeft /> Voltar para Home
+          </S.BackButton>
 
-        <h1 className="auth-title">
-          <span className="bracket">{"{"}</span>Login
-          <span className="bracket">{"}"}</span>
-        </h1>
+          <S.AuthTitle>
+            <S.Bracket>{"{"}</S.Bracket>Login
+            <S.Bracket>{"}"}</S.Bracket>
+          </S.AuthTitle>
 
-        {error && <ErrorAlert error={error} onClose={clearError} onRetry={error.canRetry ? handleRetry : undefined} />}
-
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-group">
-            <label>E-mail</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Digite seu E-mail"
-              required
-              className="form-input"
+          {error && (
+            <ErrorAlert
+              error={error}
+              onClose={clearError}
+              onRetry={error.canRetry ? handleRetry : undefined}
             />
-          </div>
+          )}
 
-          <div className="form-group">
-            <label>Senha</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Digite sua Senha"
-              required
-              className="form-input"
-            />
-          </div>
+          <S.AuthForm onSubmit={handleSubmit}>
+            <S.FormGroup>
+              <S.FormLabel>E-mail</S.FormLabel>
+              <S.FormInput
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Digite seu E-mail"
+                required
+              />
+            </S.FormGroup>
 
-          <button type="submit" disabled={loading} className="btn-primary">
-            {loading ? "Entrando..." : "Entrar"}
-          </button>
-        </form>
+            <S.FormGroup>
+              <S.FormLabel>Senha</S.FormLabel>
+              <S.FormInput
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Digite sua Senha"
+                required
+              />
+            </S.FormGroup>
 
-        <p className="auth-link">
-          Não tem uma conta?{" "}
-          <Link to="/signup" className="link-signup">
-            CADASTRE-SE!
-          </Link>
-        </p>
+            <S.PrimaryButton type="submit" disabled={loading}>
+              {loading ? "Entrando..." : "Entrar"}
+            </S.PrimaryButton>
+          </S.AuthForm>
 
-        <div className="social-buttons">
-          <button
-            className="btn-social btn-google"
-            onClick={() => alert("Login com Google em breve!")}
-          >
-            <FaGoogle className="social-icon" />
-            Entrar com Google
-          </button>
-          <button
-            className="btn-social btn-facebook"
-            onClick={() => alert("Login com Facebook em breve!")}
-          >
-            <FaFacebook className="social-icon" />
-            Entrar com Facebook
-          </button>
-        </div>
-      </div>
-    </div>
+          <S.AuthLink>
+            Não tem uma conta?{" "}
+            <S.LinkHighlight as={Link} to="/signup">
+              CADASTRE-SE!
+            </S.LinkHighlight>
+          </S.AuthLink>
+
+          <S.SocialButtons>
+            <S.SocialButton
+              variant="google"
+              type="button"
+              onClick={() => alert("Login com Google em breve!")}
+            >
+              <FaGoogle />
+              Entrar com Google
+            </S.SocialButton>
+            <S.SocialButton
+              variant="facebook"
+              type="button"
+              onClick={() => alert("Login com Facebook em breve!")}
+            >
+              <FaFacebook />
+              Entrar com Facebook
+            </S.SocialButton>
+          </S.SocialButtons>
+        </S.AuthCard>
+      </S.AuthContainer>
     </>
   );
 }

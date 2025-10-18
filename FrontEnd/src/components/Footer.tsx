@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import {
   FaFacebook,
   FaGithub,
@@ -7,276 +6,174 @@ import {
   FaLinkedin,
 } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
+import * as S from "@/styles/components/Footer/styles";
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-gray-300 py-12 px-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Logo e Descrição */}
-        <div className="mb-8">
-          <h3 className="text-3xl font-bold text-white mb-3">
-            <span className="text-blue-400">{"{"}</span>
+    <S.FooterContainer>
+      <S.FooterContent>
+        <S.LogoSection>
+          <S.LogoTitle>
+            <S.LogoBracket>{"{"}</S.LogoBracket>
             DevQuest
-            <span className="text-blue-400">{"}"}</span>
-          </h3>
-          <p className="text-gray-400 max-w-md">
+            <S.LogoBracket>{"}"}</S.LogoBracket>
+          </S.LogoTitle>
+          <S.LogoDescription>
             Transforme seu aprendizado em código com desafios práticos,
             gamificação e uma comunidade apaixonada por programação.
-          </p>
-        </div>
+          </S.LogoDescription>
+        </S.LogoSection>
 
-        {/* Links Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
-          {/* Column 1 - Plataforma */}
-          <div>
-            <h4 className="font-bold text-white mb-3">Plataforma</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link
-                  to="/desafios"
-                  className="hover:text-blue-400 transition-colors"
-                >
-                  Desafios
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/ranking"
-                  className="hover:text-blue-400 transition-colors"
-                >
-                  Ranking
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/badges"
-                  className="hover:text-blue-400 transition-colors"
-                >
-                  Badges
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/grupos"
-                  className="hover:text-blue-400 transition-colors"
-                >
-                  Grupos
-                </Link>
-              </li>
-            </ul>
-          </div>
+        <S.LinksGrid>
+          <S.LinkColumn>
+            <S.ColumnTitle>Plataforma</S.ColumnTitle>
+            <S.LinkList>
+              <S.LinkItem>
+                <S.FooterLink to="/desafios">Desafios</S.FooterLink>
+              </S.LinkItem>
+              <S.LinkItem>
+                <S.FooterLink to="/ranking">Ranking</S.FooterLink>
+              </S.LinkItem>
+              <S.LinkItem>
+                <S.FooterLink to="/badges">Badges</S.FooterLink>
+              </S.LinkItem>
+              <S.LinkItem>
+                <S.FooterLink to="/grupos">Grupos</S.FooterLink>
+              </S.LinkItem>
+            </S.LinkList>
+          </S.LinkColumn>
 
-          {/* Column 2 - Linguagens */}
-          <div>
-            <h4 className="font-bold text-white mb-3">Linguagens</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link
-                  to="/python"
-                  className="hover:text-blue-400 transition-colors"
-                >
-                  Python
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/javascript"
-                  className="hover:text-blue-400 transition-colors"
-                >
-                  JavaScript
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/java"
-                  className="hover:text-blue-400 transition-colors"
-                >
-                  Java
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/csharp"
-                  className="hover:text-blue-400 transition-colors"
-                >
-                  C#
-                </Link>
-              </li>
-            </ul>
-          </div>
+          <S.LinkColumn>
+            <S.ColumnTitle>Linguagens</S.ColumnTitle>
+            <S.LinkList>
+              <S.LinkItem>
+                <S.FooterLink to="/python">Python</S.FooterLink>
+              </S.LinkItem>
+              <S.LinkItem>
+                <S.FooterLink to="/javascript">JavaScript</S.FooterLink>
+              </S.LinkItem>
+              <S.LinkItem>
+                <S.FooterLink to="/java">Java</S.FooterLink>
+              </S.LinkItem>
+              <S.LinkItem>
+                <S.FooterLink to="/csharp">C#</S.FooterLink>
+              </S.LinkItem>
+            </S.LinkList>
+          </S.LinkColumn>
 
-          {/* Column 3 - Recursos */}
-          <div>
-            <h4 className="font-bold text-white mb-3">Recursos</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link
-                  to="/blog"
-                  className="hover:text-blue-400 transition-colors"
-                >
-                  Blog
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/documentacao"
-                  className="hover:text-blue-400 transition-colors"
-                >
-                  Documentação
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/tutoriais"
-                  className="hover:text-blue-400 transition-colors"
-                >
-                  Tutoriais
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/faq"
-                  className="hover:text-blue-400 transition-colors"
-                >
-                  FAQ
-                </Link>
-              </li>
-            </ul>
-          </div>
+          <S.LinkColumn>
+            <S.ColumnTitle>Recursos</S.ColumnTitle>
+            <S.LinkList>
+              <S.LinkItem>
+                <S.FooterLink to="/blog">Blog</S.FooterLink>
+              </S.LinkItem>
+              <S.LinkItem>
+                <S.FooterLink to="/documentacao">Documentação</S.FooterLink>
+              </S.LinkItem>
+              <S.LinkItem>
+                <S.FooterLink to="/tutoriais">Tutoriais</S.FooterLink>
+              </S.LinkItem>
+              <S.LinkItem>
+                <S.FooterLink to="/faq">FAQ</S.FooterLink>
+              </S.LinkItem>
+            </S.LinkList>
+          </S.LinkColumn>
 
-          {/* Column 4 - Empresa */}
-          <div>
-            <h4 className="font-bold text-white mb-3">Empresa</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link
-                  to="/sobre"
-                  className="hover:text-blue-400 transition-colors"
-                >
-                  Sobre Nós
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/carreiras"
-                  className="hover:text-blue-400 transition-colors"
-                >
-                  Carreiras
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/contato"
-                  className="hover:text-blue-400 transition-colors"
-                >
-                  Contato
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/parceiros"
-                  className="hover:text-blue-400 transition-colors"
-                >
-                  Parceiros
-                </Link>
-              </li>
-            </ul>
-          </div>
+          <S.LinkColumn>
+            <S.ColumnTitle>Empresa</S.ColumnTitle>
+            <S.LinkList>
+              <S.LinkItem>
+                <S.FooterLink to="/sobre">Sobre Nós</S.FooterLink>
+              </S.LinkItem>
+              <S.LinkItem>
+                <S.FooterLink to="/carreiras">Carreiras</S.FooterLink>
+              </S.LinkItem>
+              <S.LinkItem>
+                <S.FooterLink to="/contato">Contato</S.FooterLink>
+              </S.LinkItem>
+              <S.LinkItem>
+                <S.FooterLink to="/parceiros">Parceiros</S.FooterLink>
+              </S.LinkItem>
+            </S.LinkList>
+          </S.LinkColumn>
 
-          {/* Column 5 - Suporte */}
-          <div>
-            <h4 className="font-bold text-white mb-3">Suporte</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link
-                  to="/ajuda"
-                  className="hover:text-blue-400 transition-colors"
-                >
-                  Central de Ajuda
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/termos"
-                  className="hover:text-blue-400 transition-colors"
-                >
-                  Termos de Uso
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/privacidade"
-                  className="hover:text-blue-400 transition-colors"
-                >
-                  Privacidade
-                </Link>
-              </li>
-              <li className="text-gray-400 pt-2">suporte@devquest.com</li>
-            </ul>
-          </div>
-        </div>
+          <S.LinkColumn>
+            <S.ColumnTitle>Suporte</S.ColumnTitle>
+            <S.LinkList>
+              <S.LinkItem>
+                <S.FooterLink to="/ajuda">Central de Ajuda</S.FooterLink>
+              </S.LinkItem>
+              <S.LinkItem>
+                <S.FooterLink to="/termos">Termos de Uso</S.FooterLink>
+              </S.LinkItem>
+              <S.LinkItem>
+                <S.FooterLink to="/privacidade">Privacidade</S.FooterLink>
+              </S.LinkItem>
+              <S.LinkItem>
+                <S.EmailText>suporte@devquest.com</S.EmailText>
+              </S.LinkItem>
+            </S.LinkList>
+          </S.LinkColumn>
+        </S.LinksGrid>
 
-        {/* Divider */}
-        <div className="border-t border-gray-800 pt-8">
-          {/* Social Media */}
-          <div className="flex justify-center space-x-6 mb-6">
-            <a
+        <S.Divider>
+          <S.SocialMediaContainer>
+            <S.SocialLink
               href="https://github.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-400 hover:text-white text-2xl transition-colors"
+              hoverColor="#ffffff"
             >
               <FaGithub />
-            </a>
-            <a
+            </S.SocialLink>
+            <S.SocialLink
               href="https://linkedin.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-400 hover:text-blue-500 text-2xl transition-colors"
+              hoverColor="#0077b5"
             >
               <FaLinkedin />
-            </a>
-            <a
+            </S.SocialLink>
+            <S.SocialLink
               href="https://twitter.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-400 hover:text-blue-400 text-2xl transition-colors"
+              hoverColor="#1da1f2"
             >
               <FaXTwitter />
-            </a>
-            <a
+            </S.SocialLink>
+            <S.SocialLink
               href="https://youtube.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-400 hover:text-red-500 text-2xl transition-colors"
+              hoverColor="#ff0000"
             >
               <FaYoutube />
-            </a>
-            <a
+            </S.SocialLink>
+            <S.SocialLink
               href="https://instagram.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-400 hover:text-pink-500 text-2xl transition-colors"
+              hoverColor="#e1306c"
             >
               <FaInstagram />
-            </a>
-            <a
+            </S.SocialLink>
+            <S.SocialLink
               href="https://facebook.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-400 hover:text-blue-600 text-2xl transition-colors"
+              hoverColor="#1877f2"
             >
               <FaFacebook />
-            </a>
-          </div>
+            </S.SocialLink>
+          </S.SocialMediaContainer>
 
-          {/* Copyright */}
-          <p className="text-center text-sm text-gray-500">
+          <S.Copyright>
             Copyright © 2025 DevQuest. Todos os direitos reservados. | Feito com
             💙 para desenvolvedores
-          </p>
-        </div>
-      </div>
-    </footer>
+          </S.Copyright>
+        </S.Divider>
+      </S.FooterContent>
+    </S.FooterContainer>
   );
 }

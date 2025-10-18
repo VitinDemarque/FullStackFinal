@@ -7,7 +7,7 @@ import ErrorAlert from "@components/ErrorAlert";
 import { useErrorHandler } from "@hooks/useErrorHandler";
 import { collegesService } from "@services/index";
 import type { College } from "../../types";
-import "./AuthPages.css";
+import * as S from "@/styles/pages/Auth/styles";
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -108,7 +108,6 @@ export default function SignupPage() {
 
   return (
     <>
-      {/* Notificação */}
       {notification && (
         <Notification
           type={notification.type}
@@ -117,113 +116,115 @@ export default function SignupPage() {
         />
       )}
 
-      <div className="auth-container">
-        {/* Formas geométricas decorativas */}
-        <div className="shape shape-yellow-top"></div>
-        <div className="shape shape-orange-bottom"></div>
+      <S.AuthContainer>
+        <S.Shape variant="yellow-top" />
+        <S.Shape variant="orange-bottom" />
 
-        {/* Card de Cadastro */}
-        <div className="auth-card signup-card">
-          <Link to="/" className="back-button">
+        <S.AuthCard isSignup>
+          <S.BackButton as={Link} to="/">
             <FaArrowLeft /> Voltar para Home
-          </Link>
+          </S.BackButton>
 
-        <h1 className="auth-title">
-          <span className="bracket">{"{"}</span>Cadastro
-          <span className="bracket">{"}"}</span>
-        </h1>
+          <S.AuthTitle>
+            <S.Bracket>{"{"}</S.Bracket>Cadastro
+            <S.Bracket>{"}"}</S.Bracket>
+          </S.AuthTitle>
 
-        {error && <ErrorAlert error={error} onClose={clearError} onRetry={error.canRetry ? handleRetry : undefined} />}
+          {error && (
+            <ErrorAlert
+              error={error}
+              onClose={clearError}
+              onRetry={error.canRetry ? handleRetry : undefined}
+            />
+          )}
 
-        <form onSubmit={handleSubmit} className="auth-form">
-            <div className="form-row">
-              <div className="form-group">
-                <label>Nome Completo</label>
-                <input
+          <S.AuthForm onSubmit={handleSubmit}>
+            <S.FormRow>
+              <S.FormGroup>
+                <S.FormLabel>Nome Completo</S.FormLabel>
+                <S.FormInput
                   type="text"
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleChange}
                   placeholder="Digite seu nome"
                   required
-                  className="form-input"
                 />
-              </div>
+              </S.FormGroup>
 
-              <div className="form-group">
-                <label>Sobrenome</label>
-                <input
+              <S.FormGroup>
+                <S.FormLabel>Sobrenome</S.FormLabel>
+                <S.FormInput
                   type="text"
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleChange}
                   placeholder=""
                   required
-                  className="form-input"
                 />
-              </div>
-            </div>
+              </S.FormGroup>
+            </S.FormRow>
 
-            <div className="form-group">
-              <label>Faculdade</label>
-              <select
+            <S.FormGroup>
+              <S.FormLabel>Faculdade</S.FormLabel>
+              <S.FormSelect
                 name="college"
                 value={formData.college}
                 onChange={handleChange}
                 required
-                className="form-input form-select"
                 disabled={loadingColleges}
               >
                 <option value="">
-                  {loadingColleges ? 'Carregando faculdades...' : 'Selecione sua Faculdade'}
+                  {loadingColleges
+                    ? "Carregando faculdades..."
+                    : "Selecione sua Faculdade"}
                 </option>
                 {colleges.map((college) => (
                   <option key={college.id} value={college.id}>
-                    {college.name} {college.acronym ? `(${college.acronym})` : ''}
+                    {college.name}{" "}
+                    {college.acronym ? `(${college.acronym})` : ""}
                   </option>
                 ))}
-              </select>
-            </div>
+              </S.FormSelect>
+            </S.FormGroup>
 
-            <div className="form-group">
-              <label>E-mail</label>
-              <input
+            <S.FormGroup>
+              <S.FormLabel>E-mail</S.FormLabel>
+              <S.FormInput
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Digite seu E-mail"
                 required
-                className="form-input"
               />
-            </div>
+            </S.FormGroup>
 
-            <div className="form-group">
-              <label>Senha</label>
-              <input
+            <S.FormGroup>
+              <S.FormLabel>Senha</S.FormLabel>
+              <S.FormInput
                 type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="Digite sua senha"
                 required
-                className="form-input"
               />
-            </div>
+            </S.FormGroup>
 
-            <button type="submit" disabled={loading} className="btn-primary">
+            <S.PrimaryButton type="submit" disabled={loading}>
               {loading ? "Criando conta..." : "Concluir"}
-            </button>
-          </form>
+            </S.PrimaryButton>
+          </S.AuthForm>
 
-          <p className="auth-link">
+          <S.AuthLink>
             Já tem conta?{" "}
-            <Link to="/login" className="link-signup">
+            <S.LinkHighlight as={Link} to="/login">
               Faça login
-            </Link>
-          </p>
-        </div>
-      </div>
+            </S.LinkHighlight>
+          </S.AuthLink>
+        </S.AuthCard>
+      </S.AuthContainer>
     </>
   );
 }

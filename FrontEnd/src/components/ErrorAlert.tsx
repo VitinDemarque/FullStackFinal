@@ -1,10 +1,6 @@
-// ============================================
-// ERROR ALERT - Componente de alerta de erro
-// ============================================
-
 import { FaExclamationCircle, FaExclamationTriangle, FaTimes } from 'react-icons/fa'
 import type { ErrorHandlerResult } from '@utils/errorHandler'
-import './ErrorAlert.css'
+import * as S from '@/styles/components/ErrorAlert/styles'
 
 interface ErrorAlertProps {
   error: ErrorHandlerResult
@@ -14,27 +10,27 @@ interface ErrorAlertProps {
 
 export default function ErrorAlert({ error, onClose, onRetry }: ErrorAlertProps) {
   return (
-    <div className="error-alert">
-      <div className="error-alert-content">
-        <div className="error-alert-icon">
+    <S.ErrorAlertContainer>
+      <S.ErrorAlertContent>
+        <S.ErrorAlertIcon>
           <FaExclamationCircle />
-        </div>
-        <div className="error-alert-text">
-          <h4 className="error-alert-title">{error.title}</h4>
-          <p className="error-alert-message">{error.message}</p>
-        </div>
+        </S.ErrorAlertIcon>
+        <S.ErrorAlertText>
+          <S.ErrorAlertTitle>{error.title}</S.ErrorAlertTitle>
+          <S.ErrorAlertMessage>{error.message}</S.ErrorAlertMessage>
+        </S.ErrorAlertText>
         {onClose && (
-          <button className="error-alert-close" onClick={onClose} aria-label="Fechar">
+          <S.ErrorAlertCloseButton onClick={onClose} aria-label="Fechar">
             <FaTimes />
-          </button>
+          </S.ErrorAlertCloseButton>
         )}
-      </div>
+      </S.ErrorAlertContent>
       {error.canRetry && onRetry && (
-        <button className="error-alert-retry" onClick={onRetry}>
+        <S.ErrorAlertRetryButton onClick={onRetry}>
           🔄 Tentar Novamente
-        </button>
+        </S.ErrorAlertRetryButton>
       )}
-    </div>
+    </S.ErrorAlertContainer>
   )
 }
 
@@ -46,22 +42,22 @@ interface WarningAlertProps {
 
 export function WarningAlert({ title, message, onClose }: WarningAlertProps) {
   return (
-    <div className="warning-alert">
-      <div className="warning-alert-content">
-        <div className="warning-alert-icon">
+    <S.WarningAlertContainer>
+      <S.WarningAlertContent>
+        <S.WarningAlertIcon>
           <FaExclamationTriangle />
-        </div>
-        <div className="warning-alert-text">
-          <h4 className="warning-alert-title">{title}</h4>
-          <p className="warning-alert-message">{message}</p>
-        </div>
+        </S.WarningAlertIcon>
+        <S.WarningAlertText>
+          <S.WarningAlertTitle>{title}</S.WarningAlertTitle>
+          <S.WarningAlertMessage>{message}</S.WarningAlertMessage>
+        </S.WarningAlertText>
         {onClose && (
-          <button className="warning-alert-close" onClick={onClose} aria-label="Fechar">
+          <S.WarningAlertCloseButton onClick={onClose} aria-label="Fechar">
             <FaTimes />
-          </button>
+          </S.WarningAlertCloseButton>
         )}
-      </div>
-    </div>
+      </S.WarningAlertContent>
+    </S.WarningAlertContainer>
   )
 }
 

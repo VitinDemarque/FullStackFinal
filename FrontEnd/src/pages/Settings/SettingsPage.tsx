@@ -1,17 +1,24 @@
-import AuthenticatedLayout from '@components/Layout/AuthenticatedLayout'
+import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
+import * as S from "@/styles/pages/Shared/ComingSoon";
 
 export default function SettingsPage() {
   return (
     <AuthenticatedLayout>
-      <div style={{ padding: '2rem' }}>
-        <h1 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '1rem' }}>
-          ⚙️ Configurações
-        </h1>
-        <p style={{ color: '#6b7280' }}>
+      <S.Container>
+        <S.Title>⚙️ Configurações</S.Title>
+        <S.Description>
           Configure suas preferências, notificações e privacidade.
-        </p>
-      </div>
-    </AuthenticatedLayout>
-  )
-}
+        </S.Description>
 
+        <S.Card>
+          <S.IconWrapper>🔧</S.IconWrapper>
+          <S.ComingSoonText>Em Desenvolvimento</S.ComingSoonText>
+          <S.ComingSoonDescription>
+            Em breve você poderá personalizar sua experiência, gerenciar
+            notificações, privacidade e muito mais!
+          </S.ComingSoonDescription>
+        </S.Card>
+      </S.Container>
+    </AuthenticatedLayout>
+  );
+}

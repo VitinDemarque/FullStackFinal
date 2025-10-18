@@ -1,7 +1,6 @@
-import { Link } from "react-router-dom";
 import { useState } from "react";
 import { FaBars, FaTimes, FaUser } from "react-icons/fa";
-import "./Navbar.css";
+import * as S from "@/styles/components/Navbar/styles";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -11,99 +10,60 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="navbar">
-      <div className="navbar-container">
-        {/* Logo */}
-        <Link to="/" className="navbar-logo">
-          <span className="logo-bracket">{"{"}</span>
-          <span className="logo-text">DevQuest</span>
-          <span className="logo-bracket">{"}"}</span>
-        </Link>
+    <S.Nav>
+      <S.NavContainer>
+        <S.Logo to="/">
+          <S.LogoBracket>{"{"}</S.LogoBracket>
+          <S.LogoText>DevQuest</S.LogoText>
+          <S.LogoBracket>{"}"}</S.LogoBracket>
+        </S.Logo>
 
-        {/* Desktop Menu */}
-        <div className="navbar-menu desktop-menu">
-          <Link to="/" className="nav-link">
-            Início
-          </Link>
-          <Link to="/desafios" className="nav-link">
-            Desafios
-          </Link>
-          <Link to="/ranking" className="nav-link">
-            Ranking
-          </Link>
-          <Link to="/meu-progresso" className="nav-link">
-            Meu Progresso
-          </Link>
-        </div>
+        <S.NavMenu>
+          <S.NavLink to="/">Início</S.NavLink>
+          <S.NavLink to="/desafios">Desafios</S.NavLink>
+          <S.NavLink to="/ranking">Ranking</S.NavLink>
+          <S.NavLink to="/meu-progresso">Meu Progresso</S.NavLink>
+        </S.NavMenu>
 
-        {/* Desktop Actions */}
-        <div className="navbar-actions desktop-actions">
-          <Link to="/login" className="btn-login">
-            <FaUser className="btn-icon" />
+        <S.NavActions>
+          <S.LoginButton to="/login">
+            <FaUser />
             Entrar
-          </Link>
-          <Link to="/signup" className="btn-signup">
-            Começar Agora
-          </Link>
-        </div>
+          </S.LoginButton>
+          <S.SignupButton to="/signup">Começar Agora</S.SignupButton>
+        </S.NavActions>
 
-        {/* Mobile Menu Button */}
-        <button
-          className="mobile-menu-button"
-          onClick={toggleMobileMenu}
-          aria-label="Toggle menu"
-        >
+        <S.MobileMenuButton onClick={toggleMobileMenu} aria-label="Toggle menu">
           {mobileMenuOpen ? <FaTimes /> : <FaBars />}
-        </button>
-      </div>
+        </S.MobileMenuButton>
+      </S.NavContainer>
 
-      {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="mobile-menu">
-          <div className="mobile-menu-links">
-            <Link to="/" className="mobile-nav-link" onClick={toggleMobileMenu}>
+        <S.MobileMenu>
+          <S.MobileMenuLinks>
+            <S.MobileNavLink to="/" onClick={toggleMobileMenu}>
               Início
-            </Link>
-            <Link
-              to="/desafios"
-              className="mobile-nav-link"
-              onClick={toggleMobileMenu}
-            >
+            </S.MobileNavLink>
+            <S.MobileNavLink to="/desafios" onClick={toggleMobileMenu}>
               Desafios
-            </Link>
-            <Link
-              to="/ranking"
-              className="mobile-nav-link"
-              onClick={toggleMobileMenu}
-            >
+            </S.MobileNavLink>
+            <S.MobileNavLink to="/ranking" onClick={toggleMobileMenu}>
               Ranking
-            </Link>
-            <Link
-              to="/meu-progresso"
-              className="mobile-nav-link"
-              onClick={toggleMobileMenu}
-            >
+            </S.MobileNavLink>
+            <S.MobileNavLink to="/meu-progresso" onClick={toggleMobileMenu}>
               Meu Progresso
-            </Link>
-          </div>
-          <div className="mobile-menu-actions">
-            <Link
-              to="/login"
-              className="mobile-btn-login"
-              onClick={toggleMobileMenu}
-            >
+            </S.MobileNavLink>
+          </S.MobileMenuLinks>
+          <S.MobileMenuActions>
+            <S.MobileLoginButton to="/login" onClick={toggleMobileMenu}>
               Entrar
-            </Link>
-            <Link
-              to="/signup"
-              className="mobile-btn-signup"
-              onClick={toggleMobileMenu}
-            >
+            </S.MobileLoginButton>
+            <S.MobileSignupButton to="/signup" onClick={toggleMobileMenu}>
               Começar Agora
-            </Link>
-          </div>
-        </div>
+            </S.MobileSignupButton>
+          </S.MobileMenuActions>
+        </S.MobileMenu>
       )}
-    </nav>
+    </S.Nav>
   );
 }

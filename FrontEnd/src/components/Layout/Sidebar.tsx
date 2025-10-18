@@ -1,7 +1,7 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { FaHome, FaCode, FaTrophy, FaStar, FaUser, FaCog, FaSignOutAlt, FaChartLine } from 'react-icons/fa'
 import { useAuth } from '@contexts/AuthContext'
-import './Sidebar.css'
+import * as S from '@/styles/components/Sidebar/styles'
 
 export default function Sidebar() {
   const location = useLocation()
@@ -24,55 +24,52 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="sidebar">
-      {/* Logo */}
-      <div className="sidebar-header">
-        <Link to="/dashboard" className="sidebar-logo">
-          <span className="logo-bracket">{'{'}</span>
-          <span className="logo-text">DevQuest</span>
-          <span className="logo-bracket">{'}'}</span>
-        </Link>
-      </div>
+    <S.SidebarContainer>
+      <S.SidebarHeader>
+        <S.Logo to="/dashboard">
+          <S.LogoBracket>{'{'}</S.LogoBracket>
+          <S.LogoText>DevQuest</S.LogoText>
+          <S.LogoBracket>{'}'}</S.LogoBracket>
+        </S.Logo>
+      </S.SidebarHeader>
 
-      {/* User Info */}
-      <div className="sidebar-user">
-        <div className="user-avatar">
-          <FaUser />
-        </div>
-        <div className="user-info">
-          <p className="user-name">{user?.name || 'Usuário'}</p>
-          <p className="user-level">Level {user?.level || 1}</p>
-        </div>
-      </div>
+      <S.UserInfo>
+        <S.UserAvatar>
+          {user?.avatarUrl ? (
+            <S.UserAvatarImage src={user.avatarUrl} alt={user.name} />
+          ) : (
+            <FaUser />
+          )}
+        </S.UserAvatar>
+        <S.UserDetails>
+          <S.UserName>{user?.name || 'Usuário'}</S.UserName>
+          <S.UserLevel>Level {user?.level || 1}</S.UserLevel>
+        </S.UserDetails>
+      </S.UserInfo>
 
-      {/* Navigation */}
-      <nav className="sidebar-nav">
-        <ul className="nav-list">
+      <S.Navigation>
+        <S.NavList>
           {menuItems.map((item) => {
             const Icon = item.icon
             const isActive = location.pathname === item.path
 
             return (
               <li key={item.path}>
-                <Link
-                  to={item.path}
-                  className={`nav-item ${isActive ? 'active' : ''}`}
-                >
-                  <Icon className="nav-icon" />
-                  <span className="nav-label">{item.label}</span>
-                </Link>
+                <S.NavItem to={item.path} $isActive={isActive}>
+                  <Icon />
+                  <span>{item.label}</span>
+                </S.NavItem>
               </li>
             )
           })}
-        </ul>
-      </nav>
+        </S.NavList>
+      </S.Navigation>
 
-      {/* Logout */}
-      <button className="sidebar-logout" onClick={handleLogout}>
-        <FaSignOutAlt className="logout-icon" />
+      <S.LogoutButton onClick={handleLogout}>
+        <FaSignOutAlt />
         <span>Sair</span>
-      </button>
-    </aside>
+      </S.LogoutButton>
+    </S.SidebarContainer>
   )
 }
 

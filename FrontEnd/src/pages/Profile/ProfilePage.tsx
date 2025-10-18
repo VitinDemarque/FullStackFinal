@@ -5,7 +5,7 @@ import { userService } from '@services/user.service'
 import { api } from '@services/api'
 import AuthenticatedLayout from '@components/Layout/AuthenticatedLayout'
 import { FaUser, FaTrophy, FaStar, FaMedal, FaAward, FaEdit, FaLock } from 'react-icons/fa'
-import './ProfilePage.css'
+import * as S from '@/styles/pages/Profile/styles'
 
 interface Badge {
   _id: string
@@ -18,7 +18,7 @@ interface Badge {
 }
 
 export default function ProfilePage() {
-  const { user } = useAuth()
+  const { user, updateUser } = useAuth()
   const { data: scoreboard, loading, execute } = useAsync(
     () => userService.getScoreboard(user!.id),
     false
@@ -35,12 +35,19 @@ export default function ProfilePage() {
     if (user) {
       execute()
       loadBadges()
-      // Carregar foto de perfil se existir
-      if (user.profileImage) {
-        setProfileImage(user.profileImage)
+      
+      // Carregar foto de perfil do localStorage primeiro (prioridade)
+      const localAvatar = localStorage.getItem(`avatar_${user.id}`)
+      
+      if (localAvatar) {
+        setProfileImage(localAvatar)
+        // Atualizar contexto com foto local
+        updateUser({ avatarUrl: localAvatar })
+      } else if (user.avatarUrl) {
+        setProfileImage(user.avatarUrl)
       }
     }
-  }, [user, execute])
+  }, [user?.id])
 
   async function loadBadges() {
     try {
@@ -117,40 +124,58 @@ export default function ProfilePage() {
     try {
       setUploadingImage(true)
 
-      // Criar preview local
+      // Criar preview e salvar localmente
       const reader = new FileReader()
       reader.onloadend = () => {
-        setProfileImage(reader.result as string)
+        const imageUrl = reader.result as string
+        
+        // Salvar no localStorage
+        if (user?.id) {
+          localStorage.setItem(`avatar_${user.id}`, imageUrl)
+        }
+        
+        // Atualizar estado local
+        setProfileImage(imageUrl)
+        
+        // Atualizar contexto de autenticação (sincroniza sidebar)
+        updateUser({ avatarUrl: imageUrl })
+        
+        alert('✅ Foto de perfil atualizada com sucesso!')
+        setShowImageUpload(false)
+        setUploadingImage(false)
       }
+      
       reader.readAsDataURL(file)
-
-      // Upload para o backend
-      const formData = new FormData()
-      formData.append('profileImage', file)
-
-      await api.patch(`/users/${user?.id}/profile-image`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      })
-
-      alert('Foto de perfil atualizada com sucesso!')
-      setShowImageUpload(false)
+      
+      // TODO: Implementar upload para o backend quando a rota estiver disponível
+      // const formData = new FormData()
+      // formData.append('profileImage', file)
+      // await api.patch(`/users/${user?.id}/profile-image`, formData)
+      
     } catch (error) {
-      console.error('Erro ao fazer upload da imagem:', error)
-      alert('Erro ao fazer upload. A imagem foi salva localmente.')
-    } finally {
+      console.error('Erro ao processar imagem:', error)
+      alert('❌ Erro ao processar a imagem.')
       setUploadingImage(false)
     }
   }
 
   function handleRemoveImage() {
     if (confirm('Tem certeza que deseja remover sua foto de perfil?')) {
+      // Remover do localStorage
+      if (user?.id) {
+        localStorage.removeItem(`avatar_${user.id}`)
+      }
+      
+      // Atualizar estado local
       setProfileImage(null)
-      // Aqui você pode adicionar chamada à API para remover do backend
-      api.delete(`/users/${user?.id}/profile-image`).catch(err => {
-        console.error('Erro ao remover imagem:', err)
-      })
+      
+      // Atualizar contexto de autenticação (sincroniza sidebar)
+      updateUser({ avatarUrl: null })
+      
+      alert('✅ Foto de perfil removida!')
+      
+      // TODO: Implementar remoção no backend quando a rota estiver disponível
+      // api.delete(`/users/${user?.id}/profile-image`)
     }
   }
 
@@ -161,158 +186,137 @@ export default function ProfilePage() {
 
   return (
     <AuthenticatedLayout>
-      <div className="profile-page">
-        {/* Hero Section */}
-        <div className="profile-hero">
-          <button className="btn-edit-profile" onClick={() => setShowImageUpload(!showImageUpload)}>
+      <S.ProfilePage>
+        <S.ProfileHero>
+          <S.EditButton onClick={() => setShowImageUpload(!showImageUpload)}>
             <FaEdit /> Editar Perfil
-          </button>
+          </S.EditButton>
 
-          {/* Avatar com Upload */}
-          <div className="profile-avatar-container">
-            <div className="profile-avatar">
+          <S.AvatarContainer>
+            <S.Avatar>
               {profileImage ? (
-                <img src={profileImage} alt="Perfil" className="avatar-image" />
+                <S.AvatarImage src={profileImage} alt="Perfil" />
               ) : (
                 <FaUser />
               )}
-            </div>
-            <button 
-              className="avatar-edit-button" 
+            </S.Avatar>
+            <S.AvatarEditButton
               onClick={() => document.getElementById('avatar-input')?.click()}
               title="Alterar foto"
             >
               <FaEdit />
-            </button>
-            <input
+            </S.AvatarEditButton>
+            <S.HiddenInput
               id="avatar-input"
               type="file"
               accept="image/*"
               onChange={handleImageSelect}
-              style={{ display: 'none' }}
             />
-          </div>
+          </S.AvatarContainer>
 
-          {/* Upload Options */}
           {showImageUpload && (
-            <div className="image-upload-options">
-              <button 
-                className="btn-upload"
+            <S.ImageUploadOptions>
+              <S.UploadButton
                 onClick={() => document.getElementById('avatar-input')?.click()}
                 disabled={uploadingImage}
               >
                 {uploadingImage ? 'Enviando...' : '📷 Escolher Foto'}
-              </button>
+              </S.UploadButton>
               {profileImage && (
-                <button 
-                  className="btn-remove"
-                  onClick={handleRemoveImage}
-                >
+                <S.RemoveButton onClick={handleRemoveImage}>
                   🗑️ Remover Foto
-                </button>
+                </S.RemoveButton>
               )}
-            </div>
+            </S.ImageUploadOptions>
           )}
 
-          {/* User Info */}
-          <h1 className="profile-name">{user.name}</h1>
-          
-          {/* Badge Icon */}
-          <div className="profile-badge-icon">
+          <S.ProfileName>{user.name}</S.ProfileName>
+
+          <S.BadgeIcon>
             <FaMedal />
-          </div>
+          </S.BadgeIcon>
 
-          {/* Level and XP */}
-          <div className="profile-stats">
-            <div className="stat-item">
-              <p className="stat-label">Nível</p>
-              <p className="stat-value">{user.level || 7}</p>
-            </div>
-            <div className="stat-item">
-              <p className="stat-label">Experiência</p>
-              <p className="stat-value">{user.xp || 730}/800</p>
-            </div>
-          </div>
+          <S.ProfileStats>
+            <S.StatItem>
+              <S.StatLabel>Nível</S.StatLabel>
+              <S.StatValue>{user.level || 7}</S.StatValue>
+            </S.StatItem>
+            <S.StatItem>
+              <S.StatLabel>Experiência</S.StatLabel>
+              <S.StatValue>{user.xp || 730}/800</S.StatValue>
+            </S.StatItem>
+          </S.ProfileStats>
 
-          {/* XP Progress Bar */}
-          <div className="xp-progress-container">
-            <div className="xp-progress-bar">
-              <div 
-                className="xp-progress-fill" 
-                style={{ width: `${xpPercent}%` }}
-              ></div>
-            </div>
-          </div>
-        </div>
+          <S.XpProgressContainer>
+            <S.XpProgressBar>
+              <S.XpProgressFill progress={xpPercent} />
+            </S.XpProgressBar>
+          </S.XpProgressContainer>
+        </S.ProfileHero>
 
-        {/* Top Achievements */}
-        <section className="achievements-section">
-          <h2 className="section-title">
+        <S.AchievementsSection>
+          <S.SectionTitle>
             {'<'}CONQUISTAS TRIUNFANTES{'>'}
-          </h2>
-          <p className="section-subtitle">
+          </S.SectionTitle>
+          <S.SectionSubtitle>
             Somente conquistas de maior prestígio ficam aqui
-          </p>
+          </S.SectionSubtitle>
 
           {loadingBadges ? (
-            <div className="loading-badges">Carregando conquistas...</div>
+            <S.LoadingBadges>Carregando conquistas...</S.LoadingBadges>
           ) : hasAnyBadge && topBadges.length > 0 ? (
-            <div className="top-badges">
+            <S.TopBadges>
               {topBadges.map((badge, index) => (
-                <div key={badge._id} className="top-badge">
-                  <div className={`badge-trophy badge-trophy-${index + 1}`}>
+                <S.TopBadge key={badge._id}>
+                  <S.BadgeTrophy position={(index + 1) as 1 | 2 | 3}>
                     <FaTrophy />
-                  </div>
-                  <div className="badge-pedestal"></div>
-                </div>
+                  </S.BadgeTrophy>
+                  <S.BadgePedestal />
+                </S.TopBadge>
               ))}
-            </div>
+            </S.TopBadges>
           ) : (
-            <div className="no-badges-message">
-              <FaLock className="lock-icon" />
+            <S.NoBadgesMessage>
+              <FaLock />
               <p>Complete desafios para desbloquear suas primeiras conquistas!</p>
-            </div>
+            </S.NoBadgesMessage>
           )}
-        </section>
+        </S.AchievementsSection>
 
-        {/* All Achievements */}
-        <section className="achievements-section">
-          <h2 className="section-title">
+        <S.AchievementsSection>
+          <S.SectionTitle>
             {'<'}CONQUISTAS{'>'}
-          </h2>
+          </S.SectionTitle>
 
           {loadingBadges ? (
-            <div className="loading-badges">Carregando...</div>
+            <S.LoadingBadges>Carregando...</S.LoadingBadges>
           ) : allBadges.length > 0 ? (
-            <div className="all-badges">
+            <S.AllBadges>
               {allBadges.map((badge, index) => {
                 const isEarned = userBadges.includes(badge._id)
                 const icons = [FaTrophy, FaStar, FaMedal, FaAward, FaTrophy, FaStar]
                 const Icon = icons[index % icons.length]
                 
                 return (
-                  <div 
-                    key={badge._id} 
-                    className={`badge-item ${isEarned ? 'earned' : 'locked'}`}
+                  <S.BadgeItem
+                    key={badge._id}
+                    isEarned={isEarned}
+                    colorIndex={index}
                     title={isEarned ? badge.name : `🔒 ${badge.requirement || 'Bloqueado'}`}
                   >
-                    {isEarned ? (
-                      <Icon />
-                    ) : (
-                      <FaLock />
-                    )}
-                    <div className="badge-base"></div>
-                  </div>
+                    {isEarned ? <Icon /> : <FaLock />}
+                    <S.BadgeBase isEarned={isEarned} />
+                  </S.BadgeItem>
                 )
               })}
-            </div>
+            </S.AllBadges>
           ) : (
-            <div className="no-badges-message">
+            <S.NoBadgesMessage>
               <p>Nenhuma conquista disponível no momento.</p>
-            </div>
+            </S.NoBadgesMessage>
           )}
-        </section>
-      </div>
+        </S.AchievementsSection>
+      </S.ProfilePage>
     </AuthenticatedLayout>
   )
 }

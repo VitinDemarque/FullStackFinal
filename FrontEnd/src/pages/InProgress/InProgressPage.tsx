@@ -1,16 +1,26 @@
 import AuthenticatedLayout from '@components/Layout/AuthenticatedLayout'
+import * as S from '@/styles/pages/Shared/ComingSoon'
 
 export default function InProgressPage() {
   return (
     <AuthenticatedLayout>
-      <div style={{ padding: '2rem' }}>
-        <h1 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '1rem' }}>
+      <S.Container>
+        <S.Title>
           📊 Em Andamento
-        </h1>
-        <p style={{ color: '#6b7280' }}>
+        </S.Title>
+        <S.Description>
           Aqui você verá todos os seus desafios em andamento!
-        </p>
-      </div>
+        </S.Description>
+        
+        <S.Card>
+          <S.IconWrapper>⏳</S.IconWrapper>
+          <S.ComingSoonText>Em Desenvolvimento</S.ComingSoonText>
+          <S.ComingSoonDescription>
+            Acompanhe o progresso dos seus desafios, veja estatísticas e continue de onde parou.
+            Funcionalidade chegando em breve!
+          </S.ComingSoonDescription>
+        </S.Card>
+      </S.Container>
     </AuthenticatedLayout>
   )
 }

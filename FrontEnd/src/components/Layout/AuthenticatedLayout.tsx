@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import Sidebar from './Sidebar'
-import './AuthenticatedLayout.css'
+import * as S from '@/styles/components/AuthenticatedLayout/styles'
 
 interface AuthenticatedLayoutProps {
   children: ReactNode
@@ -8,12 +8,12 @@ interface AuthenticatedLayoutProps {
 
 export default function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
   return (
-    <div className="authenticated-layout">
+    <S.LayoutContainer>
       <Sidebar />
-      <main className="main-content">
+      <S.MainContent>
         {children}
-      </main>
-    </div>
+      </S.MainContent>
+    </S.LayoutContainer>
   )
 }
 

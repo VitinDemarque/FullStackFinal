@@ -1,4 +1,5 @@
 import { FaUser, FaStar } from 'react-icons/fa'
+import * as S from '@/styles/components/TestimonialsSection/styles'
 
 interface Testimonial {
   id: number
@@ -41,68 +42,55 @@ const testimonials: Testimonial[] = [
 
 export default function TestimonialsSection() {
   return (
-    <section className="relative bg-gradient-to-br from-gray-50 via-blue-50 to-blue-100 py-20 px-8 overflow-hidden">
-      {/* Background decorative shapes */}
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-300 opacity-30 translate-x-32 translate-y-32 rounded-tl-full" />
+    <S.TestimonialsSectionContainer>
+      <S.ShapeBottomRight />
 
-      <div className="max-w-7xl mx-auto relative z-10">
-        {/* Title */}
-        <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 text-gray-900">
+      <S.TestimonialsContent>
+        <S.Title>
           {'{'}O Que Dizem Nossos Alunos{'}'}
-        </h2>
-        <p className="text-center text-gray-700 text-lg mb-12 max-w-2xl mx-auto">
+        </S.Title>
+        <S.Description>
           Mais de 10.000 desenvolvedores já transformaram suas carreiras com a DevQuest
-        </p>
+        </S.Description>
 
-        {/* Testimonials Grid */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <S.TestimonialsGrid>
           {testimonials.map((testimonial) => (
-            <div
-              key={testimonial.id}
-              className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all"
-            >
-              {/* Header */}
-              <div className="flex items-start space-x-4 mb-4">
-                <div className="flex-shrink-0">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center border-4 border-white shadow-md">
-                    <FaUser className="text-2xl text-white" />
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-lg text-gray-900">
+            <S.TestimonialCard key={testimonial.id}>
+              <S.TestimonialHeader>
+                <S.AvatarContainer>
+                  <S.Avatar>
+                    <FaUser />
+                  </S.Avatar>
+                </S.AvatarContainer>
+                <S.TestimonialInfo>
+                  <S.TestimonialName>
                     {testimonial.name}
-                  </h3>
-                  <p className="text-sm text-gray-600">{testimonial.role}</p>
-                  {/* Stars */}
-                  <div className="flex gap-1 mt-1">
+                  </S.TestimonialName>
+                  <S.TestimonialRole>{testimonial.role}</S.TestimonialRole>
+                  <S.Stars>
                     {[...Array(testimonial.rating)].map((_, i) => (
-                      <FaStar key={i} className="text-yellow-400 text-sm" />
+                      <FaStar key={i} />
                     ))}
-                  </div>
-                </div>
-              </div>
+                  </S.Stars>
+                </S.TestimonialInfo>
+              </S.TestimonialHeader>
 
-              {/* Testimonial Text */}
-              <p className="text-gray-700 leading-relaxed italic">
+              <S.TestimonialText>
                 "{testimonial.text}"
-              </p>
-            </div>
+              </S.TestimonialText>
+            </S.TestimonialCard>
           ))}
-        </div>
+        </S.TestimonialsGrid>
 
-        {/* CTA */}
-        <div className="text-center mt-12">
-          <p className="text-gray-700 text-lg mb-4">
+        <S.CTAContainer>
+          <S.CTAText>
             Junte-se a milhares de desenvolvedores que já estão aprendendo de forma diferente
-          </p>
-          <a
-            href="/signup"
-            className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold px-8 py-4 rounded-lg hover:shadow-xl transition-all hover:scale-105"
-          >
+          </S.CTAText>
+          <S.CTAButton href="/signup">
             Começar Gratuitamente Agora
-          </a>
-        </div>
-      </div>
-    </section>
+          </S.CTAButton>
+        </S.CTAContainer>
+      </S.TestimonialsContent>
+    </S.TestimonialsSectionContainer>
   )
 }
