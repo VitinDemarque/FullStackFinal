@@ -127,7 +127,6 @@ export async function excluir(id: string, usuarioId: string) {
     throw new BadRequestError('Somente o dono ou moderadores podem solicitar exclusão.');
   }
 
-  // Inicializar votos, se não existirem
   const votos = forum.votosExclusao ?? [];
   const jaVotou = votos.some(v => String(v.usuarioId) === usuarioId);
 
@@ -142,7 +141,7 @@ export async function excluir(id: string, usuarioId: string) {
   const todosConcordaram = totalVotos >= totalVotantes;
 
   if (todosConcordaram) {
-    const deletado = await Forum.findByIdAndDelete(id).lean<IForum | null>();
+    const deletado = await Forum.findByIdAndDelete(id); // NÃO usar .lean() aqui, findByIdAndDelete retorna o documento diretamente
     if (!deletado) throw new NotFoundError('Fórum não encontrado');
     return { mensagem: 'Fórum excluído com sucesso.', forum: deletado };
   }
