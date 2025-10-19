@@ -3,12 +3,17 @@
 import * as leaderboardService from '@/services/leaderboards.service';
 import Submission from '@/models/Submission.model';
 import { BadRequestError } from '@/utils/httpErrors';
+import { Types } from 'mongoose';
 
-jest.mock('../../../models/Submission.model', () => ({
+jest.spyOn(Types, 'ObjectId').mockImplementation((id?: any) => {
+  return id ? id.toString() : '000000000000000000000000';
+});
+
+jest.mock('@/models/Submission.model', () => ({
   aggregate: jest.fn(),
 }));
-jest.mock('../../../models/Exercise.model', () => ({}));
-jest.mock('../../../models/User.model', () => ({}));
+jest.mock('@/models/Exercise.model', () => ({}));
+jest.mock('@/models/User.model', () => ({}));
 
 /*
 
