@@ -1,12 +1,13 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { authService } from '@services/auth.service'
-import type { User, LoginCredentials, SignupData } from '@types/index'
+import { authService } from '../services/auth.service'
+import type { User, LoginCredentials, SignupData } from '../types/index'
 
 interface AuthContextData {
   user: User | null
   loading: boolean
   login: (credentials: LoginCredentials) => Promise<void>
   signup: (data: SignupData) => Promise<void>
+  loginWithGoogle: (idToken: string) => Promise<void>
   logout: () => void
   updateUser: (userData: Partial<User>) => void
   isAuthenticated: boolean
@@ -85,6 +86,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(response.user)
   }
 
+  async function loginWithGoogle(idToken: string) {
+    const response = await authService.loginWithGoogle(idToken)
+    const localAvatar = localStorage.getItem(`avatar_${response.user.id}`)
+    if (localAvatar) {
+      response.user.avatarUrl = localAvatar
+    }
+    setUser(response.user)
+    
+    localStorage.setItem('accessToken', response.tokens.accessToken)
+    localStorage.setItem('refreshToken', response.tokens.refreshToken)
+  }
+
   function logout() {
     authService.logout()
     setUser(null)
@@ -103,6 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         login,
         signup,
+        loginWithGoogle,
         logout,
         updateUser,
         isAuthenticated: !!user,

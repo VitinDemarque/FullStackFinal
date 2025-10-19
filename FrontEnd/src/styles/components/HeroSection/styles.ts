@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
+// import { Link } from 'react-router-dom'; GoogleButtonAction não o utiliza mais
 
 export const HeroSectionContainer = styled.section`
   position: relative;
@@ -91,7 +91,7 @@ export const Description = styled.p`
   line-height: 1.75;
 `;
 
-export const GoogleButton = styled(Link)`
+export const GoogleButtonAction = styled.button`
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
@@ -105,6 +105,8 @@ export const GoogleButton = styled(Link)`
   transition: all 0.3s ease;
   box-shadow: ${({ theme }) => theme.shadows.md};
   width: fit-content;
+  cursor: pointer;
+  border: none;
 
   svg {
     font-size: 1.5rem;
