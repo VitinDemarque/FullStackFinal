@@ -6,8 +6,8 @@ import Title from '@/models/Title.model';
 import UserTitle from '@/models/UserTitle.model';
 import { NotFoundError } from '@/utils/httpErrors';
 
-jest.mock('../models/Title.model');
-jest.mock('../models/UserTitle.model');
+jest.mock('@/models/Title.model');
+jest.mock('@/models/UserTitle.model');
 
 interface ITitle {
   _id: string;
