@@ -10,12 +10,16 @@ export async function list(req: Request, res: Response, next: NextFunction) {
     const page = parsePagination(req.query);
     const { skip, limit } = toMongoPagination(page);
 
+    const authReq = req as AuthenticatedRequest;
+    const requestUserId = authReq.user?.user_id;
+
     const result = await ExercisesService.list({
       q,
       languageId,
       authorId,
       skip,
       limit,
+      requestUserId
     });
     return res.json(result);
   } catch (err) {
@@ -25,7 +29,10 @@ export async function list(req: Request, res: Response, next: NextFunction) {
 
 export async function getById(req: Request, res: Response, next: NextFunction) {
   try {
-    const exercise = await ExercisesService.getById(req.params.id);
+    const authReq = req as AuthenticatedRequest;
+    const requestUserId = authReq.user?.user_id;
+
+    const exercise = await ExercisesService.getById(req.params.id, requestUserId);
     return res.json(exercise);
   } catch (err) {
     return next(err);

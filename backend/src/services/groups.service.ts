@@ -3,6 +3,8 @@ import { ForbiddenError, NotFoundError } from '../utils/httpErrors';
 
 import Group, { IGroup } from '../models/Group.model';
 import GroupMember, { IGroupMember } from '../models/GroupMember.model';
+import Exercise from '../models/Exercise.model';
+import { IExercise } from '../models/Exercise.model';
 
 export interface Paging { skip: number; limit: number; }
 
@@ -185,4 +187,56 @@ function sanitize(g: IGroup) {
     createdAt: g.createdAt,
     updatedAt: g.updatedAt
   };
+}
+
+function sanitizeExerciseLite(e: IExercise) {
+  return {
+    id: String(e._id),
+    title: e.title,
+    languageId: e.languageId ? String(e.languageId) : null,
+    difficulty: e.difficulty,
+    isPublic: !!e.isPublic,
+    status: e.status,
+    createdAt: e.createdAt
+  };
+}
+
+export async function listExercisesForGroup(
+    requestUserId: string, 
+    groupId: string, 
+    { skip, limit }: Paging
+) {
+    // 1. Validar se o usuário é membro
+    const membership = await GroupMember.findOne({
+        groupId: new Types.ObjectId(groupId),
+        userId: new Types.ObjectId(requestUserId)
+    }).lean();
+
+    if (!membership) {
+        // Verificar se o grupo existe antes de dar 403 (para não vazar informação)
+        const group = await Group.findById(groupId).lean<IGroup | null>();
+        if (!group) throw new NotFoundError('Group not found');
+        
+        throw new ForbiddenError('You must be a member of this group to view its exercises');
+    }
+
+    // 2. Buscar exercícios (publicados) do grupo
+    const where = {
+        groupId: new Types.ObjectId(groupId),
+        status: 'PUBLISHED'
+    };
+
+    const [items, total] = await Promise.all([
+        Exercise.find(where)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean<IExercise[]>(),
+        Exercise.countDocuments(where)
+    ]);
+
+    return {
+        items: items.map(sanitizeExerciseLite),
+        total
+    };
 }

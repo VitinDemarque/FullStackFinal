@@ -8,6 +8,7 @@ export interface IExercise {
   languageId?: Types.ObjectId | null;
   title: string;
   description?: string;
+  groupId?: Types.ObjectId | null;
   difficulty: number;     // 1..5
   baseXp: number;         // base para cálculo de XP
   isPublic: boolean;
@@ -24,6 +25,7 @@ const ExerciseSchema = new Schema<IExercise>(
     title: { type: String, required: true, trim: true },
     description: { type: String, default: '' },
     difficulty: { type: Number, default: 1, min: 1, max: 5, index: true },
+    groupId: { type: Schema.Types.ObjectId, ref: 'Group', default: null, index: true },
     baseXp: { type: Number, default: 100, min: 0 },
     isPublic: { type: Boolean, default: true, index: true },
     codeTemplate: { type: String, required: true, default: '// start coding...' },
