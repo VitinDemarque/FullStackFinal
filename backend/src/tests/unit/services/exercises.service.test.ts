@@ -9,18 +9,28 @@ import { ForbiddenError, NotFoundError } from '@/utils/httpErrors';
 import { Types } from 'mongoose';
 
 // Mock dos Models
-jest.mock('../../../models/Exercise.model', () => ({
+jest.mock('@/models/Exercise.model', () => ({
   find: jest.fn(),
   countDocuments: jest.fn(),
   findById: jest.fn(),
   create: jest.fn(),
 }));
-jest.mock('../../../models/Language.model', () => ({
+jest.mock('@/models/Language.model', () => ({
   findById: jest.fn(),
 }));
-jest.mock('../../../models/UserStat.model', () => ({
+jest.mock('@/models/UserStat.model', () => ({
   updateOne: jest.fn(),
 }));
+
+const mockExercise = {
+  _id: 'ex1',
+  title: 'Exercício Teste',
+  authorUserId: 'user123',
+  difficulty: 'easy',
+  isPublic: true,
+  status: 'PUBLISHED',
+  createdAt: new Date(),
+};
 
 /*
 
@@ -95,15 +105,22 @@ describe('exercises.service', () => {
   });
 
   // Verificando a funcao getById
-  describe('getById', () => {
+  describe('exercises.service - getById', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
     it('deve retornar exercício se encontrado', async () => {
-      const mockEx = { _id: exId, authorUserId: userId, status: 'DRAFT' };
       (Exercise.findById as jest.Mock).mockReturnValueOnce({
-        lean: jest.fn().mockResolvedValueOnce(mockEx),
+        lean: jest.fn().mockResolvedValueOnce(mockExercise),
       });
 
-      const result = await exercisesService.getById(exId);
-      expect(result.id).toBe(exId);
+      // Use exercisesService.getById
+      const result = await exercisesService.getById('ex1');
+
+      expect(Exercise.findById).toHaveBeenCalledWith('ex1');
+      expect(result).toHaveProperty('id', 'ex1');
+      expect(result.title).toBe('Exercício Teste');
     });
 
     it('deve lançar NotFoundError se não encontrado', async () => {
@@ -111,7 +128,7 @@ describe('exercises.service', () => {
         lean: jest.fn().mockResolvedValueOnce(null),
       });
 
-      await expect(exercisesService.getById('404')).rejects.toThrow(NotFoundError);
+      await expect(exercisesService.getById('nao-existe')).rejects.toThrow(NotFoundError);
     });
   });
 
