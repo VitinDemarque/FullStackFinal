@@ -12,14 +12,14 @@ import ExerciseStat from '@/models/ExerciseStat.model';
 import { calculateXp } from '@/services/xp-rules/calculator';
 import { NotFoundError, BadRequestError } from '@/utils/httpErrors';
 
-jest.mock('../models/Submission.model');
-jest.mock('../models/Exercise.model');
-jest.mock('../models/Season.model');
-jest.mock('../models/User.model');
-jest.mock('../models/LevelRule.model');
-jest.mock('../models/UserStat.model');
-jest.mock('../models/ExerciseStat.model');
-jest.mock('../services/xp-rules/calculator');
+jest.mock('@/models/Submission.model');
+jest.mock('@/models/Exercise.model');
+jest.mock('@/models/Season.model');
+jest.mock('@/models/User.model');
+jest.mock('@/models/LevelRule.model');
+jest.mock('@/models/UserStat.model');
+jest.mock('@/models/ExerciseStat.model');
+jest.mock('@/services/xp-rules/calculator');
 
 describe('submissions.service', () => {
   const mockUserId = new Types.ObjectId().toString();
@@ -59,12 +59,22 @@ describe('submissions.service', () => {
 
   describe('create', () => {
     it('deve criar uma submission corretamente e creditar XP', async () => {
-      (Exercise.findById as jest.Mock).mockResolvedValue(mockExercise);
-      (Season.findOne as jest.Mock).mockResolvedValue(mockSeason);
+      (Exercise.findById as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockResolvedValue(mockExercise)
+      });
+      (Season.findOne as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockResolvedValue(mockSeason)
+      });
       (calculateXp as jest.Mock).mockReturnValue(150);
       (Submission.create as jest.Mock).mockResolvedValue(mockSubmission);
       (User.findById as jest.Mock).mockResolvedValue({ xpTotal: 0, save: jest.fn() });
-      (LevelRule.find as jest.Mock).mockReturnValue({ sort: jest.fn().mockResolvedValue([{ level: 1, minXp: 0 }, { level: 2, minXp: 100 }]) });
+      (LevelRule.find as jest.Mock).mockReturnValue({
+        sort: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValue([
+          { level: 1, minXp: 0 },
+          { level: 2, minXp: 100 },
+        ]),
+      });
       (UserStat.updateOne as jest.Mock).mockResolvedValue({});
       (ExerciseStat.updateOne as jest.Mock).mockResolvedValue({});
 
@@ -92,17 +102,23 @@ describe('submissions.service', () => {
     });
 
     it('deve lançar NotFoundError se o exercício não existir', async () => {
-      (Exercise.findById as jest.Mock).mockResolvedValue(null);
+      (Exercise.findById as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockResolvedValue(null)
+      });
 
-      await expect(submissionsService.create({ userId: mockUserId, exerciseId: mockExerciseId }))
-        .rejects.toThrow(NotFoundError);
+      await expect(
+        submissionsService.create({ userId: mockUserId, exerciseId: mockExerciseId })
+      ).rejects.toThrow(NotFoundError);
     });
 
     it('deve lançar BadRequestError se o exercício não estiver publicado', async () => {
-      (Exercise.findById as jest.Mock).mockResolvedValue({ ...mockExercise, status: 'DRAFT' });
+      (Exercise.findById as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockResolvedValue({ ...mockExercise, status: 'DRAFT' })
+      });
 
-      await expect(submissionsService.create({ userId: mockUserId, exerciseId: mockExerciseId }))
-        .rejects.toThrow(BadRequestError);
+      await expect(
+        submissionsService.create({ userId: mockUserId, exerciseId: mockExerciseId })
+      ).rejects.toThrow(BadRequestError);
     });
   });
 
