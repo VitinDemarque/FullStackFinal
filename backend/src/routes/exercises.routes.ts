@@ -1,32 +1,32 @@
 import { Router } from 'express';
-import * as ExercisesController from '../controllers/exercises.controller';
-import { auth, requireOwnership } from '../middlewares/auth';
+import * as GroupsController from '../controllers/groups.controller';
+import { auth } from '../middlewares/auth';
 
 const router = Router();
 
 /**
- * Listagem pública / busca
+ * CRUD de grupos
  */
-router.get('/', ExercisesController.list);               // ?q=&languageId=&authorId=&page=&limit=
-router.get('/:id', ExercisesController.getById);
+router.get('/', GroupsController.listPublic);        // listar públicos
+router.get('/:id', auth(), GroupsController.getById);
+router.get('/:id/exercises', auth(), GroupsController.listExercises);
+
+router.post('/', auth(), GroupsController.create);   // cria grupo (owner = req.user.sub)
+router.patch('/:id', auth(), GroupsController.update); // somente owner/moderador
+router.delete('/:id', auth(), GroupsController.remove);
 
 /**
- * Ações do autor
+ * Membros
  */
-router.post('/', auth(), ExercisesController.create);    // cria com codeTemplate e isPublic
-router.patch('/:id', auth(), ExercisesController.update); // valida ownership dentro do controller (ou usar requireOwnership com /users/:id)
-router.delete('/:id', auth(), ExercisesController.remove);
+router.post('/:id/join', auth(), GroupsController.join);     // entrar em grupo (regras conforme visibilidade)
+router.post('/:id/leave', auth(), GroupsController.leave);   // sair
+
+router.post('/:id/members/:userId', auth(), GroupsController.addMember);    // owner/mod
+router.delete('/:id/members/:userId', auth(), GroupsController.removeMember); // owner/mod
 
 /**
- * Publicar / alterar visibilidade
+ * Papéis
  */
-router.post('/:id/publish', auth(), ExercisesController.publish);
-router.post('/:id/unpublish', auth(), ExercisesController.unpublish);
-router.post('/:id/visibility', auth(), ExercisesController.setVisibility); // body: { isPublic: boolean }
-
-/**
- * Exercícios do usuário logado
- */
-router.get('/me/mine', auth(), ExercisesController.listMine);
+router.post('/:id/members/:userId/role', auth(), GroupsController.setMemberRole); // body: { role: 'MEMBER' | 'MODERATOR' }
 
 export default router;
