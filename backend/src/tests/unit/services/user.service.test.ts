@@ -168,4 +168,148 @@ describe('users.service', () => {
       await expect(userService.getPublicProfile({ userId: '999', skip: 0, limit: 10 })).rejects.toThrow(NotFoundError);
     });
   });
+
+  describe('users.service - additional coverage', () => {
+    const mockUserId = '64b7f1a2c2e6f8e4f8f9a9b9';
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      jest.spyOn(Types, 'ObjectId').mockImplementation((id) => id as any);
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    describe('sanitize optional fields', () => {
+      it('deve definir avatarUrl, bio, collegeId e role corretamente quando ausentes', async () => {
+        const mockUser = {
+          _id: mockUserId,
+          name: 'João',
+          email: 'joao@email.com',
+          handle: 'joaoteste',
+          level: 1,
+          xpTotal: 50,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        (User.findById as jest.Mock).mockReturnValueOnce({
+          lean: jest.fn().mockResolvedValueOnce(mockUser),
+        });
+
+        const result = await userService.getById(mockUserId);
+
+        expect(result.avatarUrl).toBeNull();
+        expect(result.bio).toBeNull();
+        expect(result.collegeId).toBeNull();
+        expect(result.role).toBe('USER');
+      });
+    });
+
+    describe('updateById with empty or undefined payload', () => {
+      it('deve atualizar updatedAt mesmo com payload vazio', async () => {
+        (User.findByIdAndUpdate as jest.Mock).mockReturnValueOnce({
+          lean: jest.fn().mockResolvedValueOnce({ _id: mockUserId }),
+        });
+
+        await userService.updateById(mockUserId, {});
+
+        const updateArg = (User.findByIdAndUpdate as jest.Mock).mock.calls[0][1];
+        expect(updateArg).toHaveProperty('updatedAt');
+      });
+
+      it('deve atualizar updatedAt mesmo com payload undefined', async () => {
+        (User.findByIdAndUpdate as jest.Mock).mockReturnValueOnce({
+          lean: jest.fn().mockResolvedValueOnce({ _id: mockUserId }),
+        });
+
+        await userService.updateById(mockUserId, undefined as any);
+
+        const updateArg = (User.findByIdAndUpdate as jest.Mock).mock.calls[0][1];
+        expect(updateArg).toHaveProperty('updatedAt');
+      });
+    });
+
+    describe('getPublicProfile - empty arrays and null scoreboard', () => {
+      it('deve retornar arrays vazios e scoreboard zerado quando não há dados', async () => {
+        const mockUser = { _id: mockUserId, name: 'João', handle: 'joaoteste', level: 1, xpTotal: 50 };
+
+        (User.findById as jest.Mock).mockReturnValueOnce({
+          lean: jest.fn().mockResolvedValueOnce(mockUser),
+        });
+
+        (Exercise.find as any).mockReturnValueOnce({
+          sort: jest.fn().mockReturnThis(),
+          skip: jest.fn().mockReturnThis(),
+          limit: jest.fn().mockReturnThis(),
+          lean: jest.fn().mockResolvedValueOnce([]),
+        });
+        (Exercise.countDocuments as jest.Mock).mockResolvedValueOnce(0);
+
+        (UserBadge.find as any).mockReturnValueOnce({
+          populate: jest.fn().mockReturnThis(),
+          lean: jest.fn().mockResolvedValueOnce([]),
+        });
+
+        (UserTitle.find as any).mockReturnValueOnce({
+          populate: jest.fn().mockReturnThis(),
+          lean: jest.fn().mockResolvedValueOnce([]),
+        });
+
+        (UserStat.findOne as jest.Mock).mockReturnValueOnce({
+          lean: jest.fn().mockResolvedValueOnce(null),
+        });
+
+        const result = await userService.getPublicProfile({ userId: mockUserId, skip: 0, limit: 10 });
+
+        expect(result.exercises.items).toHaveLength(0);
+        expect(result.exercises.total).toBe(0);
+        expect(result.badges).toHaveLength(0);
+        expect(result.titles).toHaveLength(0);
+        expect(result.scoreboard).toEqual({ created: 0, solved: 0 });
+      });
+    });
+
+    describe('getPublicProfile - badges/titles as ObjectId only', () => {
+      it('deve lidar com badgeId e titleId sendo apenas ObjectId', async () => {
+        const mockUser = { _id: mockUserId, name: 'João', handle: 'joaoteste', level: 1, xpTotal: 50 };
+        const objectIdBadge = 'b123';
+        const objectIdTitle = 't123';
+
+        (User.findById as jest.Mock).mockReturnValueOnce({
+          lean: jest.fn().mockResolvedValueOnce(mockUser),
+        });
+
+        (Exercise.find as any).mockReturnValueOnce({
+          sort: jest.fn().mockReturnThis(),
+          skip: jest.fn().mockReturnThis(),
+          limit: jest.fn().mockReturnThis(),
+          lean: jest.fn().mockResolvedValueOnce([]),
+        });
+        (Exercise.countDocuments as jest.Mock).mockResolvedValueOnce(0);
+
+        (UserBadge.find as any).mockReturnValueOnce({
+          populate: jest.fn().mockReturnThis(),
+          lean: jest.fn().mockResolvedValueOnce([{ badgeId: objectIdBadge, awardedAt: new Date() }]),
+        });
+
+        (UserTitle.find as any).mockReturnValueOnce({
+          populate: jest.fn().mockReturnThis(),
+          lean: jest.fn().mockResolvedValueOnce([{ titleId: objectIdTitle, awardedAt: new Date() }]),
+        });
+
+        (UserStat.findOne as jest.Mock).mockReturnValueOnce({
+          lean: jest.fn().mockResolvedValueOnce(null),
+        });
+
+        const result = await userService.getPublicProfile({ userId: mockUserId, skip: 0, limit: 10 });
+
+        expect(result.badges[0].id).toBe(objectIdBadge);
+        expect(result.badges[0].name).toBeUndefined();
+        expect(result.titles[0].id).toBe(objectIdTitle);
+        expect(result.titles[0].name).toBeUndefined();
+      });
+    });
+  });
 });
