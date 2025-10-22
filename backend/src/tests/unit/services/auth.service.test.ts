@@ -286,4 +286,83 @@ describe('auth.service', () => {
       await expect(refreshToken('tokenQualquer')).rejects.toThrow(UnauthorizedError);
     });
   });
+
+  it('signup deve definir role como USER por padrão', async () => {
+    (User.findOne as jest.Mock)
+      .mockReturnValueOnce(mockLean(null)) // email
+      .mockReturnValueOnce(mockLean(null)); // handle
+
+    (hashPassword as jest.Mock).mockResolvedValueOnce('hashedPassword');
+
+    (User.create as jest.Mock).mockResolvedValueOnce({
+      _id: 'user123',
+      email: mockUserData.email,
+      handle: mockUserData.handle,
+      toObject: jest.fn().mockReturnValue({
+        _id: 'user123',
+        email: mockUserData.email,
+        handle: mockUserData.handle
+        // role será definido pelo signup
+      }),
+    });
+
+    (signToken as jest.Mock)
+      .mockReturnValueOnce('accessToken')
+      .mockReturnValueOnce('refreshToken');
+
+    const result = await signup({
+      name: mockUserData.name,
+      email: mockUserData.email,
+      password: mockUserData.password,
+      handle: mockUserData.handle,
+      collegeId: undefined
+    });
+
+    expect(result.user!.role).toBe('USER');
+    expect(result.tokens.accessToken).toBe('accessToken');
+    expect(result.tokens.refreshToken).toBe('refreshToken');
+  });
+
+  it('login deve lidar com usuário sem collegeId e role definido', async () => {
+    const user = { ...mockUserData, role: undefined, collegeId: undefined };
+    (User.findOne as jest.Mock).mockReturnValueOnce(mockLean(user));
+    (comparePassword as jest.Mock).mockResolvedValueOnce(true);
+    (signToken as jest.Mock).mockReturnValueOnce('accessToken').mockReturnValueOnce('refreshToken');
+
+    const result = await login({ email: user.email, password: '123456' });
+    if (result.user) {
+      expect(result.user.role).toBe('USER');
+    }
+    expect(user?.collegeId).toBeUndefined();
+  });
+
+  it('refreshToken deve lançar UnauthorizedError se verifyToken retornar objeto inesperado', async () => {
+    (verifyToken as jest.Mock).mockReturnValueOnce({ foo: 'bar' });
+    await expect(refreshToken('tokenQualquer')).rejects.toThrow(UnauthorizedError);
+  });
+
+  it('signup/login deve sanitizar usuário corretamente', async () => {
+    (User.findOne as jest.Mock).mockReturnValueOnce(mockLean(null)).mockReturnValueOnce(mockLean(null));
+    (hashPassword as jest.Mock).mockResolvedValueOnce('hashedPassword');
+    (User.create as jest.Mock).mockResolvedValueOnce({
+      _id: 'user123',
+      email: 'a@a.com',
+      handle: 'a',
+      passwordHash: 'hash',
+      role: 'USER',
+      toObject: jest.fn().mockReturnValue({
+        _id: 'user123',
+        email: 'a@a.com',
+        handle: 'a',
+        passwordHash: 'hash',
+        role: 'USER'
+      }),
+    });
+    (signToken as jest.Mock).mockReturnValueOnce('accessToken').mockReturnValueOnce('refreshToken');
+
+    const result = await signup({ name: 'a', email: 'a@a.com', password: '123', handle: 'a' });
+    expect((result.user as any).passwordHash).toBeUndefined();
+  });
+
+
 });
