@@ -66,27 +66,26 @@ export async function create(input: CreateSubmissionInput) {
   }
 
   // estatísticas
-  await Promise.all([
+  Promise.all([
     UserStat.updateOne(
       { userId: new Types.ObjectId(userId) },
       {
         $inc: { exercisesSolvedCount: status === 'ACCEPTED' ? 1 : 0 },
         $setOnInsert: { userId: new Types.ObjectId(userId) },
-        $set: { lastUpdatedAt: new Date() }
+        $set: { lastUpdatedAt: new Date() },
       },
       { upsert: true }
-    ),
+    ).catch(err => console.warn('Falha em UserStat:', err)),
+
     ExerciseStat.updateOne(
       { exerciseId: new Types.ObjectId(exerciseId) },
       {
         $inc: { solvesCount: 1 },
         $setOnInsert: { exerciseId: new Types.ObjectId(exerciseId) },
-        $set: {
-          lastSolveAt: new Date()
-        }
+        $set: { lastSolveAt: new Date() },
       },
       { upsert: true }
-    )
+    ).catch(err => console.warn('Falha em ExerciseStat:', err)),
   ]);
 
   return sanitize(created.toObject() as ISubmission);

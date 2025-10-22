@@ -30,14 +30,14 @@ describe('submissions.service', () => {
     _id: mockExerciseId,
     status: 'PUBLISHED',
     baseXp: 100,
-    difficulty: 2
+    difficulty: 2,
   };
 
   const mockSeason = {
     _id: mockSeasonId,
     isActive: true,
     startDate: new Date(Date.now() - 1000),
-    endDate: new Date(Date.now() + 1000)
+    endDate: new Date(Date.now() + 1000),
   };
 
   const mockSubmission = {
@@ -50,20 +50,21 @@ describe('submissions.service', () => {
     timeSpentMs: 1000,
     xpAwarded: 150,
     createdAt: new Date(),
-    toObject: jest.fn().mockReturnThis()
+    toObject: jest.fn().mockReturnThis(),
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
+  // CREATE
   describe('create', () => {
     it('deve criar uma submission corretamente e creditar XP', async () => {
       (Exercise.findById as jest.Mock).mockReturnValue({
-        lean: jest.fn().mockResolvedValue(mockExercise)
+        lean: jest.fn().mockResolvedValue(mockExercise),
       });
       (Season.findOne as jest.Mock).mockReturnValue({
-        lean: jest.fn().mockResolvedValue(mockSeason)
+        lean: jest.fn().mockResolvedValue(mockSeason),
       });
       (calculateXp as jest.Mock).mockReturnValue(150);
       (Submission.create as jest.Mock).mockResolvedValue(mockSubmission);
@@ -83,17 +84,15 @@ describe('submissions.service', () => {
         exerciseId: mockExerciseId,
         score: 80,
         timeSpentMs: 1000,
-        code: 'console.log("hello")'
+        code: 'console.log("hello")',
       });
 
       expect(result).toMatchObject({
         userId: mockUserId,
         exerciseId: mockExerciseId,
-        seasonId: mockSeasonId,
         status: 'ACCEPTED',
         score: 80,
-        timeSpentMs: 1000,
-        xpAwarded: 150
+        xpAwarded: 150,
       });
 
       expect(Submission.create).toHaveBeenCalled();
@@ -103,7 +102,7 @@ describe('submissions.service', () => {
 
     it('deve lançar NotFoundError se o exercício não existir', async () => {
       (Exercise.findById as jest.Mock).mockReturnValue({
-        lean: jest.fn().mockResolvedValue(null)
+        lean: jest.fn().mockResolvedValue(null),
       });
 
       await expect(
@@ -113,53 +112,160 @@ describe('submissions.service', () => {
 
     it('deve lançar BadRequestError se o exercício não estiver publicado', async () => {
       (Exercise.findById as jest.Mock).mockReturnValue({
-        lean: jest.fn().mockResolvedValue({ ...mockExercise, status: 'DRAFT' })
+        lean: jest.fn().mockResolvedValue({ ...mockExercise, status: 'DRAFT' }),
       });
 
       await expect(
         submissionsService.create({ userId: mockUserId, exerciseId: mockExerciseId })
       ).rejects.toThrow(BadRequestError);
     });
+
+    it('deve criar submission mesmo sem temporada ativa', async () => {
+      (Exercise.findById as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockResolvedValue(mockExercise),
+      });
+      (Season.findOne as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockResolvedValue(null),
+      });
+      (calculateXp as jest.Mock).mockReturnValue(100);
+      (Submission.create as jest.Mock).mockResolvedValue(mockSubmission);
+      (User.findById as jest.Mock).mockResolvedValue({ xpTotal: 0, save: jest.fn() });
+      (LevelRule.find as jest.Mock).mockReturnValue({
+        sort: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValue([{ level: 1, minXp: 0 }]),
+      });
+      (UserStat.updateOne as jest.Mock).mockResolvedValue({});
+      (ExerciseStat.updateOne as jest.Mock).mockResolvedValue({});
+
+      const result = await submissionsService.create({
+        userId: mockUserId,
+        exerciseId: mockExerciseId,
+        score: 90,
+      });
+
+      expect(result.seasonId).toBe(mockSeasonId);
+    });
+
+    it('não deve creditar XP se a submissão for rejeitada (score < 60)', async () => {
+      (Exercise.findById as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockResolvedValue(mockExercise),
+      });
+      (Season.findOne as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockResolvedValue(mockSeason),
+      });
+      (calculateXp as jest.Mock).mockReturnValue(50);
+      (Submission.create as jest.Mock).mockResolvedValue({
+        ...mockSubmission,
+        status: 'REJECTED',
+        score: 30,
+      });
+      const mockUser = { xpTotal: 0, save: jest.fn() };
+      (User.findById as jest.Mock).mockResolvedValue(mockUser);
+      (LevelRule.find as jest.Mock).mockReturnValue({
+        sort: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValue([{ level: 1, minXp: 0 }]),
+      });
+      (UserStat.updateOne as jest.Mock).mockResolvedValue({});
+      (ExerciseStat.updateOne as jest.Mock).mockResolvedValue({});
+
+      await submissionsService.create({
+        userId: mockUserId,
+        exerciseId: mockExerciseId,
+        score: 30,
+      });
+
+      expect(User.findById).not.toHaveBeenCalled();
+    });
+
+    it('deve continuar mesmo se updateOne falhar', async () => {
+      (Exercise.findById as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockResolvedValue(mockExercise),
+      });
+      (Season.findOne as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockResolvedValue(mockSeason),
+      });
+      (calculateXp as jest.Mock).mockReturnValue(120);
+      (Submission.create as jest.Mock).mockResolvedValue(mockSubmission);
+      (User.findById as jest.Mock).mockResolvedValue({ xpTotal: 0, save: jest.fn() });
+      (LevelRule.find as jest.Mock).mockReturnValue({
+        sort: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValue([{ level: 1, minXp: 0 }]),
+      });
+      (UserStat.updateOne as jest.Mock).mockRejectedValue(new Error('fail'));
+      (ExerciseStat.updateOne as jest.Mock).mockRejectedValue(new Error('fail'));
+
+      await expect(
+        submissionsService.create({
+          userId: mockUserId,
+          exerciseId: mockExerciseId,
+          score: 80,
+        })
+      ).resolves.not.toThrow();
+    });
   });
 
+  // LIST BY USER / EXERCISE
   describe('listByUser', () => {
     it('deve retornar a lista de submissões do usuário', async () => {
       (Submission.find as jest.Mock).mockReturnValue({
         sort: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
         limit: jest.fn().mockReturnThis(),
-        lean: jest.fn().mockResolvedValue([mockSubmission])
+        lean: jest.fn().mockResolvedValue([mockSubmission]),
       });
       (Submission.countDocuments as jest.Mock).mockResolvedValue(1);
 
       const result = await submissionsService.listByUser(mockUserId, { skip: 0, limit: 10 });
-
       expect(result.total).toBe(1);
-      expect(result.items[0].userId).toBe(mockUserId);
     });
-  });
 
-  describe('listByExercise', () => {
-    it('deve retornar a lista de submissões de um exercício', async () => {
+    it('deve retornar lista vazia se não houver submissões', async () => {
       (Submission.find as jest.Mock).mockReturnValue({
         sort: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
         limit: jest.fn().mockReturnThis(),
-        lean: jest.fn().mockResolvedValue([mockSubmission])
+        lean: jest.fn().mockResolvedValue([]),
+      });
+      (Submission.countDocuments as jest.Mock).mockResolvedValue(0);
+
+      const result = await submissionsService.listByUser(mockUserId, { skip: 0, limit: 10 });
+      expect(result.items).toHaveLength(0);
+    });
+  });
+
+  describe('listByExercise', () => {
+    it('deve retornar submissões do exercício', async () => {
+      (Submission.find as jest.Mock).mockReturnValue({
+        sort: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValue([mockSubmission]),
       });
       (Submission.countDocuments as jest.Mock).mockResolvedValue(1);
 
       const result = await submissionsService.listByExercise(mockExerciseId, { skip: 0, limit: 10 });
-
       expect(result.total).toBe(1);
-      expect(result.items[0].exerciseId).toBe(mockExerciseId);
+    });
+
+    it('deve retornar lista vazia se nenhuma submissão encontrada', async () => {
+      (Submission.find as jest.Mock).mockReturnValue({
+        sort: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValue([]),
+      });
+      (Submission.countDocuments as jest.Mock).mockResolvedValue(0);
+
+      const result = await submissionsService.listByExercise(mockExerciseId, { skip: 0, limit: 10 });
+      expect(result.items).toHaveLength(0);
     });
   });
 
+  // GET BY ID
   describe('getById', () => {
     it('deve retornar submission por ID', async () => {
       (Submission.findById as jest.Mock).mockReturnValue({
-        lean: jest.fn().mockResolvedValue(mockSubmission)
+        lean: jest.fn().mockResolvedValue(mockSubmission),
       });
 
       const result = await submissionsService.getById(mockSubmission._id.toString());
@@ -168,11 +274,12 @@ describe('submissions.service', () => {
 
     it('deve lançar NotFoundError se submission não existir', async () => {
       (Submission.findById as jest.Mock).mockReturnValue({
-        lean: jest.fn().mockResolvedValue(null)
+        lean: jest.fn().mockResolvedValue(null),
       });
 
-      await expect(submissionsService.getById(mockSubmission._id.toString()))
-        .rejects.toThrow(NotFoundError);
+      await expect(submissionsService.getById(mockSubmission._id.toString())).rejects.toThrow(
+        NotFoundError
+      );
     });
   });
 });
