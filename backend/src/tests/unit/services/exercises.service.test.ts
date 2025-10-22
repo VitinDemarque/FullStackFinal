@@ -294,4 +294,88 @@ describe('exercises.service', () => {
       await expect(exercisesService.setVisibility(userId, exId, true)).rejects.toThrow(ForbiddenError);
     });
   });
+
+  describe('cenários adicionais para cobertura total', () => {
+    beforeEach(() => jest.clearAllMocks());
+
+    it('list deve retornar lista vazia se nenhum exercício for encontrado', async () => {
+      (Exercise.find as jest.Mock).mockReturnValueOnce({
+        sort: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValueOnce([]),
+      });
+      (Exercise.countDocuments as jest.Mock).mockResolvedValueOnce(0);
+
+      const result = await exercisesService.list({});
+      expect(result.items).toEqual([]);
+      expect(result.total).toBe(0);
+    });
+
+    it('getById deve tratar exercício com campos inesperados', async () => {
+      const mockExercise = {
+        _id: 'e1',
+        title: 'Estranho',
+        isPublic: true, // precisa ser true
+        status: 'PUBLISHED', // precisa ser publicado
+        // campos inesperados ou ausentes
+        authorUserId: undefined,
+        nonsenseField: 999,
+      };
+
+      (Exercise.findById as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValue(mockExercise),
+      });
+
+      const result = await exercisesService.getById('e1', 'anyUserId');
+
+      expect(result).toBeDefined();
+      expect(result).toHaveProperty('title', 'Estranho');
+      expect(result).not.toHaveProperty('nonsenseField');
+    });
+
+
+    it('create deve lançar erro se falhar ao criar exercício', async () => {
+      (Language.findById as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValueOnce({ _id: 'lang' }),
+      });
+      (Exercise.create as jest.Mock).mockRejectedValueOnce(new Error('DB error'));
+
+      await expect(
+        exercisesService.create('user', { languageId: 'lang' })
+      ).rejects.toThrow('DB error');
+    });
+
+    it('create deve lançar erro se UserStat.updateOne falhar', async () => {
+      (Language.findById as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValueOnce({ _id: 'lang' }),
+      });
+      const mockDoc = {
+        _id: 'e1',
+        authorUserId: 'user',
+        toObject: jest.fn().mockReturnValue({ _id: 'e1', authorUserId: 'user' }),
+      };
+      (Exercise.create as jest.Mock).mockResolvedValueOnce(mockDoc);
+      (UserStat.updateOne as jest.Mock).mockRejectedValueOnce(new Error('stat fail'));
+
+      await expect(
+        exercisesService.create('user', { languageId: 'lang' })
+      ).rejects.toThrow('stat fail');
+    });
+
+    it('publish deve lançar NotFoundError se exercício não encontrado', async () => {
+      (Exercise.findById as jest.Mock).mockResolvedValueOnce(null);
+      await expect(exercisesService.publish('user', 'none')).rejects.toThrow(NotFoundError);
+    });
+
+    it('unpublish deve lançar NotFoundError se exercício não encontrado', async () => {
+      (Exercise.findById as jest.Mock).mockResolvedValueOnce(null);
+      await expect(exercisesService.unpublish('user', 'none')).rejects.toThrow(NotFoundError);
+    });
+
+    it('setVisibility deve lançar NotFoundError se exercício não encontrado', async () => {
+      (Exercise.findById as jest.Mock).mockResolvedValueOnce(null);
+      await expect(exercisesService.setVisibility('user', 'none', true)).rejects.toThrow(NotFoundError);
+    });
+  });
 });
