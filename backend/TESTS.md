@@ -6,10 +6,32 @@ Este projeto utiliza Jest como framework de testes e Supertest para testes de in
     ├── tests/
     │    ├── unit/
     │    │    ├── services/
+    |    |    |     ├── xp-rules/
+    |    |    |     |      └── calculator.test.ts
+    |    |    |     |
     │    │    │     ├── auth.service.test.ts
+    |    |    |     ├── badges.service.test.ts
+    |    |    |     ├── colleges.service.test.ts
+    |    |    |     ├── exercises.service.test.ts
+    |    |    |     ├── forum.service.test.ts
+    |    |    |     ├── groups.service.test.ts
+    |    |    |     ├── languages.service.test.ts
+    |    |    |     ├── leaderboards.service.test.ts
+    |    |    |     ├── levels.service.test.ts
+    |    |    |     ├── seasons.service.test.ts
+    |    |    |     ├── stats.service.test.ts
+    |    |    |     ├── submissions.service.test.ts
+    |    |    |     ├── titles.service.test.ts
     │    │    │     └── userService.test.ts
+    │    │    │
     │    │    └── utils/
-    │    │          └── formatDate.test.ts
+    │    │          ├── bcrypt.test.ts
+    │    │          ├── formatDate.test.ts
+    │    │          ├── httpErrors.test.ts
+    │    │          ├── jwt.test.ts
+    │    │          ├── pagination.test.ts
+    │    │          └── sanitizeUser.test.ts
+    │    │
     │    └── integration/
     │         └── routes/
     │               └── userRoutes.test.ts
