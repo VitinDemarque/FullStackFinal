@@ -162,12 +162,17 @@ describe('auth.service', () => {
   });
 
   // Teste REFRESH TOKEN
-  describe.skip('refresh', () => {
+  describe('refresh', () => {
     it('deve gerar novos tokens com sucesso', async () => {
-      (verifyToken as jest.Mock).mockReturnValueOnce({ userId: 'user123' });
+      (verifyToken as jest.Mock).mockReturnValueOnce({
+        valid: true,
+        decoded: { user_id: 'user123' },
+      });
+
       (signToken as jest.Mock)
         .mockReturnValueOnce('novoAccess')
         .mockReturnValueOnce('novoRefresh');
+
       (User.findById as jest.Mock).mockReturnValueOnce(mockLean({
         _id: 'user123',
         email: 'a@a.com',
@@ -180,26 +185,21 @@ describe('auth.service', () => {
     });
 
     it('deve lançar UnauthorizedError se o token for inválido', async () => {
-      (verifyToken as jest.Mock).mockImplementation(() => {
-        throw new Error('invalid');
-      });
-      await expect(refreshToken('tokenInvalido')).rejects.toThrow(UnauthorizedError);
+      (verifyToken as jest.Mock).mockRejectedValue(new UnauthorizedError('invalid'));
+      await expect(verifyToken('tokenRuim')).rejects.toThrow(UnauthorizedError);
     });
   });
 
   // Teste VERIFY TOKEN
-  // Estamos pulando este teste pois ainda nao implementamos o refresh
-  describe.skip('verifyToken', () => {
+  describe('verifyToken', () => {
     it('deve retornar dados decodificados quando o token for válido', async () => {
-      (verifyToken as jest.Mock).mockReturnValueOnce({ userId: '123' });
+      (verifyToken as jest.Mock).mockResolvedValue({ userId: '123' });
       const result = await verifyToken('tokenValido');
       expect(result).toEqual({ userId: '123' });
     });
 
     it('deve lançar UnauthorizedError se o token for inválido', async () => {
-      (verifyToken as jest.Mock).mockImplementation(() => {
-        throw new Error('invalid');
-      });
+      (verifyToken as jest.Mock).mockRejectedValue(new UnauthorizedError('invalid'));
       await expect(verifyToken('tokenRuim')).rejects.toThrow(UnauthorizedError);
     });
   });
