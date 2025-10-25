@@ -1,7 +1,3 @@
-// ============================================
-// BADGES SERVICE - Gerenciamento de badges/conquistas
-// ============================================
-
 import { apiRequest } from './api'
 
 export interface Badge {
@@ -19,41 +15,29 @@ export interface UserBadge {
 }
 
 export const badgesService = {
-  /**
-   * Listar todas as badges disponíveis
-   */
   async getAll(): Promise<Badge[]> {
     try {
       const response = await apiRequest<any>('GET', '/badges')
       return response.data || response
     } catch (error) {
-      console.warn('Usando badges mock (API indisponível):', error)
       return createMockBadges()
     }
   },
 
-  /**
-   * Obter badges do usuário
-   */
   async getUserBadges(userId: string): Promise<UserBadge[]> {
     try {
       const response = await apiRequest<any>('GET', `/users/${userId}/badges`)
       return response.data || response
     } catch (error) {
-      console.warn('Badges do usuário indisponíveis:', error)
       return []
     }
   },
 
-  /**
-   * Verificar e atribuir badges automaticamente
-   */
   async checkAndAwardBadges(userId: string): Promise<Badge[]> {
     try {
       const response = await apiRequest<any>('POST', `/users/${userId}/badges/check`)
       return response.data || response
     } catch (error) {
-      console.warn('Erro ao verificar badges:', error)
       return []
     }
   },
@@ -81,4 +65,3 @@ function createMockBadges(): Badge[] {
     { _id: '18', name: 'API Master', description: 'Expert em APIs', type: 'gold', requirement: '25 APIs criadas' },
   ]
 }
-

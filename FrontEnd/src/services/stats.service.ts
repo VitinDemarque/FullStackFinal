@@ -1,7 +1,3 @@
-// ============================================
-// STATS SERVICE - Estatísticas do usuário
-// ============================================
-
 import { apiRequest } from './api'
 
 export interface DashboardStats {
@@ -23,14 +19,10 @@ export interface UserProgress {
 }
 
 export const statsService = {
-  /**
-   * Obter estatísticas do dashboard
-   */
   async getDashboardStats(userId: string): Promise<DashboardStats> {
     try {
       const response = await apiRequest<any>('GET', `/users/${userId}/stats`)
       
-      // Transformar resposta da API para formato esperado
       return {
         languages: response.languagesUsed || 0,
         challenges: response.challengesCompleted || 0,
@@ -40,8 +32,6 @@ export const statsService = {
         weekProgress: response.weekProgress || 0,
       }
     } catch (error) {
-      // Fallback com dados padrão se a API falhar
-      console.warn('Usando stats padrão (API indisponível):', error)
       return {
         languages: 5,
         challenges: 12,
@@ -53,9 +43,6 @@ export const statsService = {
     }
   },
 
-  /**
-   * Obter progresso detalhado do usuário
-   */
   async getUserProgress(userId: string): Promise<UserProgress> {
     try {
       const response = await apiRequest<any>('GET', `/users/${userId}/scoreboard`)
@@ -69,7 +56,6 @@ export const statsService = {
         streak: response.streak || 0,
       }
     } catch (error) {
-      console.warn('Usando progresso padrão (API indisponível):', error)
       return {
         exercisesSolved: 0,
         exercisesCreated: 0,
@@ -81,4 +67,3 @@ export const statsService = {
     }
   },
 }
-

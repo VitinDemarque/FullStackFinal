@@ -19,7 +19,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Load user on mount
   useEffect(() => {
     let isMounted = true
 
@@ -28,7 +27,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (authService.isAuthenticated()) {
           const currentUser = await authService.getCurrentUser()
           if (isMounted) {
-            // Carregar foto do localStorage se existir
             const localAvatar = localStorage.getItem(`avatar_${currentUser.id}`)
             if (localAvatar) {
               currentUser.avatarUrl = localAvatar
@@ -37,8 +35,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
       } catch (error) {
-        console.error('Failed to load user:', error)
-        // Só faz logout se o erro for 401 (não autorizado)
         const apiError = error as any
         if (apiError.statusCode === 401) {
           authService.logout()
@@ -55,7 +51,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     initializeAuth()
 
-    // Listener para evento de 401 não autorizado
     const handleUnauthorized = () => {
       if (isMounted) {
         setUser(null)
@@ -73,7 +68,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function login(credentials: LoginCredentials) {
     const response = await authService.login(credentials)
-    // Carregar foto do localStorage se existir
     const localAvatar = localStorage.getItem(`avatar_${response.user.id}`)
     if (localAvatar) {
       response.user.avatarUrl = localAvatar

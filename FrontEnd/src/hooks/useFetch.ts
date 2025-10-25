@@ -11,14 +11,6 @@ interface UseFetchOptions {
   dependencies?: any[]
 }
 
-/**
- * Hook customizado para requisições HTTP com proteção contra race conditions
- * 
- * @example
- * const { data, loading, error, refetch } = useFetch(() => api.get('/users'))
- * const { data } = useFetch(() => api.get(`/users/${id}`), { dependencies: [id] })
- * const { execute } = useFetch(() => api.post('/users', data), { immediate: false })
- */
 export function useFetch<T>(
   fetchFunction: () => Promise<T>,
   options: UseFetchOptions = {}
@@ -82,14 +74,12 @@ export function useFetch<T>(
       }
       throw err
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchFunction, ...dependencies])
 
   useEffect(() => {
     if (immediate) {
       execute()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [execute])
 
   return {
@@ -99,4 +89,3 @@ export function useFetch<T>(
     reset: () => setState({ data: null, loading: false, error: null }),
   }
 }
-

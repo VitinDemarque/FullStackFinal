@@ -40,8 +40,6 @@ export default function SignupPage() {
       const response = await collegesService.getAll();
       setColleges(response.items);
     } catch (error) {
-      console.error("Erro ao carregar faculdades:", error);
-      // Fallback manual caso o serviço falhe completamente
       setColleges([
         { id: '1', name: 'Faculdade de Minas', acronym: 'FAMINAS', city: 'Muriaé', state: 'MG' },
         { id: '2', name: 'Universidade de São Paulo', acronym: 'USP', city: 'São Paulo', state: 'SP' },
@@ -60,24 +58,21 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      // Combinar firstName e lastName em name
       const signupData = {
         name: `${formData.firstName} ${formData.lastName}`.trim(),
         email: formData.email,
         password: formData.password,
-        handle: formData.handle || formData.email.split("@")[0], // Gerar handle do email se não fornecido
+        handle: formData.handle || formData.email.split("@")[0],
         college: formData.college,
       };
 
       await signup(signupData);
 
-      // Sucesso!
       setNotification({
         type: "success",
         message: "Conta criada com sucesso! Redirecionando...",
       });
 
-      // Aguardar 2 segundos antes de redirecionar
       setTimeout(() => {
         navigate("/dashboard");
       }, 2000);

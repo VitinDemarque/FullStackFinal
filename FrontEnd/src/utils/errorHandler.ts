@@ -1,7 +1,3 @@
-// ============================================
-// ERROR HANDLER - Tratamento centralizado de erros
-// ============================================
-
 import type { ApiError } from '../types'
 
 export interface ErrorHandlerResult {
@@ -10,11 +6,7 @@ export interface ErrorHandlerResult {
   canRetry: boolean
 }
 
-/**
- * Trata erros de forma centralizada e retorna mensagens amigáveis
- */
 export function handleApiError(error: any): ErrorHandlerResult {
-  // Erro de rede/conexão
   if (!navigator.onLine) {
     return {
       title: 'Sem Conexão',
@@ -23,7 +15,6 @@ export function handleApiError(error: any): ErrorHandlerResult {
     }
   }
 
-  // Timeout ou servidor não respondendo
   if (error.code === 'ECONNREFUSED' || error.statusCode === 0 || error.code === 'ECONNABORTED') {
     return {
       title: 'Servidor Indisponível',
@@ -32,7 +23,6 @@ export function handleApiError(error: any): ErrorHandlerResult {
     }
   }
 
-  // Erros HTTP com status code
   const apiError = error as ApiError
 
   switch (apiError.statusCode) {
@@ -104,13 +94,9 @@ export function handleApiError(error: any): ErrorHandlerResult {
   }
 }
 
-/**
- * Trata erros específicos de autenticação
- */
 export function handleAuthError(error: any): string {
   const result = handleApiError(error)
 
-  // Mensagens específicas para auth
   if (error.statusCode === 401) {
     return 'E-mail ou senha incorretos. Verifique suas credenciais.'
   }
@@ -126,21 +112,13 @@ export function handleAuthError(error: any): string {
   return result.message
 }
 
-/**
- * Log de erros (pode ser enviado para serviço de monitoramento)
- */
 export function logError(error: any, context?: string) {
-  console.error(`[Error${context ? ` - ${context}` : ''}]:`, {
-    message: error.message,
-    statusCode: error.statusCode,
-    details: error.details,
-    stack: error.stack,
-    timestamp: new Date().toISOString(),
-  })
-
-  // TODO: Enviar para serviço de monitoramento (Sentry, etc)
-  // if (import.meta.env.PROD) {
-  //   sendToMonitoring(error, context)
-  // }
+  if (import.meta.env.DEV) {
+    console.error(`[Error${context ? ` - ${context}` : ''}]:`, {
+      message: error.message,
+      statusCode: error.statusCode,
+      details: error.details,
+      timestamp: new Date().toISOString(),
+    })
+  }
 }
-

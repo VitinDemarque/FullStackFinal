@@ -1,13 +1,6 @@
-// ============================================
-// COLLEGES SERVICE - Gerenciamento de faculdades
-// ============================================
-
 import { apiRequest } from './api'
 import type { College, PaginatedResponse } from '../types'
 
-/**
- * Dados mockados de faculdades (fallback)
- */
 function getMockColleges(): PaginatedResponse<College> {
   return {
     items: [
@@ -39,43 +32,28 @@ function getMockColleges(): PaginatedResponse<College> {
 }
 
 export const collegesService = {
-  /**
-   * Listar todas as faculdades
-   * SEMPRE retorna dados (usa fallback se API falhar)
-   */
   async getAll(page = 1, limit = 100): Promise<PaginatedResponse<College>> {
     try {
       const response = await apiRequest<PaginatedResponse<College>>('GET', '/colleges', undefined, {
         params: { page, limit },
       })
 
-      // Se a resposta for válida e tiver items, retornar
       if (response && response.items && response.items.length > 0) {
         return response
       }
 
-      // Se a resposta não tiver items, usar mock
-      console.warn('API retornou resposta vazia, usando colleges mock')
       return getMockColleges()
 
     } catch (error) {
-      console.warn('API de colleges indisponível, usando fallback:', error)
       return getMockColleges()
     }
   },
 
-  /**
-   * Obter faculdade por ID
-   */
   async getById(id: string): Promise<College> {
     return apiRequest<College>('GET', `/colleges/${id}`)
   },
 
-  /**
-   * Criar nova faculdade (admin)
-   */
   async create(data: Partial<College>): Promise<College> {
     return apiRequest<College>('POST', '/colleges', data)
   },
 }
-

@@ -36,12 +36,10 @@ export default function ProfilePage() {
       execute()
       loadBadges()
       
-      // Carregar foto de perfil do localStorage primeiro (prioridade)
       const localAvatar = localStorage.getItem(`avatar_${user.id}`)
       
       if (localAvatar) {
         setProfileImage(localAvatar)
-        // Atualizar contexto com foto local
         updateUser({ avatarUrl: localAvatar })
       } else if (user.avatarUrl) {
         setProfileImage(user.avatarUrl)
@@ -53,15 +51,12 @@ export default function ProfilePage() {
     try {
       setLoadingBadges(true)
       
-      // Buscar todas as badges disponíveis
       const badgesResponse = await api.get('/badges')
       const allBadgesData = badgesResponse.data.data || badgesResponse.data
       
-      // Buscar badges do usuário
       const userBadgesResponse = await api.get(`/users/${user?.id}/badges`)
       const userBadgesData = userBadgesResponse.data.data || userBadgesResponse.data || []
       
-      // Extrair IDs das badges conquistadas
       const earnedBadgeIds = userBadgesData.map((ub: any) => 
         typeof ub.badge === 'string' ? ub.badge : ub.badge?._id
       )
@@ -69,8 +64,6 @@ export default function ProfilePage() {
       setAllBadges(allBadgesData)
       setUserBadges(earnedBadgeIds)
     } catch (error) {
-      console.error('Erro ao carregar badges:', error)
-      // Se der erro, criar badges mock para demonstração
       setAllBadges(createMockBadges())
       setUserBadges([])
     } finally {
@@ -109,13 +102,11 @@ export default function ProfilePage() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Validar tipo de arquivo
     if (!file.type.startsWith('image/')) {
       alert('Por favor, selecione uma imagem válida')
       return
     }
 
-    // Validar tamanho (máx 5MB)
     if (file.size > 5 * 1024 * 1024) {
       alert('A imagem deve ter no máximo 5MB')
       return
@@ -124,20 +115,15 @@ export default function ProfilePage() {
     try {
       setUploadingImage(true)
 
-      // Criar preview e salvar localmente
       const reader = new FileReader()
       reader.onloadend = () => {
         const imageUrl = reader.result as string
         
-        // Salvar no localStorage
         if (user?.id) {
           localStorage.setItem(`avatar_${user.id}`, imageUrl)
         }
         
-        // Atualizar estado local
         setProfileImage(imageUrl)
-        
-        // Atualizar contexto de autenticação (sincroniza sidebar)
         updateUser({ avatarUrl: imageUrl })
         
         alert('✅ Foto de perfil atualizada com sucesso!')
@@ -147,13 +133,7 @@ export default function ProfilePage() {
       
       reader.readAsDataURL(file)
       
-      // TODO: Implementar upload para o backend quando a rota estiver disponível
-      // const formData = new FormData()
-      // formData.append('profileImage', file)
-      // await api.patch(`/users/${user?.id}/profile-image`, formData)
-      
     } catch (error) {
-      console.error('Erro ao processar imagem:', error)
       alert('❌ Erro ao processar a imagem.')
       setUploadingImage(false)
     }
@@ -161,21 +141,14 @@ export default function ProfilePage() {
 
   function handleRemoveImage() {
     if (confirm('Tem certeza que deseja remover sua foto de perfil?')) {
-      // Remover do localStorage
       if (user?.id) {
         localStorage.removeItem(`avatar_${user.id}`)
       }
       
-      // Atualizar estado local
       setProfileImage(null)
-      
-      // Atualizar contexto de autenticação (sincroniza sidebar)
       updateUser({ avatarUrl: null })
       
       alert('✅ Foto de perfil removida!')
-      
-      // TODO: Implementar remoção no backend quando a rota estiver disponível
-      // api.delete(`/users/${user?.id}/profile-image`)
     }
   }
 

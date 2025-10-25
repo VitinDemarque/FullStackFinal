@@ -29,13 +29,11 @@ export default function LoginPage() {
     try {
       await login({ email, password });
 
-      // Sucesso!
       setNotification({
         type: "success",
         message: "Login realizado com sucesso! Bem-vindo de volta!",
       });
 
-      // Aguardar 1.5 segundos antes de redirecionar
       setTimeout(() => {
         navigate("/dashboard");
       }, 1500);
