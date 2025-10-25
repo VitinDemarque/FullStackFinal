@@ -19,8 +19,6 @@ export interface LoginInput {
   password: string;
 }
 
-
-// Logout
 export async function signup(input: SignupInput) {
   const { name, email, password, handle, collegeId } = input;
 
@@ -31,6 +29,10 @@ export async function signup(input: SignupInput) {
   if (existsHandle) throw new ConflictError('Handle already in use');
 
   if (collegeId) {
+    if (!Types.ObjectId.isValid(collegeId)) {
+      throw new BadRequestError('Invalid collegeId format');
+    }
+
     const college = await College.findById(collegeId).lean();
     if (!college) throw new NotFoundError('College not found');
   }
@@ -53,21 +55,17 @@ export async function signup(input: SignupInput) {
     collegeId: doc.collegeId ? String(doc.collegeId) : undefined
   });
 
-  // refresh opcional: poderia salvar em collection de tokens/whitelist
   const refreshToken = signToken({ user_id: String(doc._id), email: doc.email }, { expiresIn: '7d' });
-
-  // Const criada para gratir que estaremos passando um objeto, buscando evitar inconsistencias de tipo
   const userObj = doc.toObject ? doc.toObject() : doc;
+  
   return {
     user: sanitizeUser(userObj),
     tokens: { accessToken, refreshToken }
   };
 }
 
-// Login
 export async function login(input: LoginInput) {
   const { email, password } = input;
-  // o const user esta com o .lean<IUser | null>(), pois o Mongoose e o TypeScript estavam interpretando com tipos diferentes
   const user = await User.findOne({ email }).lean<IUser | null>();
   if (!user) throw new UnauthorizedError('Invalid credentials');
 
@@ -89,21 +87,16 @@ export async function login(input: LoginInput) {
   };
 }
 
-// Refresh token
 export async function refreshToken(oldRefreshToken: string) {
   if (!oldRefreshToken) throw new BadRequestError('refreshToken is required');
 
-  // Verifica o token
   const result = verifyToken(oldRefreshToken);
   if (!result.valid || !result.decoded) throw new UnauthorizedError('Invalid refresh token');
 
   const payload = result.decoded;
-
-  // Busca usuário com tipagem explícita
   const user = await User.findById(payload.user_id).lean<IUser | null>();
   if (!user) throw new UnauthorizedError('User not found');
 
-  // Cria novos tokens
   const newAccessToken = signToken({
     user_id: user._id.toString(),
     email: user.email,

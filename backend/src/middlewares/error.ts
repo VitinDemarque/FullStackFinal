@@ -1,9 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { AppError } from '../utils/httpErrors';
 
-/**
- * Middleware 404 simples.
- */
 export function notFoundHandler(_req: Request, res: Response) {
   res.status(404).json({
     error: {
@@ -13,12 +10,7 @@ export function notFoundHandler(_req: Request, res: Response) {
   });
 }
 
-/**
- * Middleware central de tratamento de erros.
- * Converte erros conhecidos em respostas JSON consistentes.
- */
 export function errorHandler(err: unknown, _req: Request, res: Response, _next: NextFunction) {
-  // AppError conhecido
   if (err instanceof AppError) {
     return res.status(err.statusCode).json({
       error: {
@@ -29,11 +21,22 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
     });
   }
 
-  // Erros do Mongoose (validação/duplicidade/etc.)
-  // Sem importar tipos do mongoose para manter middleware agnóstico.
   const anyErr = err as any;
 
-  // ValidationError (Mongoose)
+  if (anyErr?.name === 'CastError') {
+    return res.status(400).json({
+      error: {
+        message: `Invalid ${anyErr.kind}: ${anyErr.value}`,
+        statusCode: 400,
+        details: {
+          path: anyErr.path,
+          value: anyErr.value,
+          kind: anyErr.kind
+        },
+      },
+    });
+  }
+
   if (anyErr?.name === 'ValidationError') {
     return res.status(400).json({
       error: {
@@ -44,7 +47,6 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
     });
   }
 
-  // Duplicate key error
   if (anyErr?.code === 11000) {
     return res.status(409).json({
       error: {
@@ -55,7 +57,6 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
     });
   }
 
-  // JWT erros comuns (se forem propagados)
   if (anyErr?.name === 'JsonWebTokenError') {
     return res.status(401).json({
       error: {
@@ -73,7 +74,6 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
     });
   }
 
-  // Fallback 500
   const message = anyErr?.message ?? 'Internal Server Error';
   console.error('[errorHandler]', anyErr);
   return res.status(500).json({
@@ -84,7 +84,6 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
   });
 }
 
-/** Serializa ValidationError do Mongoose em formato mais amigável. */
 function serializeMongooseValidation(error: any) {
   const details: Record<string, string> = {};
   if (error?.errors && typeof error.errors === 'object') {
