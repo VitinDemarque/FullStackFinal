@@ -95,6 +95,7 @@ export interface SignupData {
   email: string
   password: string
   handle: string
+  college?: string
   collegeId?: string
 }
 

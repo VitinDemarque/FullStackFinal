@@ -54,30 +54,19 @@ const colleges = [
 ];
 
 async function seed() {
-  console.log('Iniciando seed de faculdades...');
+  console.log('🌱 Iniciando seed de faculdades...');
 
   try {
     await connectMongo();
-    console.log('Conectado ao MongoDB');
 
     const deleteResult = await College.deleteMany({});
-    console.log(`${deleteResult.deletedCount} faculdades removidas`);
-
     const result = await College.insertMany(colleges);
-    console.log(`${result.length} faculdades inseridas com sucesso!`);
 
-    console.log('\nFaculdades cadastradas:');
-    console.log('-'.repeat(60));
-    
-    for (const college of result) {
-      console.log(`${college._id} - ${college.name} (${college.acronym})`);
-    }
-
-    console.log('-'.repeat(60));
-    console.log('Seed concluído com sucesso!');
+    console.log(`✅ ${result.length} faculdades inseridas com sucesso!`);
+    console.log(`   (${deleteResult.deletedCount} registros anteriores removidos)`);
     
   } catch (error: any) {
-    console.error('Erro durante o seed:', error.message);
+    console.error('❌ Erro durante o seed:', error.message);
     process.exit(1);
   } finally {
     await disconnectMongo();

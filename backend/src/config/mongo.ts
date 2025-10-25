@@ -1,4 +1,3 @@
-// src/config/mongo.ts
 import mongoose from 'mongoose';
 
 const {
@@ -12,7 +11,6 @@ type GlobalWithMongo = typeof global & {
   __mongoosePromise?: Promise<typeof mongoose> | null;
 };
 
-// cache global para evitar múltiplas conexões em hot-reload (dev)
 const g = global as GlobalWithMongo;
 
 mongoose.set('strictQuery', true);
@@ -28,19 +26,16 @@ function buildOptions(): Parameters<typeof mongoose.connect>[1] {
 
 function attachConnectionLogs(conn: typeof mongoose.connection) {
   conn.on('connected', () => {
-    console.log('[mongo] connected');
+    console.log('MongoDB connected');
   });
   conn.on('error', (err) => {
-    console.error('[mongo] connection error:', err);
+    console.error('MongoDB error:', err);
   });
   conn.on('disconnected', () => {
-    console.warn('[mongo] disconnected');
+    console.warn('MongoDB disconnected');
   });
 }
 
-/**
- * Conecta ao MongoDB (Atlas/local) usando cache global em dev.
- */
 export async function connectMongo(): Promise<typeof mongoose> {
   if (!MONGO_URI) {
     throw new Error('Missing MONGO_URI in environment variables');
@@ -59,15 +54,11 @@ export async function connectMongo(): Promise<typeof mongoose> {
     return conn;
   }
 
-  // produção: sem cache global
   const conn = await mongoose.connect(MONGO_URI, buildOptions());
   attachConnectionLogs(mongoose.connection);
   return conn;
 }
 
-/**
- * Fecha a conexão — útil para testes/Jest e shutdown gracioso.
- */
 export async function disconnectMongo(): Promise<void> {
   if (mongoose.connection.readyState !== 0) {
     await mongoose.connection.close();
@@ -78,16 +69,12 @@ export async function disconnectMongo(): Promise<void> {
   }
 }
 
-/**
- * Hook de encerramento gracioso do processo.
- */
 function setupGracefulShutdown() {
   const shutdown = async (signal: string) => {
     try {
       await disconnectMongo();
-      console.log(`[mongo] closed on ${signal}`);
     } catch (err) {
-      console.error('[mongo] error on shutdown', err);
+      console.error('MongoDB shutdown error:', err);
     } finally {
       process.exit(0);
     }
@@ -97,5 +84,4 @@ function setupGracefulShutdown() {
   process.once('SIGTERM', () => shutdown('SIGTERM'));
 }
 
-// inicializa os hooks uma única vez
 setupGracefulShutdown();

@@ -8,6 +8,15 @@ export const theme = {
     white: '#ffffff',
     black: '#000000',
     
+    accentBlue: '#3b82f6',
+    accentYellow: '#fbbf24',
+    textPrimary: '#111827',
+    textSecondary: '#4b5563',
+    textLight: '#6b7280',
+    gray900: '#111827',
+    gray700: '#374151',
+    yellow400: '#fbbf24',
+    
     gray: {
       50: '#f9fafb',
       100: '#f3f4f6',
@@ -72,6 +81,7 @@ export const theme = {
     blue: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
     green: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
     yellow: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+    purple: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
   },
   
   shadows: {
@@ -95,30 +105,31 @@ export const theme = {
   breakpoints: {
     mobile: '640px',
     tablet: '768px',
+    laptop: '1024px',
     desktop: '1024px',
     wide: '1280px',
   },
   
   spacing: {
-    xs: '0.5rem',   // 8px
-    sm: '0.75rem',  // 12px
-    md: '1rem',     // 16px
-    lg: '1.5rem',   // 24px
-    xl: '2rem',     // 32px
-    '2xl': '2.5rem', // 40px
-    '3xl': '3rem',   // 48px
+    xs: '0.5rem',
+    sm: '0.75rem',
+    md: '1rem',
+    lg: '1.5rem',
+    xl: '2rem',
+    '2xl': '2.5rem',
+    '3xl': '3rem',
   },
   
   fontSizes: {
-    xs: '0.75rem',    // 12px
-    sm: '0.875rem',   // 14px
-    base: '1rem',     // 16px
-    lg: '1.125rem',   // 18px
-    xl: '1.25rem',    // 20px
-    '2xl': '1.5rem',  // 24px
-    '3xl': '1.75rem', // 28px
-    '4xl': '2rem',    // 32px
-    '5xl': '3rem',    // 48px
+    xs: '0.75rem',
+    sm: '0.875rem',
+    base: '1rem',
+    lg: '1.125rem',
+    xl: '1.25rem',
+    '2xl': '1.5rem',
+    '3xl': '1.75rem',
+    '4xl': '2rem',
+    '5xl': '3rem',
   },
   
   fontWeights: {

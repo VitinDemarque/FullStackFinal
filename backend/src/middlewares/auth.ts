@@ -2,10 +2,6 @@ import { NextFunction, Request, Response } from 'express';
 import { getBearerToken, verifyToken, UserTokenPayload } from '../utils/jwt';
 import { ForbiddenError, UnauthorizedError } from '../utils/httpErrors';
 
-/**
- * Estrutura do usuário que anexamos na request.
- * Use essa tipagem nos controllers: (req as AuthenticatedRequest).user
- */
 export interface AuthenticatedRequest extends Request {
   user?: UserTokenPayload;
 }
@@ -15,12 +11,6 @@ export interface AuthOptions {
   optional?: boolean;
 }
 
-/**
- * Middleware de autenticação/autorização via JWT.
- * - Verifica Bearer token no header.
- * - Anexa payload em req.user quando válido.
- * - Se roles forem informadas, valida autorização.
- */
 export function auth(options: AuthOptions = {}) {
   const { roles, optional = false } = options;
 
@@ -52,10 +42,6 @@ export function auth(options: AuthOptions = {}) {
   };
 }
 
-/**
- * Helper para exigir que o usuário do token seja o mesmo do recurso (ownership).
- * Exemplo de uso após `auth()`: `router.get('/users/:id', auth(), requireOwnership('id'))`
- */
 export function requireOwnership(paramKey: string = 'id') {
   return (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
     if (!req.user?.sub) return next(new UnauthorizedError());

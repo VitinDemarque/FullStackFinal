@@ -24,7 +24,6 @@ export async function list(input: Partial<ListExercisesInput>) {
   if (q) where.title = { $regex: q, $options: 'i' };
   if (languageId) where.languageId = new Types.ObjectId(languageId);
   if (authorId) where.authorUserId = new Types.ObjectId(authorId);
-  // listagem pública apenas exercícios públicos
 
   const baseFilters: FilterQuery<any> = { ...where };
   
@@ -35,7 +34,6 @@ export async function list(input: Partial<ListExercisesInput>) {
     ).lean();
     const userGroupIds = userGroups.map(m => m.groupId);
 
-    // Lógica: Mostrar exercícios ONDE (é público) OU (o groupId está na lista de grupos do usuário)
     where = {
         ...baseFilters,
         $or: [
@@ -65,25 +63,21 @@ export async function getById(id: string, requestUserId?: string) {
   const ex = (await Exercise.findById(id).lean()) as any;
   if (!ex) throw new NotFoundError('Exercise not found');
 
-  // 1. Se for público E publicado, todos podem ver
   if (ex.isPublic && ex.status === 'PUBLISHED') {
     return sanitize(ex);
   }
 
   if (requestUserId) {
-    // 2. Se for o autor, pode ver (mesmo DRAFT)
     if (String(ex.authorUserId) === requestUserId) {
       return sanitize(ex);
     }
 
-    // 3. Se pertencer a um grupo, verificar se o usuário é membro
     if (ex.groupId) {
       const isMember = await GroupMember.findOne({
           groupId: ex.groupId,
           userId: new Types.ObjectId(requestUserId)
       }).lean();
 
-      // Se for membro E estiver publicado, pode ver
       if (isMember && ex.status === 'PUBLISHED') {
           return sanitize(ex);
       }
@@ -94,24 +88,20 @@ export async function getById(id: string, requestUserId?: string) {
 }
 
 export async function create(userId: string, payload: Partial<any>) {
-  // valida linguagem
   if (payload.languageId) {
     const lang = await Language.findById(payload.languageId).lean();
     if (!lang) throw new NotFoundError('Language not found');
   }
 
   let exerciseGroupId: Types.ObjectId | undefined = undefined;
-  let exerciseIsPublic: boolean = Boolean(payload.isPublic ?? true); // Padrão
+  let exerciseIsPublic: boolean = Boolean(payload.isPublic ?? true);
 
-  // --- Lógica de Grupo ---
   if (payload.groupId) {
     const groupIdStr = String(payload.groupId);
     
-    // 1. Validar se o grupo existe
     const group = await Group.findById(groupIdStr).lean();
     if (!group) throw new NotFoundError('Group not found');
 
-    // 2. Validar se o usuário é membro (ou dono/mod)
     const membership = await GroupMember.findOne({
         groupId: new Types.ObjectId(groupIdStr),
         userId: new Types.ObjectId(userId)
@@ -121,7 +111,6 @@ export async function create(userId: string, payload: Partial<any>) {
         throw new ForbiddenError('You must be a member of the group to create an exercise for it');
     }
 
-    // 3. Se é para um grupo, forçar a ser privado
     exerciseGroupId = new Types.ObjectId(groupIdStr);
     exerciseIsPublic = false; 
   }
@@ -129,17 +118,16 @@ export async function create(userId: string, payload: Partial<any>) {
   const doc = await Exercise.create({
     authorUserId: new Types.ObjectId(userId),
     languageId: payload.languageId ? new Types.ObjectId(payload.languageId) : undefined,
-    groupId: exerciseGroupId, // <-- USAR
+    groupId: exerciseGroupId,
     title: payload.title ?? 'Untitled',
     description: payload.description ?? '',
     difficulty: Number(payload.difficulty ?? 1),
     baseXp: Number(payload.baseXp ?? 100),
-    isPublic: exerciseIsPublic, // <-- USAR
+    isPublic: exerciseIsPublic,
     codeTemplate: String(payload.codeTemplate ?? '// start coding...'),
     status: payload.status ?? 'DRAFT'
   });
 
-  // Atualiza contador de criados (lógica existente)
   await UserStat.updateOne(
     { userId: new Types.ObjectId(userId) },
     { $inc: { exercisesCreatedCount: 1 }, $setOnInsert: { userId: new Types.ObjectId(userId) } },
@@ -173,7 +161,7 @@ export async function update(userId: string, id: string, payload: Partial<any>) 
 
 export async function remove(userId: string, id: string) {
   const ex = await Exercise.findById(id);
-  if (!ex) return; // idempotente
+  if (!ex) return;
   if (String(ex.authorUserId) !== userId) throw new ForbiddenError('Only author can delete');
   await ex.deleteOne();
 }
@@ -201,7 +189,6 @@ export async function setVisibility(userId: string, id: string, isPublic: boolea
   if (!ex) throw new NotFoundError('Exercise not found');
   if (String(ex.authorUserId) !== userId) throw new ForbiddenError('Only author can change visibility');
 
-  // REGRA: Se tentar tornar público um exercício de grupo, remova o link do grupo.
   if (isPublic && ex.groupId) {
     ex.groupId = null;
   }
@@ -228,5 +215,3 @@ function sanitize(e: any) {
     updatedAt: e.updatedAt
   };
 }
-
-

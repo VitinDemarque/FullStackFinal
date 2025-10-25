@@ -63,7 +63,7 @@ export default function SignupPage() {
         email: formData.email,
         password: formData.password,
         handle: formData.handle || formData.email.split("@")[0],
-        college: formData.college,
+        collegeId: formData.college,
       };
 
       await signup(signupData);

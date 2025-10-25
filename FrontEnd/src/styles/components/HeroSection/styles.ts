@@ -1,5 +1,4 @@
 import styled from 'styled-components';
-// import { Link } from 'react-router-dom'; GoogleButtonAction não o utiliza mais
 
 export const HeroSectionContainer = styled.section`
   position: relative;

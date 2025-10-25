@@ -15,7 +15,6 @@ import statsRoutes from './stats.routes';
 
 const router = Router();
 
-// Prefixos de domínio
 router.use('/auth', authRoutes);
 router.use('/users', usersRoutes);
 router.use('/auth', authGoogle);
