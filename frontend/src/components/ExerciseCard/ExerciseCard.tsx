@@ -1,4 +1,5 @@
 import React from 'react';
+import ExerciseActionsMenu from '@components/ExerciseActionsMenu';
 import * as S from './styles';
 
 interface ExerciseCardProps {
@@ -9,7 +10,10 @@ interface ExerciseCardProps {
   votes: number;
   comments: number;
   lastModified: string;
+  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
   onEdit?: () => void;
+  onDelete?: () => void;
+  onInactivate?: () => void;
 }
 
 export default function ExerciseCard({
@@ -19,8 +23,13 @@ export default function ExerciseCard({
   votes,
   comments,
   lastModified,
-  onEdit
+  status,
+  onEdit,
+  onDelete,
+  onInactivate
 }: ExerciseCardProps) {
+  const isActive = status === 'PUBLISHED';
+
   return (
     <S.ExerciseCard>
       <S.CardHeader>
@@ -48,11 +57,14 @@ export default function ExerciseCard({
           </span>
         </div>
         
-        {onEdit && (
-          <S.EditButton onClick={onEdit}>
-            Editar
-          </S.EditButton>
-        )}
+        <S.ActionsContainer>
+          <ExerciseActionsMenu
+            onEdit={onEdit || (() => {})}
+            onDelete={onDelete || (() => {})}
+            onInactivate={onInactivate || (() => {})}
+            isActive={isActive}
+          />
+        </S.ActionsContainer>
       </S.CardStats>
     </S.ExerciseCard>
   );

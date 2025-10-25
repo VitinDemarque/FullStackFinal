@@ -1,32 +1,25 @@
 import { Router } from 'express';
-import * as GroupsController from '../controllers/groups.controller';
+import * as ExercisesController from '../controllers/exercises.controller';
 import { auth } from '../middlewares/auth';
 
 const router = Router();
 
 /**
- * CRUD de grupos
+ * CRUD de exercícios
  */
-router.get('/', GroupsController.listPublic);        // listar públicos
-router.get('/:id', auth(), GroupsController.getById);
-router.get('/:id/exercises', auth(), GroupsController.listExercises);
+router.get('/', ExercisesController.list);                    // listar exercícios
+router.get('/mine', auth(), ExercisesController.listMine);    // listar meus exercícios
+router.get('/:id', ExercisesController.getById);             // buscar por ID
 
-router.post('/', auth(), GroupsController.create);   // cria grupo (owner = req.user.sub)
-router.patch('/:id', auth(), GroupsController.update); // somente owner/moderador
-router.delete('/:id', auth(), GroupsController.remove);
+router.post('/', auth(), ExercisesController.create);        // criar exercício
+router.patch('/:id', auth(), ExercisesController.update);    // atualizar exercício
+router.delete('/:id', auth(), ExercisesController.remove);    // deletar exercício
 
 /**
- * Membros
+ * Publicação e visibilidade
  */
-router.post('/:id/join', auth(), GroupsController.join);     // entrar em grupo (regras conforme visibilidade)
-router.post('/:id/leave', auth(), GroupsController.leave);   // sair
-
-router.post('/:id/members/:userId', auth(), GroupsController.addMember);    // owner/mod
-router.delete('/:id/members/:userId', auth(), GroupsController.removeMember); // owner/mod
-
-/**
- * Papéis
- */
-router.post('/:id/members/:userId/role', auth(), GroupsController.setMemberRole); // body: { role: 'MEMBER' | 'MODERATOR' }
+router.post('/:id/publish', auth(), ExercisesController.publish);     // publicar exercício
+router.post('/:id/unpublish', auth(), ExercisesController.unpublish); // despublicar exercício
+router.patch('/:id/visibility', auth(), ExercisesController.setVisibility); // alterar visibilidade
 
 export default router;

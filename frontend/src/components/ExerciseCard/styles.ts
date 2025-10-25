@@ -104,3 +104,8 @@ export const EditButton = styled.button`
     transform: translateY(-1px);
   }
 `;
+
+export const ActionsContainer = styled.div`
+  display: flex;
+  align-items: center;
+`;

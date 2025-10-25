@@ -49,4 +49,10 @@ export const exercisesService = {
   async delete(id: string): Promise<void> {
     return apiRequest<void>('DELETE', `/exercises/${id}`)
   },
+
+  async getMine(filters?: ExerciseFilters): Promise<PaginatedResponse<Exercise>> {
+    return apiRequest<PaginatedResponse<Exercise>>('GET', '/exercises/mine', undefined, {
+      params: filters,
+    })
+  },
 }
