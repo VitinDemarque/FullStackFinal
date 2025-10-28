@@ -1,21 +1,24 @@
 import { FcGoogle } from 'react-icons/fc'
 import * as S from '@/styles/components/HeroSection/styles'
 import { useAuth } from '@/contexts/AuthContext'
-import { useGoogleLogin } from '@react-oauth/google'
+import { GoogleLogin } from '@react-oauth/google'
 
 export default function HeroSection() {
   const { loginWithGoogle } = useAuth()
 
-  const handleGoogleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse: any) => {
-      if (tokenResponse?.credential) {
-        try {
-          await loginWithGoogle(tokenResponse.credential)
-        } catch (err) {}
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    if (credentialResponse.credential) {
+      try {
+        await loginWithGoogle(credentialResponse.credential)
+      } catch (err) {
+        console.error('Erro ao fazer login com Google:', err)
       }
-    },
-    onError: () => {},
-  })
+    }
+  }
+
+  const handleGoogleError = () => {
+    console.error('Erro no login do Google')
+  }
 
   return (
     <S.HeroSectionContainer>
@@ -31,10 +34,18 @@ export default function HeroSection() {
             através da gamificação educacional!
           </S.Description>
 
-          <S.GoogleButtonAction onClick={() => handleGoogleLogin()}>
-            <FcGoogle />
-            <span>Continuar com Google</span>
-          </S.GoogleButtonAction>
+          <S.GoogleButtonWrapper>
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleError}
+              render={({ onClick, disabled }) => (
+                <S.GoogleButtonAction onClick={onClick} disabled={disabled}>
+                  <FcGoogle />
+                  <span>Continuar com Google</span>
+                </S.GoogleButtonAction>
+              )}
+            />
+          </S.GoogleButtonWrapper>
 
           <S.Stats>
             <S.StatItem>

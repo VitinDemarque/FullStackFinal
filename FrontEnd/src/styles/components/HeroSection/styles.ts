@@ -90,6 +90,10 @@ export const Description = styled.p`
   line-height: 1.75;
 `;
 
+export const GoogleButtonWrapper = styled.div`
+  width: fit-content;
+`;
+
 export const GoogleButtonAction = styled.button`
   display: inline-flex;
   align-items: center;
@@ -114,6 +118,11 @@ export const GoogleButtonAction = styled.button`
   &:hover {
     background: ${({ theme }) => theme.colors.gray50};
     box-shadow: ${({ theme }) => theme.shadows.lg};
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 `;
 

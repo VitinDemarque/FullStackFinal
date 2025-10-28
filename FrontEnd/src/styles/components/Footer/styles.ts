@@ -105,7 +105,7 @@ export const SocialMediaContainer = styled.div`
 `;
 
 interface SocialLinkProps {
-  hoverColor?: string;
+  $hoverColor?: string;
 }
 
 export const SocialLink = styled.a<SocialLinkProps>`
@@ -114,7 +114,7 @@ export const SocialLink = styled.a<SocialLinkProps>`
   transition: color 0.2s ease;
 
   &:hover {
-    color: ${({ hoverColor, theme }) => hoverColor || theme.colors.white};
+    color: ${({ $hoverColor, theme }) => $hoverColor || theme.colors.white};
   }
 `;
 

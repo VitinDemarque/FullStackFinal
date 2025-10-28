@@ -122,7 +122,7 @@ export default function Footer() {
               href="https://github.com"
               target="_blank"
               rel="noopener noreferrer"
-              hoverColor="#ffffff"
+              $hoverColor="#ffffff"
             >
               <FaGithub />
             </S.SocialLink>
@@ -130,7 +130,7 @@ export default function Footer() {
               href="https://linkedin.com"
               target="_blank"
               rel="noopener noreferrer"
-              hoverColor="#0077b5"
+              $hoverColor="#0077b5"
             >
               <FaLinkedin />
             </S.SocialLink>
@@ -138,7 +138,7 @@ export default function Footer() {
               href="https://twitter.com"
               target="_blank"
               rel="noopener noreferrer"
-              hoverColor="#1da1f2"
+              $hoverColor="#1da1f2"
             >
               <FaXTwitter />
             </S.SocialLink>
@@ -146,7 +146,7 @@ export default function Footer() {
               href="https://youtube.com"
               target="_blank"
               rel="noopener noreferrer"
-              hoverColor="#ff0000"
+              $hoverColor="#ff0000"
             >
               <FaYoutube />
             </S.SocialLink>
@@ -154,7 +154,7 @@ export default function Footer() {
               href="https://instagram.com"
               target="_blank"
               rel="noopener noreferrer"
-              hoverColor="#e1306c"
+              $hoverColor="#e1306c"
             >
               <FaInstagram />
             </S.SocialLink>
@@ -162,7 +162,7 @@ export default function Footer() {
               href="https://facebook.com"
               target="_blank"
               rel="noopener noreferrer"
-              hoverColor="#1877f2"
+              $hoverColor="#1877f2"
             >
               <FaFacebook />
             </S.SocialLink>
