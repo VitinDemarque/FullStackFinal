@@ -1,6 +1,6 @@
 import React from 'react';
 import ExerciseActionsMenu from '@components/ExerciseActionsMenu';
-import * as S from './styles';
+import * as S from '@/styles/components/ExerciseCard/styles';
 
 interface ExerciseCardProps {
   id: string;

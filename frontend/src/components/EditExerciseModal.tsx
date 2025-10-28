@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import * as S from './styles';
+import * as S from '@/styles/components/EditExerciseModal/styles';
 import type { Exercise } from '@/types';
 import type { CreateExerciseData } from '@components/CreateExerciseModal';
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import * as S from './styles';
+import * as S from '@/styles/components/CreateExerciseModal/styles';
 
 interface CreateExerciseModalProps {
   isOpen: boolean;
@@ -110,7 +110,7 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit }: Creat
                 <option value={2}>Médio</option>
                 <option value={3}>Intermediário</option>
                 <option value={4}>Difícil</option>
-                <option value={5}>Expert</option>
+                <option value={5}>Profissional</option>
               </S.Select>
             </S.FieldGroup>
 

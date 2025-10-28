@@ -1,4 +1,4 @@
-import * as S from './styles';
+import * as S from '../styles/components/ConfirmationModal/styles';
 
 interface ConfirmationModalProps {
   isOpen: boolean;

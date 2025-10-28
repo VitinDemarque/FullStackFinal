@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import * as S from './styles';
+import * as S from '@/styles/components/ExerciseActionsMenu/styles';
 
 interface ExerciseActionsMenuProps {
   onEdit: () => void;
