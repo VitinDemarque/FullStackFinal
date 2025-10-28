@@ -38,7 +38,7 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit }: Creat
       await onSubmit(formData);
       handleClose();
     } catch (error) {
-      console.error('Erro ao criar exercício:', error);
+      console.error('Erro ao criar Desafio:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -70,7 +70,7 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit }: Creat
     <S.Overlay onClick={handleClose}>
       <S.Modal onClick={(e) => e.stopPropagation()}>
         <S.Header>
-          <S.Title>Criar Novo Exercício</S.Title>
+          <S.Title>Criar Novo Desafio</S.Title>
           <S.CloseButton onClick={handleClose}>×</S.CloseButton>
         </S.Header>
 
@@ -82,18 +82,18 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit }: Creat
               type="text"
               value={formData.title}
               onChange={(e) => handleInputChange('title', e.target.value)}
-              placeholder="Digite o título do exercício"
+              placeholder="Digite o título do Desafio"
               required
             />
           </S.FieldGroup>
 
           <S.FieldGroup>
             <S.Label htmlFor="description">Descrição</S.Label>
-            <S.TextArea
+            <S.TextArea 
               id="description"
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="Descreva o exercício..."
+              placeholder="Descreva o Desafio..."
               rows={3}
             />
           </S.FieldGroup>
@@ -146,7 +146,7 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit }: Creat
                 onChange={(e) => handleInputChange('isPublic', e.target.checked)}
               />
               <S.CheckboxLabel htmlFor="isPublic">
-                Exercício público (visível para todos)
+                Desafio público (visível para todos)
               </S.CheckboxLabel>
             </S.CheckboxGroup>
           </S.FieldGroup>
@@ -156,7 +156,7 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit }: Creat
               Cancelar
             </S.CancelButton>
             <S.SubmitButton type="submit" disabled={isSubmitting || !formData.title.trim()}>
-              {isSubmitting ? 'Criando...' : 'Criar Exercício'}
+              {isSubmitting ? 'Criando...' : 'Criar Desafio'}
             </S.SubmitButton>
           </S.ButtonGroup>
         </S.Form>

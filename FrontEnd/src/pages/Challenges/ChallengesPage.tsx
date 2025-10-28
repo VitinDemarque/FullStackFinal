@@ -40,7 +40,7 @@ export default function ChallengesPage() {
       });
       setExercises(response.items);
     } catch (error) {
-      setError(error, 'Erro ao carregar exercícios');
+      setError(error, 'Erro ao carregar Desafios');
     } finally {
       setIsLoading(false);
     }
@@ -62,14 +62,14 @@ export default function ChallengesPage() {
     const exercise = exercises.find(ex => ex.id === exerciseId);
     setConfirmationModal({
       isOpen: true,
-      title: 'Excluir Exercício',
-      message: `Tem certeza que deseja excluir o exercício "${exercise?.title}"? Esta ação não pode ser desfeita.`,
+      title: 'Excluir Desafio',
+      message: `Tem certeza que deseja excluir o Desafio "${exercise?.title}"? Esta ação não pode ser desfeita.`,
       onConfirm: async () => {
         try {
           await exercisesService.delete(exerciseId);
           setExercises(prev => prev.filter(ex => ex.id !== exerciseId));
         } catch (error) {
-          setError(error, 'Erro ao excluir exercício');
+          setError(error, 'Erro ao excluir Desafio');
         }
       },
       type: 'danger'
@@ -85,14 +85,14 @@ export default function ChallengesPage() {
 
     setConfirmationModal({
       isOpen: true,
-      title: `${action.charAt(0).toUpperCase() + action.slice(1)} Exercício`,
-      message: `Tem certeza que deseja ${action} o exercício "${exercise.title}"?`,
+      title: `${action.charAt(0).toUpperCase() + action.slice(1)} Desafio`,
+      message: `Tem certeza que deseja ${action} o Desafio "${exercise.title}"?`,
       onConfirm: async () => {
         try {
           const updatedExercise = await exercisesService.update(exerciseId, { status: newStatus });
           setExercises(prev => prev.map(ex => ex.id === exerciseId ? updatedExercise : ex));
         } catch (error) {
-          setError(error, `Erro ao ${action} exercício`);
+          setError(error, `Erro ao ${action} Desafio`);
         }
       },
       type: 'warning'
@@ -109,7 +109,7 @@ export default function ChallengesPage() {
       setExercises(prev => [newExercise, ...prev]);
       // Mostrar notificação de sucesso se necessário
     } catch (error) {
-      setError(error, 'Erro ao criar exercício');
+      setError(error, 'Erro ao criar Desafio');
       throw error; // Re-throw para o modal tratar
     }
   };
@@ -121,7 +121,7 @@ export default function ChallengesPage() {
       const updatedExercise = await exercisesService.update(selectedExercise.id, data);
       setExercises(prev => prev.map(ex => ex.id === selectedExercise.id ? updatedExercise : ex));
     } catch (error) {
-      setError(error, 'Erro ao editar exercício');
+      setError(error, 'Erro ao editar Desafio');
       throw error; // Re-throw para o modal tratar
     }
   };
@@ -160,28 +160,28 @@ export default function ChallengesPage() {
           <S.BackgroundShape />
           <S.Title>
             <span className="brackets">{'{'}</span>
-            Meus Exercicios
+            Meus Desafios
             <span className="brackets">{'}'}</span>
           </S.Title>
           <S.Subtitle>
-            Aqui é onde se encontram todos os exercícios feitos por você
+            Aqui é onde se encontram todos os Desafios feitos por você
           </S.Subtitle>
           <S.CreateButton onClick={handleCreateExercise}>
             <span className="icon">📄</span>
-            Criar exercício
+            Criar Desafios
           </S.CreateButton>
         </S.HeroSection>
 
         <S.ExercisesSection>
           <S.YellowBackgroundShape />
           <S.SectionTitle>
-            Meus exercícios ({exercises.length.toString().padStart(2, '0')})
+            Meus Desafios ({exercises.length.toString().padStart(2, '0')})
           </S.SectionTitle>
           
           {isLoading ? (
             <S.EmptyState>
               <S.EmptyIcon>⏳</S.EmptyIcon>
-              <S.EmptyText>Carregando exercícios...</S.EmptyText>
+              <S.EmptyText>Carregando Desafios...</S.EmptyText>
             </S.EmptyState>
           ) : exercises.length > 0 ? (
             exercises.map((exercise) => (
@@ -203,9 +203,9 @@ export default function ChallengesPage() {
           ) : (
             <S.EmptyState>
               <S.EmptyIcon>📝</S.EmptyIcon>
-              <S.EmptyText>Nenhum exercício encontrado</S.EmptyText>
+              <S.EmptyText>Nenhum Desafios encontrado</S.EmptyText>
               <S.EmptySubtext>
-                Crie seu primeiro exercício para começar a praticar!
+                Crie seu primeiro Desafio para começar a praticar!
               </S.EmptySubtext>
             </S.EmptyState>
           )}
