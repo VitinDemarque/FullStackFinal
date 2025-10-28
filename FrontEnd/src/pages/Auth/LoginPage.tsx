@@ -2,7 +2,7 @@ import { useState, FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@contexts/AuthContext";
 import { FaGoogle, FaFacebook, FaArrowLeft } from "react-icons/fa";
-import Notification from "@components/Notification";
+import  Notification  from '@components/Notification'
 import ErrorAlert from "@components/ErrorAlert";
 import { useErrorHandler } from "@hooks/useErrorHandler";
 import * as S from "@/styles/pages/Auth/styles";

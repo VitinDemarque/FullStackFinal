@@ -17,6 +17,18 @@ export const theme = {
     gray700: '#374151',
     yellow400: '#fbbf24',
     
+    // Dark mode colors
+    dark: {
+      background: '#0f172a',
+      surface: '#1e293b',
+      surfaceHover: '#334155',
+      textPrimary: '#f8fafc',
+      textSecondary: '#cbd5e1',
+      textLight: '#94a3b8',
+      border: '#334155',
+      accent: '#3b82f6',
+    },
+    
     gray: {
       50: '#f9fafb',
       100: '#f3f4f6',

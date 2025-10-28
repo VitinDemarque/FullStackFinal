@@ -127,3 +127,30 @@ export interface ApiError {
   statusCode: number
   details?: unknown
 }
+
+// Settings
+export interface UserSettings {
+  notifications: {
+    email: boolean
+    push: boolean
+    achievements: boolean
+    challenges: boolean
+  }
+  privacy: {
+    profileVisibility: 'public' | 'private' | 'friends'
+    showEmail: boolean
+    showStats: boolean
+  }
+  preferences: {
+    language: 'pt' | 'en' | 'es'
+    timezone: string
+    dateFormat: 'dd/mm/yyyy' | 'mm/dd/yyyy' | 'yyyy-mm-dd'
+  }
+  accessibility: {
+    fontSize: 'small' | 'medium' | 'large'
+    highContrast: boolean
+    animations: boolean
+  }
+}
+
+export type ThemeMode = 'light' | 'dark'
