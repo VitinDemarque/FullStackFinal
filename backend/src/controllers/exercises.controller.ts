@@ -118,3 +118,24 @@ export async function listMine(req: AuthenticatedRequest, res: Response, next: N
     return next(err);
   }
 }
+
+export async function listCommunity(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new BadRequestError('Missing user id');
+    const { q, languageId } = req.query as Record<string, string | undefined>;
+    const page = parsePagination(req.query);
+    const { skip, limit } = toMongoPagination(page);
+    
+    const result = await ExercisesService.listCommunity({
+      q,
+      languageId,
+      skip,
+      limit,
+      requestUserId: req.user.user_id
+    });
+    
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+}

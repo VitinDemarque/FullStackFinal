@@ -55,4 +55,10 @@ export const exercisesService = {
       params: filters,
     })
   },
+
+  async getCommunityChallenges(filters?: ExerciseFilters): Promise<PaginatedResponse<Exercise>> {
+    return apiRequest<PaginatedResponse<Exercise>>('GET', '/exercises/community', undefined, {
+      params: filters,
+    })
+  },
 }

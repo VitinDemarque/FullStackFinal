@@ -9,6 +9,7 @@ const router = Router();
  */
 router.get('/', ExercisesController.list);                    // listar exercícios
 router.get('/mine', auth(), ExercisesController.listMine);    // listar meus exercícios
+router.get('/community', auth(), ExercisesController.listCommunity);  // listar desafios da comunidade (outros usuários)
 router.get('/:id', ExercisesController.getById);             // buscar por ID
 
 router.post('/', auth(), ExercisesController.create);        // criar exercício

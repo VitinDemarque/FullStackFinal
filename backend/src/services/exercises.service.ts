@@ -15,10 +15,19 @@ export interface ListExercisesInput {
   skip: number;
   limit: number;
   requestUserId?: string;
+  excludeMyExercises?: boolean;
+}
+
+export interface ListCommunityExercisesInput {
+  q?: string;
+  languageId?: string;
+  skip: number;
+  limit: number;
+  requestUserId: string;
 }
 
 export async function list(input: Partial<ListExercisesInput>) {
-  const { q, languageId, authorId, skip = 0, limit = 20, requestUserId } = input;
+  const { q, languageId, authorId, skip = 0, limit = 20, requestUserId, excludeMyExercises = false } = input;
 
   let where: FilterQuery<any> = { status: 'PUBLISHED' };
   if (q) where.title = { $regex: q, $options: 'i' };
@@ -41,6 +50,11 @@ export async function list(input: Partial<ListExercisesInput>) {
             { groupId: { $in: userGroupIds } }
         ]
     };
+
+    // Excluir desafios do próprio usuário se solicitado
+    if (excludeMyExercises) {
+      where.authorUserId = { $ne: new Types.ObjectId(requestUserId) };
+    }
   } else {
     where = {
         ...baseFilters,
@@ -125,7 +139,7 @@ export async function create(userId: string, payload: Partial<any>) {
     baseXp: Number(payload.baseXp ?? 100),
     isPublic: exerciseIsPublic,
     codeTemplate: String(payload.codeTemplate ?? '// start coding...'),
-    status: payload.status ?? 'DRAFT'
+    status: payload.status ?? (exerciseIsPublic ? 'PUBLISHED' : 'DRAFT')
   });
 
   await UserStat.updateOne(
@@ -196,6 +210,32 @@ export async function setVisibility(userId: string, id: string, isPublic: boolea
   ex.isPublic = !!isPublic;
   await ex.save();
   return sanitize(ex.toObject());
+}
+
+export async function listCommunity(input: Partial<ListCommunityExercisesInput>) {
+  const { q, languageId, skip = 0, limit = 20, requestUserId } = input;
+
+  let where: FilterQuery<any> = {};
+  
+  // Buscar apenas exercícios públicos e publicados, excluindo os do próprio usuário
+  where = {
+    status: 'PUBLISHED',
+    isPublic: true,
+    authorUserId: { $ne: new Types.ObjectId(requestUserId) }
+  };
+  
+  if (q) where.title = { $regex: q, $options: 'i' };
+  if (languageId) where.languageId = new Types.ObjectId(languageId);
+
+  const [items, total] = await Promise.all([
+    Exercise.find(where).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+    Exercise.countDocuments(where)
+  ]);
+
+  return {
+    items: items.map(sanitize),
+    total
+  };
 }
 
 function sanitize(e: any) {
