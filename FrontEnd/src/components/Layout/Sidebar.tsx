@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom'
-import { FaHome, FaCode, FaTrophy, FaStar, FaUser, FaCog, FaSignOutAlt, FaChartLine } from 'react-icons/fa'
+import { FaComments, FaHome, FaCode, FaTrophy, FaStar, FaUser, FaCog, FaSignOutAlt, FaChartLine, FaUsers } from 'react-icons/fa'
 import { useAuth } from '@contexts/AuthContext'
 import * as S from '@/styles/components/Sidebar/styles'
 
@@ -11,6 +11,8 @@ export default function Sidebar() {
   const menuItems = [
     { path: '/dashboard', icon: FaHome, label: 'Dashboard' },
     { path: '/desafios', icon: FaCode, label: 'Desafios' },
+    { path: '/foruns', icon: FaComments, label: 'Fóruns' },
+    { path: '/grupos', icon: FaUsers, label: 'Grupos' },
     { path: '/em-andamento', icon: FaChartLine, label: 'Em Andamento' },
     { path: '/ranking', icon: FaTrophy, label: 'Ranking' },
     { path: '/recomendacoes', icon: FaStar, label: 'Recomendações' },
