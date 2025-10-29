@@ -40,7 +40,9 @@ export const Menu = styled.div`
   overflow: hidden;
 `;
 
-export const MenuItem = styled.button<{ danger?: boolean }>`
+export const MenuItem = styled.button.withConfig({
+  shouldForwardProp: (prop) => prop !== 'danger'
+})<{ danger?: boolean }>`
   width: 100%;
   padding: 0.75rem 1rem;
   border: none;

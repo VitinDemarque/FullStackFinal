@@ -164,7 +164,9 @@ export const Stats = styled.div`
   font-size: 0.875rem;
 `;
 
-export const DifficultyBadge = styled.span<{ difficulty: 'Fácil' | 'Médio' | 'Difícil' | 'Expert' }>`
+export const DifficultyBadge = styled.span.withConfig({
+  shouldForwardProp: (prop) => prop !== 'difficulty'
+})<{ difficulty: 'Fácil' | 'Médio' | 'Difícil' | 'Expert' }>`
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.75rem;

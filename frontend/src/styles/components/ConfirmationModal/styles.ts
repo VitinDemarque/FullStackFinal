@@ -31,7 +31,9 @@ export const Header = styled.div`
   border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
 `;
 
-export const Icon = styled.div<{ type: 'danger' | 'warning' | 'info' }>`
+export const Icon = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'type'
+})<{ type: 'danger' | 'warning' | 'info' }>`
   font-size: 1.5rem;
   width: 2rem;
   height: 2rem;
@@ -93,7 +95,9 @@ export const CancelButton = styled.button`
   }
 `;
 
-export const ConfirmButton = styled.button<{ type: 'danger' | 'warning' | 'info' }>`
+export const ConfirmButton = styled.button.withConfig({
+  shouldForwardProp: (prop) => prop !== 'type'
+})<{ type: 'danger' | 'warning' | 'info' }>`
   padding: 0.5rem 1rem;
   border: none;
   border-radius: ${({ theme }) => theme.borderRadius.md};

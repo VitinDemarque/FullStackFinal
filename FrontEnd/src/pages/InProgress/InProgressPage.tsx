@@ -14,6 +14,7 @@ export default function InProgressPage() {
   const loadCommunityChallenges = async () => {
     try {
       setIsLoading(true);
+      console.log('Carregando desafios da comunidade...');
       const response = await exercisesService.getCommunityChallenges({
         page: 1,
         limit: 50,
