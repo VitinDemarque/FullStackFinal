@@ -13,6 +13,11 @@ import ProfilePage from '@pages/Profile/ProfilePage'
 import SettingsPage from '@pages/Settings/SettingsPage'
 import NotFoundPage from '@pages/NotFound/NotFoundPage'
 import PrivateRoute from '@components/PrivateRoute'
+import GroupListPage from './pages/Groups/GroupListPage';
+import GroupCreatePage from './pages/Groups/GroupCreatePage';
+import GroupDetailsPage from './pages/Groups/GroupDetailsPage';
+import GroupEditPage from './pages/Groups/GroupEditPage';
+import GroupMembersPage from './pages/Groups/GroupMembersPage';
 
 function App() {
   return (
@@ -79,6 +84,46 @@ function App() {
               </PrivateRoute>
             }
           />
+          <Route
+           path="/grupos"
+            element={
+             <PrivateRoute>
+               <GroupListPage />
+             </PrivateRoute>
+            }
+          />
+          <Route
+           path="/grupos/novo"
+            element={
+            <PrivateRoute>
+              <GroupCreatePage />
+            </PrivateRoute>
+           }
+          />
+          <Route
+           path="/grupos/:id"
+             element={
+             <PrivateRoute>
+               <GroupDetailsPage />
+           </PrivateRoute>
+           }
+          />
+         <Route
+         path="/grupos/:id/editar"
+           element={
+          <PrivateRoute>
+            <GroupEditPage />
+         </PrivateRoute>
+            }
+          />
+          <Route
+           path="/grupos/:id/membros"
+             element={
+           <PrivateRoute>
+             <GroupMembersPage />
+          </PrivateRoute>
+             }
+           />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Router>
