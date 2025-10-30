@@ -10,6 +10,7 @@ export const theme = {
     
     accentBlue: '#3b82f6',
     accentYellow: '#fbbf24',
+     background: "#f9fafb",
     textPrimary: '#111827',
     textSecondary: '#4b5563',
     textLight: '#6b7280',
