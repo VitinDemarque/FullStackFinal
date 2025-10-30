@@ -3,27 +3,27 @@ import Forum, { IForum } from '../models/Forum.model';
 import { NotFoundError, BadRequestError } from '../utils/httpErrors';
 import { parsePagination, toMongoPagination } from '../utils/pagination';
 
-// Buscar fóruns públicos (com paginação)
+// Buscar fóruns públicos paginado
 export async function listarPublicos(query: any) {
-  const paginacao = parsePagination(query, { page: 1, limit: 10 }, 50);
-  const { skip, limit } = toMongoPagination(paginacao);
+  const paginacao = parsePagination(query, { page: 1, limit: 10 }, 50)
+  const { skip, limit } = toMongoPagination(paginacao)
 
-  const foruns = await Forum.find({ privacidade: 'PUBLICO', status: 'ATIVO' })
+  const foruns = await Forum.find({ statusPrivacidade: 'PUBLICO', status: 'ATIVO' })
     .sort({ ultimaAtividade: -1 })
     .skip(skip)
     .limit(limit)
-    .lean<IForum[]>();
+    .lean<IForum[]>()
 
-  return foruns;
+  return foruns
 }
 
 // Buscar fóruns aleatórios (para exibir na página inicial)
 export async function listarAleatoriosPublicos(qtd = 5) {
   const foruns = await Forum.aggregate([
-    { $match: { privacidade: 'PUBLICO', status: 'ATIVO' } },
-    { $sample: { size: qtd } }
-  ]);
-  return foruns;
+    { $match: { statusPrivacidade: 'PUBLICO', status: 'ATIVO' } },
+    { $sample: { size: qtd } },
+  ])
+  return foruns
 }
 
 // Pesquisar fóruns por nome, assunto ou palavras-chave
