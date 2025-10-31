@@ -115,20 +115,20 @@ export async function atualizar(id: string, usuarioId: string, payload: Partial<
   return atualizado;
 }
 
-//Excluir um fórum (após confirmações)
+// Excluir um fórum (após confirmações)
 export async function excluir(id: string, usuarioId: string) {
   const forum = await Forum.findById(id).lean<IForum | null>();
   if (!forum) throw new NotFoundError('Fórum não encontrado');
 
   const seDono = String(forum.donoUsuarioId) === usuarioId;
-  const seModerador = forum.moderadores?.some(m => String(m.usuarioId) === usuarioId);
+  const seModerador = forum.moderadores?.some((m) => String(m.usuarioId) === usuarioId);
 
   if (!seDono && !seModerador) {
     throw new BadRequestError('Somente o dono ou moderadores podem solicitar exclusão.');
   }
 
   const votos = forum.votosExclusao ?? [];
-  const jaVotou = votos.some(v => String(v.usuarioId) === usuarioId);
+  const jaVotou = votos.some((v) => String(v.usuarioId) === usuarioId);
 
   if (jaVotou) {
     throw new BadRequestError('Este usuário já registrou voto para exclusão.');
@@ -136,12 +136,17 @@ export async function excluir(id: string, usuarioId: string) {
 
   votos.push({ usuarioId: new Types.ObjectId(usuarioId), data: new Date() });
 
-  const totalVotantes = 1 + (forum.moderadores?.length ?? 0); // dono + moderadores
+  // 🔹 Corrigido: não contar o dono duas vezes
+  const moderadoresValidos = (forum.moderadores || []).filter(
+    (m) => String(m.usuarioId) !== String(forum.donoUsuarioId)
+  );
+
+  const totalVotantes = 1 + moderadoresValidos.length; // dono + moderadores (sem duplicar dono)
   const totalVotos = votos.length;
   const todosConcordaram = totalVotos >= totalVotantes;
 
   if (todosConcordaram) {
-    const deletado = await Forum.findByIdAndDelete(id); // NÃO usar .lean() aqui, findByIdAndDelete retorna o documento diretamente
+    const deletado = await Forum.findByIdAndDelete(id);
     if (!deletado) throw new NotFoundError('Fórum não encontrado');
     return { mensagem: 'Fórum excluído com sucesso.', forum: deletado };
   }
