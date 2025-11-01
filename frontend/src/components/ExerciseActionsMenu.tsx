@@ -16,8 +16,8 @@ export default function ExerciseActionsMenu({ onEdit, onDelete, onInactivate, is
   // Fechar menu ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node) && 
-          buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node) &&
+        buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
@@ -52,14 +52,14 @@ export default function ExerciseActionsMenu({ onEdit, onDelete, onInactivate, is
             <S.MenuIcon>✏️</S.MenuIcon>
             Editar
           </S.MenuItem>
-          
+
           <S.MenuItem onClick={() => handleAction(onInactivate)}>
             <S.MenuIcon>{isActive ? '⏸️' : '▶️'}</S.MenuIcon>
             {isActive ? 'Inativar' : 'Ativar'}
           </S.MenuItem>
-          
+
           <S.MenuDivider />
-          
+
           <S.MenuItem onClick={() => handleAction(onDelete)} danger>
             <S.MenuIcon>🗑️</S.MenuIcon>
             Excluir

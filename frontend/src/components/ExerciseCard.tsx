@@ -41,7 +41,7 @@ export default function ExerciseCard({
           <S.CardDescription>{description}</S.CardDescription>
         </S.CardContent>
       </S.CardHeader>
-      
+
       <S.CardStats>
         <S.StatsLeft>
           <S.VoteCount>
@@ -50,18 +50,18 @@ export default function ExerciseCard({
           </S.VoteCount>
           <S.CommentsCount>{comments} comentários</S.CommentsCount>
         </S.StatsLeft>
-        
+
         <div>
           <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>
             Alterado a {lastModified}
           </span>
         </div>
-        
+
         <S.ActionsContainer>
           <ExerciseActionsMenu
-            onEdit={onEdit || (() => {})}
-            onDelete={onDelete || (() => {})}
-            onInactivate={onInactivate || (() => {})}
+            onEdit={onEdit || (() => { })}
+            onDelete={onDelete || (() => { })}
+            onInactivate={onInactivate || (() => { })}
             isActive={isActive}
           />
         </S.ActionsContainer>

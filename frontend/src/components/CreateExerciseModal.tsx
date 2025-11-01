@@ -89,7 +89,7 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit }: Creat
 
           <S.FieldGroup>
             <S.Label htmlFor="description">Descrição</S.Label>
-            <S.TextArea 
+            <S.TextArea
               id="description"
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}

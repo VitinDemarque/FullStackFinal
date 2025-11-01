@@ -52,33 +52,33 @@ const SwitchContainer = styled.label<{ $size: 'small' | 'medium' | 'large'; $dis
       position: absolute;
       content: "";
       height: ${props => {
-        switch (props.$size) {
-          case 'small': return '1rem'
-          case 'medium': return '1.5rem'
-          case 'large': return '1.75rem'
-        }
-      }};
+    switch (props.$size) {
+      case 'small': return '1rem'
+      case 'medium': return '1.5rem'
+      case 'large': return '1.75rem'
+    }
+  }};
       width: ${props => {
-        switch (props.$size) {
-          case 'small': return '1rem'
-          case 'medium': return '1.5rem'
-          case 'large': return '1.75rem'
-        }
-      }};
+    switch (props.$size) {
+      case 'small': return '1rem'
+      case 'medium': return '1.5rem'
+      case 'large': return '1.75rem'
+    }
+  }};
       left: ${props => {
-        switch (props.$size) {
-          case 'small': return '0.125rem'
-          case 'medium': return '0.25rem'
-          case 'large': return '0.25rem'
-        }
-      }};
+    switch (props.$size) {
+      case 'small': return '0.125rem'
+      case 'medium': return '0.25rem'
+      case 'large': return '0.25rem'
+    }
+  }};
       bottom: ${props => {
-        switch (props.$size) {
-          case 'small': return '0.125rem'
-          case 'medium': return '0.25rem'
-          case 'large': return '0.25rem'
-        }
-      }};
+    switch (props.$size) {
+      case 'small': return '0.125rem'
+      case 'medium': return '0.25rem'
+      case 'large': return '0.25rem'
+    }
+  }};
       background-color: white;
       transition: ${theme.transitions.all};
       border-radius: ${theme.borderRadius.full};
@@ -92,12 +92,12 @@ const SwitchContainer = styled.label<{ $size: 'small' | 'medium' | 'large'; $dis
 
   input:checked + .slider:before {
     transform: translateX(${props => {
-      switch (props.$size) {
-        case 'small': return '1.25rem'
-        case 'medium': return '1.5rem'
-        case 'large': return '1.75rem'
-      }
-    }});
+    switch (props.$size) {
+      case 'small': return '1.25rem'
+      case 'medium': return '1.5rem'
+      case 'large': return '1.75rem'
+    }
+  }});
   }
 
   .dark & .slider {
@@ -109,11 +109,11 @@ const SwitchContainer = styled.label<{ $size: 'small' | 'medium' | 'large'; $dis
   }
 `
 
-export function ToggleSwitch({ 
-  checked, 
-  onChange, 
-  disabled = false, 
-  size = 'medium' 
+export function ToggleSwitch({
+  checked,
+  onChange,
+  disabled = false,
+  size = 'medium'
 }: ToggleSwitchProps) {
   return (
     <SwitchContainer $size={size} $disabled={disabled}>
