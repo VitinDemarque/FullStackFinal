@@ -58,14 +58,14 @@ const NotificationContainer = styled.div<{ $type: string; $isVisible: boolean }>
 
   .dark & {
     background: ${props => {
-      switch (props.$type) {
-        case 'success': return theme.colors.green[500]
-        case 'error': return theme.colors.red[500]
-        case 'warning': return theme.colors.yellow[400]
-        case 'info': return theme.colors.blue[500]
-        default: return theme.colors.dark.surface
-      }
-    }};
+    switch (props.$type) {
+      case 'success': return theme.colors.green[500]
+      case 'error': return theme.colors.red[500]
+      case 'warning': return theme.colors.yellow[400]
+      case 'info': return theme.colors.blue[500]
+      default: return theme.colors.dark.surface
+    }
+  }};
   }
 
   @media (max-width: ${theme.breakpoints.tablet}) {
@@ -104,11 +104,11 @@ const CloseButton = styled.button`
   }
 `
 
-const Notification = ({ 
-  message, 
-  type = 'info', 
-  duration = 5000, 
-  onClose 
+const Notification = ({
+  message,
+  type = 'info',
+  duration = 5000,
+  onClose
 }: NotificationProps) => {
   const [isVisible, setIsVisible] = useState(true)
 
@@ -156,7 +156,7 @@ export const useNotification = () => {
   }>>([])
 
   const addNotification = (
-    message: string, 
+    message: string,
     type: 'success' | 'error' | 'info' | 'warning' = 'info',
     duration = 5000
   ) => {

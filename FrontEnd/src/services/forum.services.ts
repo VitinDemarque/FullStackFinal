@@ -13,18 +13,18 @@ export const forunsService = {
   },
 
   async getById(id: string): Promise<Forum> {
-    return apiRequest<Forum>('GET', `/forum/foruns/${id}`)
+    return apiRequest<Forum>('GET', `/forum/${id}`)
   },
 
   async criar(data: Partial<Forum>): Promise<Forum> {
-    return apiRequest<Forum>('POST', '/forum/foruns', data)
+    return apiRequest<Forum>('POST', '/forum/', data)
   },
 
   async atualizar(id: string, data: Partial<Forum>): Promise<Forum> {
-    return apiRequest<Forum>('PATCH', `/forum/foruns/${id}`, data)
+    return apiRequest<Forum>('PATCH', `/forum/${id}`, data)
   },
 
   async excluir(id: string): Promise<void> {
-    return apiRequest<void>('DELETE', `/forum/foruns/${id}`)
+    return apiRequest<void>('DELETE', `/forum/${id}`)
   },
 }

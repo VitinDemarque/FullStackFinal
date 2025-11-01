@@ -29,8 +29,8 @@ export default function HeroSection() {
         <S.LeftContent>
           <S.Title>{'{'}Aprenda a Programar Jogando{'}'}</S.Title>
           <S.Description>
-            Transforme seu aprendizado em código com desafios práticos e divertidos. 
-            Suba no ranking, ganhe XP, conquiste badges e torne-se um desenvolvedor de elite 
+            Transforme seu aprendizado em código com desafios práticos e divertidos.
+            Suba no ranking, ganhe XP, conquiste badges e torne-se um desenvolvedor de elite
             através da gamificação educacional!
           </S.Description>
 
