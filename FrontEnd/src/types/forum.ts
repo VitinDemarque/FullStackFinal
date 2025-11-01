@@ -1,18 +1,41 @@
-export type StatusPrivacidade = 'PUBLICO' | 'PRIVADO';
+export type PrivacidadeForum = 'PUBLICO' | 'PRIVADO';
+export type StatusForum = 'ATIVO' | 'PENDENTE_EXCLUSAO' | 'EXCLUIDO';
+
+export interface Moderador {
+  usuarioId: string;
+  desde: string;
+  aprovado: boolean;
+}
+
+export interface Mudanca {
+  camposAlterados: string[];
+  usuarioAlteracaoId?: string;
+  usuarioValidacaoId?: string | null;
+  data: string;
+  tipo: 'EDICAO' | 'PRIVACIDADE' | 'TRANSFERENCIA' | 'EXCLUSAO';
+}
+
+export interface VotoExclusao {
+  usuarioId: string;
+  data: string;
+  decisao?: boolean;
+}
 
 export interface Forum {
-  _id: string
-  titulo: string
-  descricao: string
-  autorId: string
-  categoria?: string
-  tags?: string[]
-  criadoEm: string
-  atualizadoEm: string
-  visibilidade: 'PUBLICO' | 'PRIVADO'
-  curtidas?: number
-  respostas?: number
-  votosExclusao?: string[]
+  _id: string;
+  nome: string;
+  palavrasChave?: string[];
+  assunto?: string;
+  descricao?: string;
+  statusPrivacidade?: PrivacidadeForum;
+  status?: StatusForum;
+  donoUsuarioId?: string;
+  moderadores?: Moderador[];
+  mudancas?: Mudanca[];
+  votosExclusao?: VotoExclusao[];
+  criadoEm?: string;
+  atualizadoEm?: string;
+  ultimaAtividade?: string;
 }
 
 export interface PaginatedResponse<T> {
