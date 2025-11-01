@@ -29,13 +29,13 @@ export interface IForum {
   palavrasChave: string[]
   assunto: string
   descricao: string
-  statusPrivacidade: PrivacidadeForum        // 👈 nome igual ao do banco
+  statusPrivacidade: PrivacidadeForum
   status: StatusForum
   donoUsuarioId: Types.ObjectId
   moderadores: IModerador[]
   mudancas: IMudanca[]
   votosExclusao?: IVotoExclusao[]
-  criadoEm?: Date                            // 👈 nome igual ao do banco
+  criadoEm?: Date
   atualizadoEm?: Date
   ultimaAtividade?: Date
 }
@@ -75,7 +75,7 @@ const ForumSchema = new Schema<IForum>(
     palavrasChave: [{ type: String, trim: true, index: true }],
     assunto: { type: String, required: true, trim: true },
     descricao: { type: String, default: '', trim: true },
-    statusPrivacidade: { type: String, enum: ['PUBLICO', 'PRIVADO'], default: 'PUBLICO' }, // 👈 compatível com banco
+    statusPrivacidade: { type: String, enum: ['PUBLICO', 'PRIVADO'], default: 'PUBLICO' },
     status: { type: String, enum: ['ATIVO', 'PENDENTE_EXCLUSAO', 'EXCLUIDO'], default: 'ATIVO' },
     donoUsuarioId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     moderadores: [ModeradorSchema],
