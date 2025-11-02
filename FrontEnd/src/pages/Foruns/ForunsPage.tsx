@@ -80,7 +80,7 @@ export default function ForunsPage() {
               onChange={(e) => setMostrarMeus(e.target.checked)}
               className="accent-blue-600 w-5 h-5"
             />
-            Mostrar apenas meus fóruns
+            Meus fóruns
           </label>
         </div>
 
