@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import AuthenticatedLayout from '@/components/Layout/AuthenticatedLayout'
 import { forunsService } from '@/services/forum.services'
 import ModalCriarForum from '@/components/Forum/ModalCriarForum'
 import type { Forum } from '@/types/forum'
+import * as S from '@/styles/pages/Foruns/styles'
 
 export default function ForunsPage() {
   const [foruns, setForuns] = useState<Forum[]>([])
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
   const [mostrarModalCriar, setMostrarModalCriar] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const navigate = useNavigate()
 
   const carregarForuns = async () => {
     try {
@@ -26,45 +30,110 @@ export default function ForunsPage() {
     carregarForuns()
   }, [])
 
+  const filteredForuns = foruns.filter((forum) => {
+    const search = searchTerm.toLowerCase()
+    return (
+      forum.nome.toLowerCase().includes(search) ||
+      forum.descricao?.toLowerCase().includes(search) ||
+      forum.assunto?.toLowerCase().includes(search)
+    )
+  })
+
+  const handleForumClick = (forumId: string) => {
+    navigate(`/foruns/${forumId}`)
+  }
+
   return (
     <AuthenticatedLayout>
-      <div className="p-6 bg-gray-100 min-h-screen text-gray-900">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">Fóruns Públicos</h1>
-
-          <button
-            onClick={() => setMostrarModalCriar(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition"
-          >
+      <S.Container>
+        <S.Header>
+          <S.Title>Fóruns Públicos</S.Title>
+          <S.NewForumButton onClick={() => setMostrarModalCriar(true)}>
+            <span>+</span>
             Novo Fórum
-          </button>
-        </div>
+          </S.NewForumButton>
+        </S.Header>
 
-        {erro && (
-          <p className="text-red-600 bg-red-100 border border-red-300 px-4 py-2 rounded mb-4">
-            {erro}
-          </p>
-        )}
+        {erro && <S.Error>{erro}</S.Error>}
+
+        <S.SearchBar>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          <input
+            type="text"
+            placeholder="Buscar fóruns..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </S.SearchBar>
 
         {loading ? (
-          <p className="text-gray-700">Carregando...</p>
-        ) : foruns.length === 0 ? (
-          <p className="text-gray-700">Nenhum fórum encontrado.</p>
+          <S.Loading>Carregando fóruns...</S.Loading>
+        ) : filteredForuns.length === 0 ? (
+          <S.NoResults>
+            <p>{searchTerm ? 'Nenhum fórum encontrado com esses termos.' : 'Nenhum fórum encontrado.'}</p>
+            {!searchTerm && (
+              <p style={{ fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                Seja o primeiro a criar um fórum!
+              </p>
+            )}
+          </S.NoResults>
         ) : (
-          <ul className="space-y-4">
-            {foruns.map((forum) => (
-              <li
+          <S.ForumList>
+            {filteredForuns.map((forum) => (
+              <S.ForumCard
                 key={forum._id}
-                className="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
+                onClick={() => handleForumClick(forum._id)}
               >
-                <h2 className="text-xl font-semibold text-gray-900">{forum.nome}</h2>
-                <p className="text-gray-700 mt-1">{forum.descricao}</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  Assunto: {forum.assunto || 'Geral'}
-                </p>
-              </li>
+                <S.CardHeader>
+                  <S.CardTitle>{forum.nome}</S.CardTitle>
+                  <S.BadgeContainer>
+                    <S.Badge variant={forum.statusPrivacidade === 'PRIVADO' ? 'private' : 'public'}>
+                      {forum.statusPrivacidade === 'PRIVADO' ? 'Privado' : 'Público'}
+                    </S.Badge>
+                  </S.BadgeContainer>
+                </S.CardHeader>
+
+                <S.CardDescription>
+                  {forum.descricao || 'Sem descrição disponível.'}
+                </S.CardDescription>
+
+                <S.CardMeta>
+                  {forum.assunto && (
+                    <S.MetaItem>
+                      <span><strong>Assunto:</strong> {forum.assunto}</span>
+                    </S.MetaItem>
+                  )}
+                  {forum.criadoEm && (
+                    <S.MetaItem>
+                      <span>
+                        Criado em {new Date(forum.criadoEm).toLocaleDateString('pt-BR', {
+                          day: '2-digit',
+                          month: 'long',
+                          year: 'numeric'
+                        })}
+                      </span>
+                    </S.MetaItem>
+                  )}
+                  {forum.palavrasChave && forum.palavrasChave.length > 0 && (
+                    <S.MetaItem>
+                      <span>
+                        {forum.palavrasChave.slice(0, 3).map((tag, idx) => (
+                          <span key={idx}>
+                            {tag}
+                            {idx < Math.min(forum.palavrasChave!.length - 1, 2) && ', '}
+                          </span>
+                        ))}
+                        {forum.palavrasChave.length > 3 && '...'}
+                      </span>
+                    </S.MetaItem>
+                  )}
+                </S.CardMeta>
+              </S.ForumCard>
             ))}
-          </ul>
+          </S.ForumList>
         )}
 
         <ModalCriarForum
@@ -72,7 +141,7 @@ export default function ForunsPage() {
           onFechar={() => setMostrarModalCriar(false)}
           onCriado={carregarForuns}
         />
-      </div>
+      </S.Container>
     </AuthenticatedLayout>
   )
 }

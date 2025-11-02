@@ -5,6 +5,7 @@ import { forunsService } from '@/services/forum.services'
 import { userService } from '@/services/user.service'
 import type { Forum } from '@/types/forum'
 import type { User } from '@/types/index'
+import * as S from '@/styles/pages/Foruns/styles'
 
 interface UserBasic {
     _id: string
@@ -42,7 +43,6 @@ export default function ForumDetalhesPage() {
                 const data = await forunsService.getById(id)
                 setForum(data)
 
-                // --- DONO ---
                 const donoId = data.donoUsuarioId ?? data.criadoPor ?? null
                 if (donoId && typeof donoId === 'string') {
                     try {
@@ -50,11 +50,10 @@ export default function ForumDetalhesPage() {
                         const normalized = toUserBasic(donoUser)
                         if (normalized) setDono(normalized)
                     } catch (err) {
-                        console.warn('Erro ao buscar dono do fórum:', err)
+                        // Erro ao buscar dono é ignorado
                     }
                 }
 
-                // --- MODERADORES ---
                 const moderadoresRaw = data.moderadores ?? []
                 if (moderadoresRaw.length > 0) {
                     const promises = moderadoresRaw.map(async (m: any) => {
@@ -64,7 +63,6 @@ export default function ForumDetalhesPage() {
                             const u = await userService.getById(String(userId))
                             return toUserBasic(u)
                         } catch (err) {
-                            console.warn('Erro ao buscar moderador', userId, err)
                             return null
                         }
                     })
@@ -76,7 +74,6 @@ export default function ForumDetalhesPage() {
                     setModeradores([])
                 }
             } catch (err: any) {
-                console.error('Erro ao carregar fórum:', err)
                 setErro(err.message || 'Erro ao carregar fórum.')
             } finally {
                 setLoading(false)
@@ -84,76 +81,124 @@ export default function ForumDetalhesPage() {
         }
 
         carregarForum()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id])
 
     return (
         <AuthenticatedLayout>
-            <div className="p-6 bg-gray-100 min-h-screen text-gray-900">
-                <button
-                    onClick={() => navigate(-1)}
-                    className="mb-4 bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2 rounded transition"
-                >
-                    ← Voltar
-                </button>
+            <S.Container>
+                <S.BackButton to="/foruns">
+                    <span>←</span>
+                    Voltar para Fóruns
+                </S.BackButton>
 
-                {loading && <p className="text-gray-700">Carregando fórum...</p>}
+                {loading && <S.Loading>Carregando fórum...</S.Loading>}
 
-                {erro && (
-                    <p className="text-red-600 bg-red-100 border border-red-300 px-4 py-2 rounded">
-                        {erro}
-                    </p>
-                )}
+                {erro && <S.Error>{erro}</S.Error>}
 
                 {forum && (
-                    <div className="bg-white rounded-lg shadow-md p-6">
-                        <h1 className="text-3xl font-bold text-gray-800 mb-2">{forum.nome}</h1>
+                    <S.DetailContainer>
+                        <div style={{ marginBottom: '2rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                                <S.DetailTitle>{forum.nome}</S.DetailTitle>
+                                <S.Badge variant={forum.statusPrivacidade === 'PRIVADO' ? 'private' : 'public'}>
+                                    {forum.statusPrivacidade === 'PRIVADO' ? 'Privado' : 'Público'}
+                                </S.Badge>
+                            </div>
 
-                        <p className="text-lg text-gray-700 mb-2">
-                            <span className="font-semibold">Assunto:</span> {forum.assunto || '—'}
-                        </p>
-
-                        {forum.descricao && (
-                            <p className="text-gray-600 mb-4">{forum.descricao}</p>
-                        )}
-
-                        <div className="mb-3 text-sm text-gray-500">
-                            <p>
-                                <span className="font-semibold">Dono:</span>{' '}
-                                {dono ? dono.name : forum.donoUsuarioId ?? 'Desconhecido'}
-                            </p>
-                            <p>
-                                <span className="font-semibold">Data de criação:</span>{' '}
-                                {forum.criadoEm
-                                    ? new Date(forum.criadoEm).toLocaleString('pt-BR')
-                                    : '—'}
-                            </p>
-                            <p>
-                                <span className="font-semibold">Privacidade:</span>{' '}
-                                {forum.statusPrivacidade === 'PRIVADO' ? 'Privado' : 'Público'}
-                            </p>
-                        </div>
-
-                        <div className="mt-4">
-                            <h2 className="text-lg font-semibold mb-2">Moderadores</h2>
-
-                            {moderadores.length > 0 ? (
-                                <ul className="list-disc list-inside text-gray-700">
-                                    {moderadores.map((mod) => (
-                                        <li key={mod._id}>{mod.name}</li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <p className="text-gray-600">Nenhum moderador.</p>
+                            {forum.assunto && (
+                                <S.DetailText>
+                                    <S.DetailLabel>Assunto: </S.DetailLabel>
+                                    {forum.assunto}
+                                </S.DetailText>
                             )}
                         </div>
 
-                        <div className="mt-6 border-t pt-4 text-gray-500 text-sm italic">
-                            <p>Em breve: tópicos e discussões deste fórum.</p>
-                        </div>
-                    </div>
+                        {forum.descricao && (
+                            <S.DetailSection>
+                                <S.DetailSectionTitle>Descrição</S.DetailSectionTitle>
+                                <S.DetailText>{forum.descricao}</S.DetailText>
+                            </S.DetailSection>
+                        )}
+
+                        {forum.palavrasChave && forum.palavrasChave.length > 0 && (
+                            <S.DetailSection>
+                                <S.DetailSectionTitle>Palavras-chave</S.DetailSectionTitle>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                    {forum.palavrasChave.map((tag, idx) => (
+                                        <S.Badge key={idx} variant="public" style={{ fontSize: '0.875rem' }}>
+                                            {tag}
+                                        </S.Badge>
+                                    ))}
+                                </div>
+                            </S.DetailSection>
+                        )}
+
+                        <S.DetailSection>
+                            <S.DetailSectionTitle>Informações</S.DetailSectionTitle>
+                            <S.DetailText>
+                                <S.DetailLabel>Dono: </S.DetailLabel>
+                                {dono ? dono.name : forum.donoUsuarioId ?? 'Desconhecido'}
+                            </S.DetailText>
+                            {forum.criadoEm && (
+                                <S.DetailText>
+                                    <S.DetailLabel>Data de criação: </S.DetailLabel>
+                                    {new Date(forum.criadoEm).toLocaleString('pt-BR', {
+                                        day: '2-digit',
+                                        month: 'long',
+                                        year: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    })}
+                                </S.DetailText>
+                            )}
+                            {forum.ultimaAtividade && (
+                                <S.DetailText>
+                                    <S.DetailLabel>Última atividade: </S.DetailLabel>
+                                    {new Date(forum.ultimaAtividade).toLocaleString('pt-BR', {
+                                        day: '2-digit',
+                                        month: 'long',
+                                        year: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    })}
+                                </S.DetailText>
+                            )}
+                            <S.DetailText>
+                                <S.DetailLabel>Privacidade: </S.DetailLabel>
+                                {forum.statusPrivacidade === 'PRIVADO' ? 'Privado' : 'Público'}
+                            </S.DetailText>
+                        </S.DetailSection>
+
+                        {moderadores.length > 0 && (
+                            <S.DetailSection>
+                                <S.DetailSectionTitle>Moderadores ({moderadores.length})</S.DetailSectionTitle>
+                                <S.ModeratorList>
+                                    {moderadores.map((mod) => (
+                                        <S.ModeratorItem key={mod._id}>
+                                            {mod.name}
+                                        </S.ModeratorItem>
+                                    ))}
+                                </S.ModeratorList>
+                            </S.DetailSection>
+                        )}
+
+                        {moderadores.length === 0 && (
+                            <S.DetailSection>
+                                <S.DetailSectionTitle>Moderadores</S.DetailSectionTitle>
+                                <S.DetailText style={{ fontStyle: 'italic', color: '#999' }}>
+                                    Nenhum moderador cadastrado.
+                                </S.DetailText>
+                            </S.DetailSection>
+                        )}
+
+                        <S.DetailSection style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '2px dashed #e5e7eb' }}>
+                            <S.DetailText style={{ fontStyle: 'italic', color: '#999', textAlign: 'center' }}>
+                                Em breve: tópicos e discussões deste fórum estarão disponíveis aqui.
+                            </S.DetailText>
+                        </S.DetailSection>
+                    </S.DetailContainer>
                 )}
-            </div>
+            </S.Container>
         </AuthenticatedLayout>
     )
 }

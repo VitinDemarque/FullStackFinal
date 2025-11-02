@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import styled from 'styled-components'
 import { forunsService } from '@/services/forum.services'
 
 interface ModalCriarForumProps {
@@ -6,6 +7,225 @@ interface ModalCriarForumProps {
     onFechar: () => void
     onCriado: () => void
 }
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
+`
+
+const ModalContent = styled.div`
+  background: ${({ theme }) => theme.colors.white};
+  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  box-shadow: ${({ theme }) => theme.shadows['2xl']};
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 2rem;
+  position: relative;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    padding: 1.5rem;
+    max-width: 100%;
+  }
+`
+
+const ModalHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+`
+
+const ModalTitle = styled.h2`
+  font-size: ${({ theme }) => theme.fontSizes['2xl']};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  margin: 0;
+`
+
+const CloseButton = styled.button`
+  background: transparent;
+  border: none;
+  font-size: ${({ theme }) => theme.fontSizes['2xl']};
+  color: ${({ theme }) => theme.colors.textLight};
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  transition: all 0.2s;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.gray[100]};
+    color: ${({ theme }) => theme.colors.textPrimary};
+  }
+`
+
+const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+`
+
+const FormGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`
+
+const Label = styled.label`
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  color: ${({ theme }) => theme.colors.textPrimary};
+`
+
+const Input = styled.input`
+  padding: 0.75rem;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  font-size: ${({ theme }) => theme.fontSizes.base};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  transition: all 0.3s;
+
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary}20;
+  }
+
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.textLight};
+  }
+`
+
+const Textarea = styled.textarea`
+  padding: 0.75rem;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  font-size: ${({ theme }) => theme.fontSizes.base};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  font-family: inherit;
+  resize: vertical;
+  min-height: 100px;
+  transition: all 0.3s;
+
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary}20;
+  }
+
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.textLight};
+  }
+`
+
+const Select = styled.select`
+  padding: 0.75rem;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  font-size: ${({ theme }) => theme.fontSizes.base};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  background: ${({ theme }) => theme.colors.white};
+  cursor: pointer;
+  transition: all 0.3s;
+
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary}20;
+  }
+`
+
+const Alert = styled.div<{ variant: 'error' | 'success' }>`
+  padding: 0.75rem 1rem;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  margin-bottom: 1rem;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+
+  ${props => props.variant === 'error' ? `
+    background: ${props.theme.colors.danger.bg};
+    color: ${props.theme.colors.danger.text};
+    border: 1px solid ${props.theme.colors.red[400]};
+  ` : `
+    background: ${props.theme.colors.success.bg};
+    color: ${props.theme.colors.success.text};
+    border: 1px solid ${props.theme.colors.green[400]};
+  `}
+`
+
+const ButtonGroup = styled.div`
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+`
+
+const Button = styled.button<{ variant?: 'primary' | 'secondary' | 'danger' }>`
+  padding: 0.75rem 1.5rem;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  font-size: ${({ theme }) => theme.fontSizes.base};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  flex: 1;
+  min-width: 120px;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  ${props => {
+    if (props.variant === 'primary') {
+      return `
+        background: ${props.theme.gradients.primary};
+        color: white;
+        box-shadow: ${props.theme.shadows.md};
+
+        &:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: ${props.theme.shadows.lg};
+        }
+      `
+    }
+    if (props.variant === 'danger') {
+      return `
+        background: ${props.theme.colors.gray[200]};
+        color: ${props.theme.colors.textPrimary};
+
+        &:hover:not(:disabled) {
+          background: ${props.theme.colors.gray[300]};
+        }
+      `
+    }
+    return `
+      background: ${props.theme.colors.gray[200]};
+      color: ${props.theme.colors.textPrimary};
+
+      &:hover:not(:disabled) {
+        background: ${props.theme.colors.gray[300]};
+      }
+    `
+  }}
+`
+
+const SecondaryButtonGroup = styled.div`
+  display: flex;
+  gap: 0.75rem;
+`
 
 export default function ModalCriarForum({ aberto, onFechar, onCriado }: ModalCriarForumProps) {
     const [nome, setNome] = useState('')
@@ -50,114 +270,127 @@ export default function ModalCriarForum({ aberto, onFechar, onCriado }: ModalCri
             limparCampos()
             onCriado()
 
-            // Fecha o modal automaticamente após 2 segundos
             setTimeout(() => {
                 setSucesso(null)
                 onFechar()
             }, 2000)
 
         } catch (err: any) {
-            console.error('Erro ao criar fórum:', err)
             setErro(err.message || 'Erro ao criar fórum.')
         } finally {
             setLoading(false)
         }
     }
 
-return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
-                <h2 className="text-2xl font-bold mb-4 text-gray-800">Criar Novo Fórum</h2>
+    const handleClose = () => {
+        if (!loading) {
+            limparCampos()
+            onFechar()
+        }
+    }
 
-                {erro && <p className="text-red-600 mb-3">{erro}</p>}
-                {sucesso && <p className="text-green-600 mb-3">{sucesso}</p>}
+    return (
+        <ModalOverlay onClick={handleClose}>
+            <ModalContent onClick={(e) => e.stopPropagation()}>
+                <ModalHeader>
+                    <ModalTitle>Criar Novo Fórum</ModalTitle>
+                    <CloseButton onClick={handleClose} disabled={loading}>
+                        ×
+                    </CloseButton>
+                </ModalHeader>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Nome</label>
-                        <input
+                {erro && <Alert variant="error">{erro}</Alert>}
+                {sucesso && <Alert variant="success">{sucesso}</Alert>}
+
+                <Form onSubmit={handleSubmit}>
+                    <FormGroup>
+                        <Label>Nome do Fórum *</Label>
+                        <Input
                             type="text"
-                            className="w-full border rounded p-2 mt-1"
                             value={nome}
                             onChange={(e) => setNome(e.target.value)}
+                            placeholder="Digite o nome do fórum"
                             required
+                            disabled={loading}
                         />
-                    </div>
+                    </FormGroup>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Assunto</label>
-                        <input
+                    <FormGroup>
+                        <Label>Assunto *</Label>
+                        <Input
                             type="text"
-                            className="w-full border rounded p-2 mt-1"
                             value={assunto}
                             onChange={(e) => setAssunto(e.target.value)}
+                            placeholder="Ex: Desenvolvimento Web, Backend, Frontend..."
                             required
+                            disabled={loading}
                         />
-                    </div>
+                    </FormGroup>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Descrição</label>
-                        <textarea
-                            className="w-full border rounded p-2 mt-1"
-                            rows={3}
+                    <FormGroup>
+                        <Label>Descrição</Label>
+                        <Textarea
                             value={descricao}
                             onChange={(e) => setDescricao(e.target.value)}
+                            placeholder="Descreva o propósito e tema deste fórum..."
+                            rows={4}
+                            disabled={loading}
                         />
-                    </div>
+                    </FormGroup>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Palavras-chave</label>
-                        <input
+                    <FormGroup>
+                        <Label>Palavras-chave</Label>
+                        <Input
                             type="text"
-                            className="w-full border rounded p-2 mt-1"
-                            placeholder="Ex: react, backend, javascript"
+                            placeholder="Ex: react, backend, javascript (separadas por vírgula)"
                             value={palavrasChave}
                             onChange={(e) => setPalavrasChave(e.target.value)}
+                            disabled={loading}
                         />
-                    </div>
+                    </FormGroup>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Privacidade</label>
-                        <select
-                            className="w-full border rounded p-2 mt-1"
+                    <FormGroup>
+                        <Label>Privacidade</Label>
+                        <Select
                             value={privacidade}
                             onChange={(e) => setPrivacidade(e.target.value as 'PUBLICO' | 'PRIVADO')}
+                            disabled={loading}
                         >
-                            <option value="PUBLICO">Público</option>
-                            <option value="PRIVADO">Privado</option>
-                        </select>
-                    </div>
+                            <option value="PUBLICO">Público - Qualquer um pode ver e participar</option>
+                            <option value="PRIVADO">Privado - Apenas membros podem ver e participar</option>
+                        </Select>
+                    </FormGroup>
 
-                    <div className="flex justify-between gap-3 mt-4">
-                        <button
+                    <ButtonGroup>
+                        <Button
                             type="button"
-                            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                            variant="danger"
                             onClick={limparCampos}
                             disabled={loading}
                         >
                             Limpar
-                        </button>
+                        </Button>
 
-                        <div className="flex gap-3">
-                            <button
+                        <SecondaryButtonGroup>
+                            <Button
                                 type="button"
-                                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                                onClick={onFechar}
+                                variant="secondary"
+                                onClick={handleClose}
                                 disabled={loading}
                             >
                                 Cancelar
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 type="submit"
-                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                variant="primary"
                                 disabled={loading}
                             >
                                 {loading ? 'Criando...' : 'Criar Fórum'}
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
+                            </Button>
+                        </SecondaryButtonGroup>
+                    </ButtonGroup>
+                </Form>
+            </ModalContent>
+        </ModalOverlay>
     )
 }
