@@ -10,6 +10,7 @@ import InProgressPage from '@pages/InProgress/InProgressPage'
 import RankingPage from '@pages/Ranking/RankingPage'
 import RecommendationsPage from '@pages/Recommendations/RecommendationsPage'
 import ForunsPage from '@pages/Foruns/ForunsPage';
+import ForumDetalhesPage from '@pages/Foruns/ForumDetalhesPage';
 import ProfilePage from '@pages/Profile/ProfilePage'
 import SettingsPage from '@pages/Settings/SettingsPage'
 import NotFoundPage from '@pages/NotFound/NotFoundPage'
@@ -75,6 +76,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <ForunsPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/foruns/:id"
+              element={
+                <PrivateRoute>
+                  <ForumDetalhesPage />
                 </PrivateRoute>
               }
             />
