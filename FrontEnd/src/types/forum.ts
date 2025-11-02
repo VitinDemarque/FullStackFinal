@@ -30,6 +30,7 @@ export interface Forum {
   statusPrivacidade?: PrivacidadeForum;
   status?: StatusForum;
   donoUsuarioId?: string;
+  criadoPor?: string;
   moderadores?: Moderador[];
   mudancas?: Mudanca[];
   votosExclusao?: VotoExclusao[];

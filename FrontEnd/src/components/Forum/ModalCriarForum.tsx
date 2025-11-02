@@ -15,12 +15,24 @@ export default function ModalCriarForum({ aberto, onFechar, onCriado }: ModalCri
     const [privacidade, setPrivacidade] = useState<'PUBLICO' | 'PRIVADO'>('PUBLICO')
     const [loading, setLoading] = useState(false)
     const [erro, setErro] = useState<string | null>(null)
+    const [sucesso, setSucesso] = useState<string | null>(null)
 
     if (!aberto) return null
+
+    const limparCampos = () => {
+        setNome('')
+        setAssunto('')
+        setDescricao('')
+        setPalavrasChave('')
+        setPrivacidade('PUBLICO')
+        setErro(null)
+        setSucesso(null)
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setErro(null)
+        setSucesso(null)
 
         try {
             setLoading(true)
@@ -30,12 +42,20 @@ export default function ModalCriarForum({ aberto, onFechar, onCriado }: ModalCri
                 assunto,
                 descricao,
                 palavrasChave: palavrasChave.split(',').map(p => p.trim()).filter(Boolean),
-                privacidade,
+                statusPrivacidade: privacidade,
             }
 
             await forunsService.criar(payload)
+            setSucesso('Fórum criado com sucesso!')
+            limparCampos()
             onCriado()
-            onFechar()
+
+            // Fecha o modal automaticamente após 2 segundos
+            setTimeout(() => {
+                setSucesso(null)
+                onFechar()
+            }, 2000)
+
         } catch (err: any) {
             console.error('Erro ao criar fórum:', err)
             setErro(err.message || 'Erro ao criar fórum.')
@@ -44,12 +64,13 @@ export default function ModalCriarForum({ aberto, onFechar, onCriado }: ModalCri
         }
     }
 
-    return (
+return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
             <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
                 <h2 className="text-2xl font-bold mb-4 text-gray-800">Criar Novo Fórum</h2>
 
                 {erro && <p className="text-red-600 mb-3">{erro}</p>}
+                {sucesso && <p className="text-green-600 mb-3">{sucesso}</p>}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
@@ -107,22 +128,33 @@ export default function ModalCriarForum({ aberto, onFechar, onCriado }: ModalCri
                         </select>
                     </div>
 
-                    <div className="flex justify-end gap-3 mt-4">
+                    <div className="flex justify-between gap-3 mt-4">
                         <button
                             type="button"
-                            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                            onClick={onFechar}
+                            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                            onClick={limparCampos}
                             disabled={loading}
                         >
-                            Cancelar
+                            Limpar
                         </button>
-                        <button
-                            type="submit"
-                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                            disabled={loading}
-                        >
-                            {loading ? 'Criando...' : 'Criar Fórum'}
-                        </button>
+
+                        <div className="flex gap-3">
+                            <button
+                                type="button"
+                                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                                onClick={onFechar}
+                                disabled={loading}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="submit"
+                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                disabled={loading}
+                            >
+                                {loading ? 'Criando...' : 'Criar Fórum'}
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>

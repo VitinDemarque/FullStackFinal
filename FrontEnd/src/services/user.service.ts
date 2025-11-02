@@ -1,5 +1,12 @@
 import { apiRequest } from './api'
-import type { User, PublicProfile, UserStats } from '@types/index'
+import type { User, PublicProfile, UserStats } from '@/types/index'
+
+export interface UserBasic {
+  _id: string
+  name: string
+  handle?: string
+  avatarUrl?: string | null
+}
 
 export const userService = {
   async getMe(): Promise<User> {
