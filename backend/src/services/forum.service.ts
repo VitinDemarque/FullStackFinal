@@ -52,6 +52,55 @@ export async function obterPorId(id: string) {
   return forum;
 }
 
+// Listar fóruns em que o usuário participa
+export async function listarMeus(userId: string) {
+  const objectId = new Types.ObjectId(userId);
+
+  // Busca por dono, moderador ou membro (se existir futuramente)
+  const foruns = await Forum.find({
+    $or: [
+      { donoUsuarioId: objectId },
+      { 'moderadores.usuarioId': objectId },
+      { 'membros.usuarioId': objectId }, // opcional, se existir
+    ],
+    status: { $ne: 'EXCLUIDO' },
+  }).lean();
+
+  return foruns;
+}
+
+// Entrar como membro em um fórum público
+export async function participar(forumId: string, usuarioId: string) {
+  const forum = await Forum.findById(forumId).lean<IForum | null>()
+  if (!forum) throw new NotFoundError('Fórum não encontrado')
+
+  if (forum.statusPrivacidade === 'PRIVADO') {
+    throw new BadRequestError('Não é possível participar de um fórum privado sem convite.')
+  }
+
+  const jaEhMembro =
+    forum.membros?.some((m) => String(m.usuarioId) === usuarioId) ||
+    forum.moderadores?.some((m) => String(m.usuarioId) === usuarioId) ||
+    String(forum.donoUsuarioId) === usuarioId
+
+  if (jaEhMembro) {
+    throw new BadRequestError('Usuário já participa deste fórum.')
+  }
+
+  const atualizado = await Forum.findByIdAndUpdate(
+    forumId,
+    {
+      $push: { membros: { usuarioId: new Types.ObjectId(usuarioId), desde: new Date() } },
+      $set: { atualizadoEm: new Date(), ultimaAtividade: new Date() },
+    },
+    { new: true }
+  ).lean<IForum | null>()
+
+  if (!atualizado) throw new NotFoundError('Erro ao ingressar no fórum.')
+
+  return atualizado
+}
+
 // Criar um novo fórum
 export async function criar(usuarioId: string, payload: Partial<IForum>) {
   if (!payload.nome || !payload.assunto) throw new BadRequestError('Nome e assunto são obrigatórios');
@@ -136,7 +185,6 @@ export async function excluir(id: string, usuarioId: string) {
 
   votos.push({ usuarioId: new Types.ObjectId(usuarioId), data: new Date() });
 
-  // 🔹 Corrigido: não contar o dono duas vezes
   const moderadoresValidos = (forum.moderadores || []).filter(
     (m) => String(m.usuarioId) !== String(forum.donoUsuarioId)
   );

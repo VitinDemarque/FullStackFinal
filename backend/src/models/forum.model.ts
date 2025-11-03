@@ -23,6 +23,11 @@ export interface IVotoExclusao {
   decisao?: boolean
 }
 
+export interface IMembro {
+  usuarioId: Types.ObjectId
+  desde: Date
+}
+
 export interface IForum {
   _id: Types.ObjectId
   nome: string
@@ -33,6 +38,7 @@ export interface IForum {
   status: StatusForum
   donoUsuarioId: Types.ObjectId
   moderadores: IModerador[]
+  membros?: IMembro[]
   mudancas: IMudanca[]
   votosExclusao?: IVotoExclusao[]
   criadoEm?: Date
@@ -55,7 +61,11 @@ const MudancaSchema = new Schema<IMudanca>(
     usuarioAlteracaoId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     usuarioValidacaoId: { type: Schema.Types.ObjectId, ref: 'User', default: null },
     data: { type: Date, default: Date.now },
-    tipo: { type: String, enum: ['EDICAO', 'PRIVACIDADE', 'TRANSFERENCIA', 'EXCLUSAO'], required: true },
+    tipo: {
+      type: String,
+      enum: ['EDICAO', 'PRIVACIDADE', 'TRANSFERENCIA', 'EXCLUSAO'],
+      required: true,
+    },
   },
   { _id: false }
 )
@@ -69,6 +79,14 @@ const VotoExclusaoSchema = new Schema<IVotoExclusao>(
   { _id: false }
 )
 
+const MembroSchema = new Schema<IMembro>(
+  {
+    usuarioId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    desde: { type: Date, default: Date.now },
+  },
+  { _id: false }
+)
+
 const ForumSchema = new Schema<IForum>(
   {
     nome: { type: String, required: true, trim: true },
@@ -76,9 +94,14 @@ const ForumSchema = new Schema<IForum>(
     assunto: { type: String, required: true, trim: true },
     descricao: { type: String, default: '', trim: true },
     statusPrivacidade: { type: String, enum: ['PUBLICO', 'PRIVADO'], default: 'PUBLICO' },
-    status: { type: String, enum: ['ATIVO', 'PENDENTE_EXCLUSAO', 'EXCLUIDO'], default: 'ATIVO' },
+    status: {
+      type: String,
+      enum: ['ATIVO', 'PENDENTE_EXCLUSAO', 'EXCLUIDO'],
+      default: 'ATIVO',
+    },
     donoUsuarioId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     moderadores: [ModeradorSchema],
+    membros: [MembroSchema],
     mudancas: [MudancaSchema],
     votosExclusao: [VotoExclusaoSchema],
     criadoEm: { type: Date, default: Date.now },
@@ -90,4 +113,4 @@ const ForumSchema = new Schema<IForum>(
 
 ForumSchema.index({ nome: 'text', assunto: 'text', palavrasChave: 'text' })
 
-export default models.Forum || model<IForum>('Forum', ForumSchema, 'forums');
+export default models.Forum || model<IForum>('Forum', ForumSchema, 'forums')

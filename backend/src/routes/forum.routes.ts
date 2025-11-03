@@ -1,28 +1,34 @@
-import { Router } from 'express';
-import * as ForumController from '../controllers/forum.controller';
-import { auth } from '../middlewares/auth';
+import { Router } from 'express'
+import * as ForumController from '../controllers/forum.controller'
+import { auth } from '../middlewares/auth'
 
-const router = Router();
+const router = Router()
 
-// Get foruns publicos
-router.get('/foruns', ForumController.listarPublicos);
+// Listar fóruns públicos
+router.get('/foruns', ForumController.listarPublicos)
 
-// Get forum aleatorio (para exibir na página inicial)
-router.get('/aleatorios', ForumController.listarAleatorios);
+// Listar fóruns aleatórios (exibição na home)
+router.get('/aleatorios', ForumController.listarAleatorios)
 
-// Get foruns por pesquisa
-router.get('/pesquisar', ForumController.pesquisar);
+// Pesquisar fóruns
+router.get('/pesquisar', ForumController.pesquisar)
 
-// Get forum por ID
-router.get('/:id', ForumController.obterPorId);
+// Listar fóruns em que o usuário participa
+router.get('/meus', auth(), ForumController.listarMeus)
 
-// Criação de fórum
-router.post('/', auth(), ForumController.criar);
+// Obter fórum por ID
+router.get('/:id', ForumController.obterPorId)
 
-// Atualizar forum
-router.patch('/:id', auth(), ForumController.atualizar);
+// Participar de um fórum
+router.post('/:id/participar', auth(), ForumController.participar)
 
-// Deletar forum
-router.delete('/:id', auth(), ForumController.excluir);
+// Criar novo fórum
+router.post('/', auth(), ForumController.criar)
 
-export default router;
+// Atualizar fórum
+router.patch('/:id', auth(), ForumController.atualizar)
+
+// Excluir fórum
+router.delete('/:id', auth(), ForumController.excluir)
+
+export default router
