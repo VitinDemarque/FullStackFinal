@@ -45,7 +45,7 @@ export default function ForumDetalhesPage() {
                     data.moderadores?.some((m) => m.usuarioId === me.id) ||
                     data.membros?.some((m) => m.usuarioId === me.id)
 
-                setParticipando(ehParticipante)
+                setParticipando(!!ehParticipante)
             } catch (err: any) {
                 console.error('Erro ao carregar fórum:', err)
                 setErro(err.message || 'Erro ao carregar fórum.')

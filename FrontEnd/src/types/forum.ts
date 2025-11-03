@@ -7,6 +7,11 @@ export interface Moderador {
   aprovado: boolean
 }
 
+export interface Membro {
+  usuarioId: string;
+  desde: string;
+}
+
 export interface Mudanca {
   camposAlterados: string[]
   usuarioAlteracaoId?: string
@@ -29,15 +34,13 @@ export interface Forum {
   palavrasChave?: string[]
   statusPrivacidade?: PrivacidadeForum
   status?: StatusForum
-
-  // 👇 Estes campos garantem compatibilidade total com o backend
   donoUsuarioId?: string
   criadoPor?: string
   criadoEm?: string
   atualizadoEm?: string
   ultimaAtividade?: string
-
   moderadores?: Moderador[]
+  membros?: Membro[];
   mudancas?: Mudanca[]
   votosExclusao?: VotoExclusao[]
 }
