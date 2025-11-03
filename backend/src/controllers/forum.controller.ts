@@ -115,3 +115,45 @@ export async function excluir(req: AuthenticatedRequest, res: Response, next: Ne
     return next(err)
   }
 }
+
+// Listar participantes (dono, moderadores, membros)
+export async function listarParticipantes(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params
+    const participantes = await ForumService.listarParticipantes(id)
+    return res.json(participantes)
+  } catch (err) {
+    return next(err)
+  }
+}
+
+// Sair do fórum (membro/moderador)
+export async function sair(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id)
+      return res.status(401).json({ mensagem: 'Usuário não autenticado.' })
+
+    const { id } = req.params
+    const atualizado = await ForumService.sair(id, req.user.user_id)
+    return res.json(atualizado)
+  } catch (err) {
+    return next(err)
+  }
+}
+
+// Transferir propriedade do fórum
+export async function transferirDono(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id)
+      return res.status(401).json({ mensagem: 'Usuário não autenticado.' })
+
+    const { id } = req.params
+    const { novoDonoUsuarioId } = req.body as { novoDonoUsuarioId?: string }
+    if (!novoDonoUsuarioId) return res.status(400).json({ mensagem: 'novoDonoUsuarioId é obrigatório.' })
+
+    const atualizado = await ForumService.transferirDono(id, req.user.user_id, novoDonoUsuarioId)
+    return res.json(atualizado)
+  } catch (err) {
+    return next(err)
+  }
+}

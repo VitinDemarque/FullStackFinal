@@ -154,9 +154,10 @@ export async function atualizar(id: string, usuarioId: string, payload: Partial<
     $push: {
       mudancas: {
         camposAlterados: Object.keys(atualizacoes),
-        usuarioAutorId: usuarioId,
-        aprovado: seDono, // se o dono fez, já é aprovado
+        usuarioAlteracaoId: new Types.ObjectId(usuarioId),
+        usuarioValidacaoId: seDono ? new Types.ObjectId(usuarioId) : null,
         data: new Date(),
+        tipo: 'EDICAO',
       },
     },
   });
@@ -208,4 +209,95 @@ export async function excluir(id: string, usuarioId: string) {
     mensagem: `Exclusão pendente — ${totalVotos}/${totalVotantes} confirmações registradas.`,
     pendente: true,
   };
+}
+
+// Listar participantes (dono, moderadores e membros)
+export async function listarParticipantes(forumId: string) {
+  const forum = await Forum.findById(forumId).lean<IForum | null>();
+  if (!forum) throw new NotFoundError('Fórum não encontrado');
+
+  const totalModeradores = forum.moderadores?.length || 0;
+  const totalMembros = forum.membros?.length || 0;
+  const flags = {
+    totalModeradores,
+    totalMembros,
+    possuiOutrosModeradores: totalModeradores > 1 || (totalModeradores === 1 && String(forum.moderadores?.[0]?.usuarioId) !== String(forum.donoUsuarioId)),
+    donoEhUnicoModerador: (totalModeradores === 0) || (totalModeradores === 1 && String(forum.moderadores?.[0]?.usuarioId) === String(forum.donoUsuarioId)),
+  };
+
+  return {
+    donoUsuarioId: forum.donoUsuarioId,
+    moderadores: forum.moderadores || [],
+    membros: forum.membros || [],
+    flags,
+  };
+}
+
+// Sair do fórum (membro/moderador). Dono não pode sair — deve transferir ou excluir.
+export async function sair(forumId: string, usuarioId: string) {
+  const forum = await Forum.findById(forumId).lean<IForum | null>();
+  if (!forum) throw new NotFoundError('Fórum não encontrado');
+
+  if (String(forum.donoUsuarioId) === usuarioId) {
+    throw new BadRequestError('O dono não pode sair do fórum. Transfira a propriedade ou exclua o fórum.');
+  }
+
+  const ehModerador = forum.moderadores?.some((m) => String(m.usuarioId) === usuarioId);
+  const ehMembro = forum.membros?.some((m) => String(m.usuarioId) === usuarioId);
+
+  if (!ehModerador && !ehMembro) {
+    throw new BadRequestError('Usuário não participa deste fórum.');
+  }
+
+  const update: any = { $set: { atualizadoEm: new Date() } };
+  if (ehModerador) update.$pull = { ...(update.$pull || {}), moderadores: { usuarioId: new Types.ObjectId(usuarioId) } };
+  if (ehMembro) update.$pull = { ...(update.$pull || {}), membros: { usuarioId: new Types.ObjectId(usuarioId) } };
+
+  const atualizado = await Forum.findByIdAndUpdate(forumId, update, { new: true }).lean<IForum | null>();
+  if (!atualizado) throw new NotFoundError('Fórum não encontrado');
+  return atualizado;
+}
+
+// Transferir propriedade do fórum para um moderador
+export async function transferirDono(forumId: string, donoAtualId: string, novoDonoUsuarioId: string) {
+  const forum = await Forum.findById(forumId).lean<IForum | null>();
+  if (!forum) throw new NotFoundError('Fórum não encontrado');
+
+  if (String(forum.donoUsuarioId) !== donoAtualId) {
+    throw new BadRequestError('Apenas o dono atual pode transferir a propriedade.');
+  }
+
+  const ehModeradorDestino = forum.moderadores?.some((m) => String(m.usuarioId) === novoDonoUsuarioId);
+  if (!ehModeradorDestino) {
+    throw new BadRequestError('O novo dono precisa ser um moderador do fórum.');
+  }
+
+  // Atualizações: novo dono assume; antigo dono vira moderador (se já não for)
+  const updates: any = {
+    $set: { donoUsuarioId: new Types.ObjectId(novoDonoUsuarioId), atualizadoEm: new Date() },
+    $pull: { moderadores: { usuarioId: new Types.ObjectId(novoDonoUsuarioId) } },
+  };
+
+  const antigoDonoJaModerador = forum.moderadores?.some((m) => String(m.usuarioId) === donoAtualId);
+  if (!antigoDonoJaModerador) {
+    updates.$push = { moderadores: { usuarioId: new Types.ObjectId(donoAtualId), desde: new Date(), aprovado: true } };
+  }
+
+  const atualizado = await Forum.findByIdAndUpdate(forumId, updates, { new: true }).lean<IForum | null>();
+  if (!atualizado) throw new NotFoundError('Fórum não encontrado');
+
+  // Registrar mudança de transferência
+  await Forum.findByIdAndUpdate(forumId, {
+    $push: {
+      mudancas: {
+        camposAlterados: ['donoUsuarioId'],
+        usuarioAlteracaoId: new Types.ObjectId(donoAtualId),
+        usuarioValidacaoId: new Types.ObjectId(donoAtualId),
+        data: new Date(),
+        tipo: 'TRANSFERENCIA',
+      },
+    },
+  });
+
+  return atualizado;
 }

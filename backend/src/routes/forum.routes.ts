@@ -19,8 +19,17 @@ router.get('/meus', auth(), ForumController.listarMeus)
 // Obter fórum por ID
 router.get('/:id', ForumController.obterPorId)
 
+// Listar participantes (público)
+router.get('/:id/participantes', ForumController.listarParticipantes)
+
 // Participar de um fórum
 router.post('/:id/participar', auth(), ForumController.participar)
+
+// Sair do fórum (autenticado)
+router.post('/:id/sair', auth(), ForumController.sair)
+
+// Transferir dono (autenticado, dono)
+router.post('/:id/transferir-dono', auth(), ForumController.transferirDono)
 
 // Criar novo fórum
 router.post('/', auth(), ForumController.criar)

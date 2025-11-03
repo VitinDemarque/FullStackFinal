@@ -12,6 +12,8 @@ import languagesRoutes from './languages.routes';
 import seasonsRoutes from './seasons.routes';
 import collegesRoutes from './colleges.routes';
 import statsRoutes from './stats.routes';
+import forumTopicRoutes from './forumTopic.routes';
+import forumCommentRoutes from './forumComment.routes';
 
 const router = Router();
 
@@ -27,5 +29,7 @@ router.use('/languages', languagesRoutes);
 router.use('/seasons', seasonsRoutes);
 router.use('/colleges', collegesRoutes);
 router.use('/stats', statsRoutes);
+router.use('/forum-topics', forumTopicRoutes);
+router.use('/forum-comments', forumCommentRoutes);
 
 export default router;
