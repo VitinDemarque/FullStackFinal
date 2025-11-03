@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Link } from 'react-router-dom'
 import AuthenticatedLayout from '@/components/Layout/AuthenticatedLayout'
 import { forunsService } from '@/services/forum.services'
@@ -14,6 +15,7 @@ export default function ForunsPage() {
   const [mostrarModalCriar, setMostrarModalCriar] = useState(false)
   const [busca, setBusca] = useState('')
   const [mostrarMeus, setMostrarMeus] = useState(false)
+  const navigate = useNavigate()
 
   const carregarForuns = async () => {
     try {
@@ -31,7 +33,6 @@ export default function ForunsPage() {
     carregarForuns()
   }, [])
 
-  // 🧠 Filtragem local: busca + “meus fóruns”
   const forunsFiltrados = useMemo(() => {
     return foruns.filter((forum) => {
       const termo = busca.toLowerCase()
@@ -52,8 +53,7 @@ export default function ForunsPage() {
   return (
     <AuthenticatedLayout>
       <div className="p-6 bg-gray-100 min-h-screen text-gray-900">
-
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-800">Fóruns Públicos</h1>
 
           <button
@@ -64,26 +64,6 @@ export default function ForunsPage() {
           </button>
         </div>
 
-        <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
-          <input
-            type="text"
-            placeholder="Buscar por nome, assunto ou descrição..."
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            className="w-full md:flex-1 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-
-          <label className="flex items-center gap-2 text-gray-700">
-            <input
-              type="checkbox"
-              checked={mostrarMeus}
-              onChange={(e) => setMostrarMeus(e.target.checked)}
-              className="accent-blue-600 w-5 h-5"
-            />
-            Meus fóruns
-          </label>
-        </div>
-
         {erro && (
           <p className="text-red-600 bg-red-100 border border-red-300 px-4 py-2 rounded mb-4">
             {erro}
@@ -92,35 +72,21 @@ export default function ForunsPage() {
 
         {loading ? (
           <p className="text-gray-700">Carregando...</p>
-        ) : forunsFiltrados.length === 0 ? (
+        ) : foruns.length === 0 ? (
           <p className="text-gray-700">Nenhum fórum encontrado.</p>
         ) : (
           <ul className="space-y-4">
-            {forunsFiltrados.map((forum) => (
+            {foruns.map((forum) => (
               <li
                 key={forum._id}
-                className="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
+                onClick={() => navigate(`/foruns/${forum._id}`)} // 👈 redireciona
+                className="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
               >
                 <h2 className="text-xl font-semibold text-gray-900">{forum.nome}</h2>
                 <p className="text-gray-700 mt-1">{forum.descricao}</p>
                 <p className="text-sm text-gray-500 mt-2">
                   Assunto: {forum.assunto || 'Geral'}
                 </p>
-
-                <div className="mt-3 flex justify-between items-center">
-                  <Link
-                    to={`/foruns/${forum._id}`}
-                    className="inline-block bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium px-3 py-2 rounded transition"
-                  >
-                    Ver detalhes →
-                  </Link>
-
-                  {forum.donoUsuarioId === user?.id && (
-                    <span className="text-sm text-green-700 font-semibold">
-                      Você é o dono
-                    </span>
-                  )}
-                </div>
               </li>
             ))}
           </ul>

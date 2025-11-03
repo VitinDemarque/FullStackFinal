@@ -12,6 +12,10 @@ export const forunsService = {
     return apiRequest<Forum[]>('GET', '/forum/foruns')
   },
 
+  async listarMeus(): Promise<Forum[]> {
+    return apiRequest<Forum[]>('GET', '/forum/meus')
+  },
+
   async getById(id: string): Promise<Forum> {
     return apiRequest<Forum>('GET', `/forum/${id}`)
   },
@@ -27,4 +31,8 @@ export const forunsService = {
   async excluir(id: string): Promise<void> {
     return apiRequest<void>('DELETE', `/forum/${id}`)
   },
+
+  async participar(id: string): Promise<Forum> {
+    return apiRequest<Forum>('POST', `/forum/${id}/participar`)
+  }
 }

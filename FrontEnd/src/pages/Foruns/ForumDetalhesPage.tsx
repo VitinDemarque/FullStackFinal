@@ -5,200 +5,125 @@ import { forunsService } from '@/services/forum.services'
 import { userService } from '@/services/user.service'
 import type { Forum } from '@/types/forum'
 import type { User } from '@/types/index'
-import * as S from '@/styles/pages/Foruns/styles'
-
-interface UserBasic {
-    _id: string
-    name: string
-}
-
-function toUserBasic(u: User): UserBasic | null {
-    const maybeId = (u as any)._id ?? (u as any).id ?? (u as any).userId
-    const maybeName = (u as any).name ?? (u as any).nome ?? (u as any).handle
-    if (!maybeId || !maybeName) return null
-    return { _id: String(maybeId), name: String(maybeName) }
-}
 
 export default function ForumDetalhesPage() {
-    const params = useParams<{ id?: string }>()
-    const id = params.id
+    const { id } = useParams<{ id: string }>()
     const navigate = useNavigate()
 
     const [forum, setForum] = useState<Forum | null>(null)
-    const [dono, setDono] = useState<UserBasic | null>(null)
-    const [moderadores, setModeradores] = useState<UserBasic[]>([])
+    const [dono, setDono] = useState<User | null>(null)
+    const [usuarioAtual, setUsuarioAtual] = useState<User | null>(null)
+    const [participando, setParticipando] = useState(false)
     const [loading, setLoading] = useState(true)
     const [erro, setErro] = useState<string | null>(null)
+    const [processando, setProcessando] = useState(false)
 
     useEffect(() => {
-        const carregarForum = async () => {
+        const carregarDados = async () => {
             if (!id) {
                 setErro('ID do fórum não informado.')
-                setLoading(false)
                 return
             }
 
             try {
                 setLoading(true)
+
+                const me = await userService.getMe()
+                setUsuarioAtual(me)
+
                 const data = await forunsService.getById(id)
                 setForum(data)
 
-                const donoId = data.donoUsuarioId ?? data.criadoPor ?? null
-                if (donoId && typeof donoId === 'string') {
-                    try {
-                        const donoUser = await userService.getById(donoId)
-                        const normalized = toUserBasic(donoUser)
-                        if (normalized) setDono(normalized)
-                    } catch (err) {
-                        // Erro ao buscar dono é ignorado
-                    }
+                if (data.donoUsuarioId) {
+                    const donoUser = await userService.getById(data.donoUsuarioId)
+                    setDono(donoUser)
                 }
 
-                const moderadoresRaw = data.moderadores ?? []
-                if (moderadoresRaw.length > 0) {
-                    const promises = moderadoresRaw.map(async (m: any) => {
-                        const userId = m?.usuarioId ?? m?._id ?? m ?? null
-                        if (!userId) return null
-                        try {
-                            const u = await userService.getById(String(userId))
-                            return toUserBasic(u)
-                        } catch (err) {
-                            return null
-                        }
-                    })
+                // Verifica se o usuário já participa
+                const ehParticipante =
+                    data.donoUsuarioId === me.id ||
+                    data.moderadores?.some((m) => m.usuarioId === me.id) ||
+                    data.membros?.some((m) => m.usuarioId === me.id)
 
-                    const modsResolved = await Promise.all(promises)
-                    const modsFiltered = modsResolved.filter((x): x is UserBasic => x !== null)
-                    setModeradores(modsFiltered)
-                } else {
-                    setModeradores([])
-                }
+                setParticipando(ehParticipante)
             } catch (err: any) {
+                console.error('Erro ao carregar fórum:', err)
                 setErro(err.message || 'Erro ao carregar fórum.')
             } finally {
                 setLoading(false)
             }
         }
 
-        carregarForum()
+        carregarDados()
     }, [id])
+
+    const handleParticipar = async () => {
+        if (!id) return
+        try {
+            setProcessando(true)
+            await forunsService.participar(id)
+            setParticipando(true)
+            const atualizado = await forunsService.getById(id)
+            setForum(atualizado)
+        } catch (err: any) {
+            console.error('Erro ao participar:', err)
+            setErro(err.message || 'Não foi possível participar deste fórum.')
+        } finally {
+            setProcessando(false)
+        }
+    }
 
     return (
         <AuthenticatedLayout>
-            <S.Container>
-                <S.BackButton to="/foruns">
-                    <span>←</span>
-                    Voltar para Fóruns
-                </S.BackButton>
+            <div className="p-6 bg-gray-100 min-h-screen text-gray-900">
+                <button
+                    onClick={() => navigate(-1)}
+                    className="mb-4 bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2 rounded transition"
+                >
+                    ← Voltar
+                </button>
 
-                {loading && <S.Loading>Carregando fórum...</S.Loading>}
-
-                {erro && <S.Error>{erro}</S.Error>}
+                {loading && <p>Carregando fórum...</p>}
+                {erro && <p className="text-red-600">{erro}</p>}
 
                 {forum && (
-                    <S.DetailContainer>
-                        <div style={{ marginBottom: '2rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-                                <S.DetailTitle>{forum.nome}</S.DetailTitle>
-                                <S.Badge variant={forum.statusPrivacidade === 'PRIVADO' ? 'private' : 'public'}>
-                                    {forum.statusPrivacidade === 'PRIVADO' ? 'Privado' : 'Público'}
-                                </S.Badge>
-                            </div>
+                    <div className="bg-white rounded-lg shadow-md p-6">
+                        <h1 className="text-3xl font-bold mb-2">{forum.nome}</h1>
+                        <p className="text-gray-700 mb-4">
+                            {forum.descricao || 'Sem descrição'}
+                        </p>
 
-                            {forum.assunto && (
-                                <S.DetailText>
-                                    <S.DetailLabel>Assunto: </S.DetailLabel>
-                                    {forum.assunto}
-                                </S.DetailText>
-                            )}
-                        </div>
+                        <p className="text-sm text-gray-600 mb-2">
+                            <strong>Dono:</strong> {dono?.name || 'Desconhecido'}
+                        </p>
 
-                        {forum.descricao && (
-                            <S.DetailSection>
-                                <S.DetailSectionTitle>Descrição</S.DetailSectionTitle>
-                                <S.DetailText>{forum.descricao}</S.DetailText>
-                            </S.DetailSection>
+                        <p className="text-sm text-gray-600 mb-4">
+                            <strong>Privacidade:</strong>{' '}
+                            {forum.statusPrivacidade === 'PRIVADO' ? 'Privado' : 'Público'}
+                        </p>
+
+                        {participando ? (
+                            <button
+                                onClick={() => navigate(`/foruns/${forum._id}/topicos`)}
+                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow transition"
+                            >
+                                Acessar tópicos
+                            </button>
+                        ) : (
+                            <button
+                                onClick={handleParticipar}
+                                disabled={processando}
+                                className={`${processando
+                                        ? 'bg-gray-400 cursor-not-allowed'
+                                        : 'bg-blue-600 hover:bg-blue-700'
+                                    } text-white px-4 py-2 rounded-lg shadow transition`}
+                            >
+                                {processando ? 'Ingressando...' : 'Participar deste fórum'}
+                            </button>
                         )}
-
-                        {forum.palavrasChave && forum.palavrasChave.length > 0 && (
-                            <S.DetailSection>
-                                <S.DetailSectionTitle>Palavras-chave</S.DetailSectionTitle>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                                    {forum.palavrasChave.map((tag, idx) => (
-                                        <S.Badge key={idx} variant="public" style={{ fontSize: '0.875rem' }}>
-                                            {tag}
-                                        </S.Badge>
-                                    ))}
-                                </div>
-                            </S.DetailSection>
-                        )}
-
-                        <S.DetailSection>
-                            <S.DetailSectionTitle>Informações</S.DetailSectionTitle>
-                            <S.DetailText>
-                                <S.DetailLabel>Dono: </S.DetailLabel>
-                                {dono ? dono.name : forum.donoUsuarioId ?? 'Desconhecido'}
-                            </S.DetailText>
-                            {forum.criadoEm && (
-                                <S.DetailText>
-                                    <S.DetailLabel>Data de criação: </S.DetailLabel>
-                                    {new Date(forum.criadoEm).toLocaleString('pt-BR', {
-                                        day: '2-digit',
-                                        month: 'long',
-                                        year: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                    })}
-                                </S.DetailText>
-                            )}
-                            {forum.ultimaAtividade && (
-                                <S.DetailText>
-                                    <S.DetailLabel>Última atividade: </S.DetailLabel>
-                                    {new Date(forum.ultimaAtividade).toLocaleString('pt-BR', {
-                                        day: '2-digit',
-                                        month: 'long',
-                                        year: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                    })}
-                                </S.DetailText>
-                            )}
-                            <S.DetailText>
-                                <S.DetailLabel>Privacidade: </S.DetailLabel>
-                                {forum.statusPrivacidade === 'PRIVADO' ? 'Privado' : 'Público'}
-                            </S.DetailText>
-                        </S.DetailSection>
-
-                        {moderadores.length > 0 && (
-                            <S.DetailSection>
-                                <S.DetailSectionTitle>Moderadores ({moderadores.length})</S.DetailSectionTitle>
-                                <S.ModeratorList>
-                                    {moderadores.map((mod) => (
-                                        <S.ModeratorItem key={mod._id}>
-                                            {mod.name}
-                                        </S.ModeratorItem>
-                                    ))}
-                                </S.ModeratorList>
-                            </S.DetailSection>
-                        )}
-
-                        {moderadores.length === 0 && (
-                            <S.DetailSection>
-                                <S.DetailSectionTitle>Moderadores</S.DetailSectionTitle>
-                                <S.DetailText style={{ fontStyle: 'italic', color: '#999' }}>
-                                    Nenhum moderador cadastrado.
-                                </S.DetailText>
-                            </S.DetailSection>
-                        )}
-
-                        <S.DetailSection style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '2px dashed #e5e7eb' }}>
-                            <S.DetailText style={{ fontStyle: 'italic', color: '#999', textAlign: 'center' }}>
-                                Em breve: tópicos e discussões deste fórum estarão disponíveis aqui.
-                            </S.DetailText>
-                        </S.DetailSection>
-                    </S.DetailContainer>
+                    </div>
                 )}
-            </S.Container>
+            </div>
         </AuthenticatedLayout>
     )
 }
