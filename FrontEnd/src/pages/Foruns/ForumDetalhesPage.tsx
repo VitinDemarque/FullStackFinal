@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import AuthenticatedLayout from '@/components/Layout/AuthenticatedLayout'
 import { forunsService } from '@/services/forum.services'
 import { userService } from '@/services/user.service'
-import type { Forum } from '@/types/forum'
+import { forumTopicService } from '@/services/forumTopic.service'
+import type { Forum, ForumTopic } from '@/types/forum'
 import type { User } from '@/types/index'
 
 export default function ForumDetalhesPage() {
@@ -17,6 +18,10 @@ export default function ForumDetalhesPage() {
     const [loading, setLoading] = useState(true)
     const [erro, setErro] = useState<string | null>(null)
     const [processando, setProcessando] = useState(false)
+    const [topicos, setTopicos] = useState<ForumTopic[]>([])
+    const [criandoTopico, setCriandoTopico] = useState(false)
+    const [tituloTopico, setTituloTopico] = useState('')
+    const [conteudoTopico, setConteudoTopico] = useState('')
 
     useEffect(() => {
         const carregarDados = async () => {
@@ -46,6 +51,10 @@ export default function ForumDetalhesPage() {
                     data.membros?.some((m) => m.usuarioId === me.id)
 
                 setParticipando(!!ehParticipante)
+
+                // Carregar tópicos do fórum
+                const lista = await forumTopicService.listarPorForum(id)
+                setTopicos(lista)
             } catch (err: any) {
                 console.error('Erro ao carregar fórum:', err)
                 setErro(err.message || 'Erro ao carregar fórum.')
@@ -70,6 +79,27 @@ export default function ForumDetalhesPage() {
             setErro(err.message || 'Não foi possível participar deste fórum.')
         } finally {
             setProcessando(false)
+        }
+    }
+
+    const handleCriarTopico = async () => {
+        if (!id) return
+        try {
+            setCriandoTopico(true)
+            const criado = await forumTopicService.criar(id, {
+                titulo: tituloTopico,
+                conteudo: conteudoTopico,
+                palavrasChave: [],
+            })
+            setTituloTopico('')
+            setConteudoTopico('')
+            // Recarregar lista
+            const lista = await forumTopicService.listarPorForum(id)
+            setTopicos(lista)
+        } catch (err: any) {
+            setErro(err.message || 'Não foi possível criar o tópico.')
+        } finally {
+            setCriandoTopico(false)
         }
     }
 
@@ -103,12 +133,59 @@ export default function ForumDetalhesPage() {
                         </p>
 
                         {participando ? (
-                            <button
-                                onClick={() => navigate(`/foruns/${forum._id}/topicos`)}
-                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow transition"
-                            >
-                                Acessar tópicos
-                            </button>
+                            <div className="space-y-4">
+                                <div className="border-t pt-4">
+                                    <h2 className="text-xl font-semibold mb-2">Tópicos</h2>
+                                    {topicos.length === 0 ? (
+                                        <p className="text-gray-600">Nenhum tópico ainda.</p>
+                                    ) : (
+                                        <ul className="space-y-3">
+                                            {topicos.map((t) => (
+                                                <li key={t._id} className="p-4 bg-gray-50 rounded border hover:bg-gray-100 transition">
+                                                    <div className="flex items-center justify-between">
+                                                        <div>
+                                                            <p className="font-medium text-gray-900">{t.titulo}</p>
+                                                            <p className="text-sm text-gray-600 line-clamp-2">{t.conteudo}</p>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => navigate(`/foruns/${forum._id}/topicos/${t._id}`)}
+                                                            className="ml-4 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded"
+                                                        >
+                                                            Abrir
+                                                        </button>
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </div>
+
+                                <div className="border-t pt-4">
+                                    <h3 className="text-lg font-semibold mb-2">Criar novo tópico</h3>
+                                    <div className="space-y-2">
+                                        <input
+                                            type="text"
+                                            value={tituloTopico}
+                                            onChange={(e) => setTituloTopico(e.target.value)}
+                                            placeholder="Título"
+                                            className="w-full border rounded px-3 py-2"
+                                        />
+                                        <textarea
+                                            value={conteudoTopico}
+                                            onChange={(e) => setConteudoTopico(e.target.value)}
+                                            placeholder="Conteúdo"
+                                            className="w-full border rounded px-3 py-2 h-28"
+                                        />
+                                        <button
+                                            onClick={handleCriarTopico}
+                                            disabled={criandoTopico || !tituloTopico || !conteudoTopico}
+                                            className={`${criandoTopico ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'} text-white px-4 py-2 rounded`}
+                                        >
+                                            {criandoTopico ? 'Criando...' : 'Criar tópico'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         ) : (
                             <button
                                 onClick={handleParticipar}

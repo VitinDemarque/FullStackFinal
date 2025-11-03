@@ -51,3 +51,33 @@ export interface PaginatedResponse<T> {
   page: number
   limit: number
 }
+
+export type StatusTopico = 'ABERTO' | 'FECHADO' | 'ARQUIVADO'
+
+export interface ForumTopic {
+  _id: string
+  forumId: string
+  titulo: string
+  conteudo: string
+  autorUsuarioId: string
+  palavrasChave?: string[]
+  status: StatusTopico
+  fixado?: boolean
+  numComentarios: number
+  criadoEm?: string
+  atualizadoEm?: string
+  ultimaAtividade?: string
+}
+
+export type StatusComentario = 'ATIVO' | 'EDITADO' | 'EXCLUIDO'
+
+export interface ForumComment {
+  _id: string
+  forumId: string
+  topicId: string
+  autorUsuarioId: string
+  conteudo: string
+  status: StatusComentario
+  criadoEm?: string
+  atualizadoEm?: string
+}
