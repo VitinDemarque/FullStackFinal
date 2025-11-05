@@ -22,14 +22,13 @@ router.get('/:id', ForumController.obterPorId)
 // Listar participantes (público)
 router.get('/:id/participantes', ForumController.listarParticipantes)
 
+
+
 // Participar de um fórum
 router.post('/:id/participar', auth(), ForumController.participar)
 
 // Sair do fórum (autenticado)
 router.post('/:id/sair', auth(), ForumController.sair)
-
-// Transferir dono (autenticado, dono)
-router.post('/:id/transferir-dono', auth(), ForumController.transferirDono)
 
 // Criar novo fórum
 router.post('/', auth(), ForumController.criar)
@@ -39,5 +38,19 @@ router.patch('/:id', auth(), ForumController.atualizar)
 
 // Excluir fórum
 router.delete('/:id', auth(), ForumController.excluir)
+
+
+
+// Listar moderadores do forum
+router.get('/:id/moderadores', ForumController.listarModeradores)
+
+// Adicionar moderador
+router.post('/:id/moderadores', auth(), ForumController.adicionarModerador)
+
+// Remover moderador
+router.delete('/:id/moderadores/:userId', auth(), ForumController.removerModerador)
+
+// Transferir dono (autenticado, dono)
+router.post('/:id/transferir-dono', auth(), ForumController.transferirDono)
 
 export default router
