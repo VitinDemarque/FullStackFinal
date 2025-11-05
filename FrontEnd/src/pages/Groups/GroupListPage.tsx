@@ -27,23 +27,52 @@ const Header = styled.div`
 `;
 
 const Title = styled.h1`
-  color: #333;
+  font-size: ${({ theme }) => theme.fontSizes['4xl']};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  color: var(--color-text-primary);
   margin: 0;
-  font-size: 2rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+
+  &::before {
+    content: '{';
+    color: var(--color-yellow-400);
+    margin-right: 0.25rem;
+  }
+
+  &::after {
+    content: '}';
+    color: var(--color-yellow-400);
+    margin-left: 0.25rem;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    font-size: ${({ theme }) => theme.fontSizes['2xl']};
+  }
 `;
 
 const CreateButton = styled(Link)`
-  background: #007bff;
-  color: white;
-  padding: 12px 24px;
-  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  padding: 0.75rem 1.5rem;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  border: 1px solid var(--color-border);
   text-decoration: none;
-  font-weight: 500;
-  transition: background-color 0.2s;
+  font-size: ${({ theme }) => theme.fontSizes.base};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-sm);
   text-align: center;
 
   &:hover {
-    background: #0056b3;
+    background: var(--color-surface-hover);
+    border-color: var(--color-blue-400);
+    box-shadow: var(--shadow-md);
   }
 `;
 

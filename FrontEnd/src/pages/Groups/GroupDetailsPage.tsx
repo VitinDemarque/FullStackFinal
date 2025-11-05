@@ -7,9 +7,31 @@ import styled from 'styled-components';
 import AuthenticatedLayout from '@components/Layout/AuthenticatedLayout';
 
 const Container = styled.div`
-  max-width: 800px;
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 2rem;
+  color: var(--color-text-primary);
+`;
+
+const BackButton = styled(Link)`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+  font-size: ${({ theme }) => theme.fontSizes.base};
+
+  &:hover {
+    background: var(--color-surface-hover);
+    border-color: var(--color-border);
+    color: var(--color-text-primary);
+  }
 `;
 
 const Header = styled.div`
@@ -29,21 +51,43 @@ const TitleSection = styled.div`
 `;
 
 const Title = styled.h1`
-  color: #333;
+  font-size: ${({ theme }) => theme.fontSizes['4xl']};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  color: var(--color-text-primary);
   margin: 0 0 8px 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+
+  &::before {
+    content: '{';
+    color: var(--color-yellow-400);
+    margin-right: 0.25rem;
+  }
+
+  &::after {
+    content: '}';
+    color: var(--color-yellow-400);
+    margin-left: 0.25rem;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+    font-size: ${({ theme }) => theme.fontSizes['2xl']};
+  }
 `;
 
 const Description = styled.p`
-  color: #666;
+  color: var(--color-text-secondary);
   margin: 0 0 16px 0;
-  line-height: 1.5;
+  line-height: 1.6;
 `;
 
 const MetaInfo = styled.div`
   display: flex;
   gap: 16px;
-  color: #888;
-  font-size: 0.875rem;
+  color: var(--color-text-light);
+  font-size: ${({ theme }) => theme.fontSizes.sm};
 `;
 
 const ActionsSection = styled.div`
@@ -53,77 +97,113 @@ const ActionsSection = styled.div`
 `;
 
 const Button = styled.button<{ variant?: 'secondary' | 'danger' }>`
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.875rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
   text-decoration: none;
-  display: inline-block;
-  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid transparent;
+  box-shadow: var(--shadow-sm);
 
   ${props => {
     switch (props.variant) {
       case 'secondary':
         return `
-          background: #6c757d;
-          color: white;
+          background: var(--color-surface);
+          color: var(--color-text-primary);
+          border-color: var(--color-border);
 
           &:hover {
-            background: #545b62;
+            background: var(--color-surface-hover);
+            border-color: var(--color-blue-400);
+            box-shadow: var(--shadow-md);
           }
         `;
       case 'danger':
         return `
-          background: #dc3545;
+          background: var(--color-red-600);
           color: white;
+          border-color: var(--color-red-600);
+          box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25);
 
           &:hover {
-            background: #c82333;
+            background: var(--color-red-700);
+            border-color: var(--color-red-700);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);
+            transform: translateY(-1px);
           }
         `;
       default:
         return `
-          background: #007bff;
+          background: var(--color-blue-500);
           color: white;
+          border-color: var(--color-blue-500);
+          box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
 
           &:hover {
-            background: #0056b3;
+            background: var(--color-blue-600);
+            border-color: var(--color-blue-600);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+            transform: translateY(-1px);
           }
         `;
     }
   }}
 
   &:disabled {
-    background: #ccc;
+    background: var(--color-gray-400);
+    border-color: var(--color-gray-400);
     cursor: not-allowed;
+    box-shadow: none;
   }
 `;
 
 const LinkButton = styled(Link)`
-  padding: 10px 20px;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.875rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--color-blue-500);
+  color: #fff !important;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
   text-decoration: none;
-  display: inline-block;
-  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--color-blue-500);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+
+  &:link,
+  &:visited {
+    color: #fff !important;
+  }
 
   &:hover {
-    background: #0056b3;
+    background: var(--color-blue-600);
+    border-color: var(--color-blue-600);
+    color: #fff !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    color: #fff !important;
   }
 `;
 
 const Content = styled.div`
-  background: white;
-  border-radius: 12px;
-  padding: 30px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  padding: 2rem;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border);
 `;
 
 const Section = styled.div`
@@ -135,9 +215,9 @@ const Section = styled.div`
 `;
 
 const SectionTitle = styled.h2`
-  color: #333;
+  color: var(--color-text-primary);
   margin: 0 0 16px 0;
-  font-size: 1.25rem;
+  font-size: ${({ theme }) => theme.fontSizes.xl};
 `;
 
 const MembersList = styled.div`
@@ -151,8 +231,10 @@ const MemberItem = styled.div`
   justify-content: space-between;
   align-items: center;
   padding: 12px;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
 `;
 
 const MemberInfo = styled.div`
@@ -162,21 +244,24 @@ const MemberInfo = styled.div`
 `;
 
 const MemberName = styled.span`
-  font-weight: 500;
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  color: var(--color-text-primary);
 `;
 
 const MemberRole = styled.span<{ role: string }>`
   padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 500;
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
 
   ${props => props.role === 'MODERATOR' ? `
-    background: #fff3e0;
-    color: #f57c00;
+    background: var(--color-yellow-100);
+    color: var(--color-yellow-700);
+    border: 1px solid var(--color-yellow-300);
   ` : `
-    background: #e3f2fd;
-    color: #1976d2;
+    background: var(--color-blue-100);
+    color: var(--color-blue-700);
+    border: 1px solid var(--color-blue-300);
   `}
 `;
 
@@ -188,16 +273,17 @@ const LoadingContainer = styled.div`
 `;
 
 const Spinner = styled.div`
-  font-size: 1.125rem;
-  color: #666;
+  font-size: ${({ theme }) => theme.fontSizes.base};
+  color: var(--color-text-secondary);
 `;
 
 const ErrorMessage = styled.div`
-  background: #f8d7da;
-  color: #721c24;
-  padding: 20px;
-  border-radius: 6px;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
+  padding: 1rem;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
   text-align: center;
+  border: 1px solid var(--color-red-400);
 `;
 
 const GroupDetailsPage: React.FC = () => {
@@ -308,6 +394,7 @@ const GroupDetailsPage: React.FC = () => {
   return (
     <AuthenticatedLayout>
     <Container>
+      <BackButton to="/grupos">← Voltar</BackButton>
       <Header>
         <TitleSection>
           <Title>{group.name}</Title>

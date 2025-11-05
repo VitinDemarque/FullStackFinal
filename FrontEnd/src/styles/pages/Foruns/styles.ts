@@ -132,6 +132,7 @@ export const BadgeContainer = styled.div`
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+  max-width: 100%;
 `
 
 export const Badge = styled.span<{ variant?: 'public' | 'private' }>`
@@ -139,7 +140,11 @@ export const Badge = styled.span<{ variant?: 'public' | 'private' }>`
   border-radius: ${({ theme }) => theme.borderRadius.sm};
   font-size: ${({ theme }) => theme.fontSizes.xs};
   font-weight: ${({ theme }) => theme.fontWeights.medium};
-  white-space: nowrap;
+  display: inline-block;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
 
   ${props => {
     if (props.variant === 'private') {
