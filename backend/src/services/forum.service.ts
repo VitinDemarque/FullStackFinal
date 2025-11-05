@@ -301,3 +301,103 @@ export async function transferirDono(forumId: string, donoAtualId: string, novoD
 
   return atualizado;
 }
+
+// Listar moderadores do forum
+export async function listarModeradores(forumId: string) {
+  const forum = await Forum.findById(forumId).lean<IForum | null>()
+
+  if (!forum) {
+    throw new NotFoundError('Forum não encontrado.')
+  }
+
+  return forum.moderadores || []
+}
+
+// Adicionar novo moderador
+export async function adicionarModerador(forumId: string, donoId: string, novoModeradorId: string) {
+  const forum = await Forum.findById(forumId).lean<IForum | null>()
+  if (!forum) {
+    throw new NotFoundError('Forum não encontrado.')
+  }
+
+  if (String(forum.donoUsuarioId) !== donoId) {
+    throw new BadRequestError('Apenas o dono do fórum pode adicionar moderadores.')
+  }
+
+  const ehMembro = forum.membros?.some(
+    (m) => String(m.usuarioId) === novoModeradorId
+  )
+  if (!ehMembro) {
+    throw new BadRequestError('O usuario deve ser membro do forum antes de ser promovido a moderador.')
+  }
+
+  const jaEhModerador = forum.moderadores?.some(
+    (m) => String(m.usuarioId) === novoModeradorId
+  )
+  if (jaEhModerador) {
+    throw new BadRequestError('Usuario já é moderador deste forum.')
+  }
+
+  const update: any = {
+    $push: {
+      moderadores: {
+        usuarioId: new Types.ObjectId(novoModeradorId),
+        desde: new Date(),
+        aprovado: true,
+      },
+    },
+  }
+
+  if (ehMembro) {
+    update.$pull = {
+      membro: {
+        usuarioId: new Types.ObjectId(novoModeradorId)
+      }
+    }
+  }
+
+  const atualizado = await Forum.findByIdAndUpdate(forumId, update, { new: true }).lean<IForum | null>()
+  if (!atualizado) {
+    throw new NotFoundError('Erro ao adicionar o novo moderador.')
+  }
+
+  return atualizado
+}
+
+// Remover moderador
+export async function removerModerador(forumId: string, donoId: string, moderadorId: string) {
+  const forum = await Forum.findById(forumId).lean<IForum | null>()
+  if (!forum) {
+    throw new NotFoundError('Forum não encontrado.')
+  }
+
+  if (String(forum.donoUsuarioId) !== donoId) {
+    throw new BadRequestError('Apenas o dono do forum pode remover moderadores.')
+  }
+
+  const ehModerador = forum.moderadores?.some(
+    (m) => String(m.usuarioId) === moderadorId
+  )
+  if (!ehModerador) {
+    throw new BadRequestError('Usuario informado não é um moderador.')
+  }
+
+  if (String(forum.donoUsuarioId) === moderadorId) {
+    throw new BadRequestError('O dono não pode ser removido dos moderadores.')
+  }
+
+  const atualizado = await Forum.findByIdAndUpdate(
+    forumId,
+    {
+      $pull: { moderadores: { usuarioId: new Types.ObjectId(moderadorId) } },
+      $set: { atualizadoEm: new Date() },
+    },
+    { new: true }
+  ).lean<IForum | null>()
+
+  if (!atualizado) {
+    throw new NotFoundError('Erro ao remover o moderador.')
+  }
+
+  return atualizado
+}

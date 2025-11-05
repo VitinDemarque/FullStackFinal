@@ -157,3 +157,52 @@ export async function transferirDono(req: AuthenticatedRequest, res: Response, n
     return next(err)
   }
 }
+
+// Listar moderadores do forum
+export async function listarModeradores(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params
+    const moderadores = await ForumService.listarModeradores(id)
+
+    return res.json(moderadores)
+  } catch (err) {
+    return next(err);
+  }
+}
+
+// Adicionar moderadores
+export async function adicionarModerador(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) {
+      return res.status(401).json({ mensagem: 'Usuario não autenticado.' })
+    }
+
+    const { id } = req.params
+    const { userId } = req.body as { userId?: string }
+
+    if (!userId) {
+      return res.status(400).json({ mensagem: 'O campo "userId" é obrigatorio.' })
+    }
+
+    const atualizado = await ForumService.adicionarModerador(id, req.user.user_id, userId)
+    return res.status(200).json(atualizado)
+  } catch (err) {
+    return next(err)
+  }
+}
+
+// Remover moderador
+export async function removerModerador(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) {
+      return res.status(401).json({ mensagem: 'Usuario não autenticado.' })
+    }
+
+    const { id, userId } = req.params
+
+    const atualizado = await ForumService.removerModerador(id, req.user.user_id, userId)
+    return res.status(200).json(atualizado)
+  } catch (err) {
+    return next(err)
+  }
+}
