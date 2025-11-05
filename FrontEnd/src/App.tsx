@@ -13,6 +13,7 @@ import ForunsPage from '@pages/Foruns/ForunsPage';
 import ForumDetalhesPage from '@pages/Foruns/ForumDetalhesPage';
 import TopicoPage from '@pages/Foruns/TopicoPage';
 import ProfilePage from '@pages/Profile/ProfilePage'
+import ProfileEditPage from '@pages/Profile/ProfileEditPage'
 import SettingsPage from '@pages/Settings/SettingsPage'
 import NotFoundPage from '@pages/NotFound/NotFoundPage'
 import PrivateRoute from '@components/PrivateRoute'
@@ -102,6 +103,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <ProfilePage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/profile/editar"
+              element={
+                <PrivateRoute>
+                  <ProfileEditPage />
                 </PrivateRoute>
               }
             />
