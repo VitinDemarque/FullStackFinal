@@ -4,16 +4,19 @@ import { Group } from '../../types/group.types';
 import styled from 'styled-components';
 
 const GroupCardContainer = styled.div`
-  border: 1px solid #e0e0e0;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
   border-radius: 12px;
   padding: 24px;
-  background: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
+  transition: all 0.3s ease;
+  position: relative;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-primary);
   }
 `;
 
@@ -26,7 +29,7 @@ const CardHeader = styled.div`
 
 const GroupName = styled.h3`
   margin: 0;
-  color: #333;
+  color: var(--color-text-primary);
   font-size: 1.25rem;
   flex: 1;
   margin-right: 12px;
@@ -49,28 +52,28 @@ const Badge = styled.span<{ variant: 'public' | 'private' | 'owner' | 'member' |
     switch (props.variant) {
       case 'public':
         return `
-          background: #e3f2fd;
-          color: #1976d2;
+          background: var(--color-blue-100);
+          color: var(--color-blue-600);
         `;
       case 'private':
         return `
-          background: #fff3e0;
-          color: #f57c00;
+          background: var(--color-warning-bg);
+          color: var(--color-warning-text);
         `;
       case 'owner':
         return `
-          background: #fce4ec;
-          color: #c2185b;
+          background: var(--color-danger-bg);
+          color: var(--color-danger-text);
         `;
       case 'member':
         return `
-          background: #e8f5e8;
-          color: #2e7d32;
+          background: var(--color-blue-100);
+          color: var(--color-blue-600);
         `;
       case 'private-info':
         return `
-          background: #f5f5f5;
-          color: #666;
+          background: var(--color-gray-200);
+          color: var(--color-text-secondary);
         `;
       default:
         return '';
@@ -79,7 +82,7 @@ const Badge = styled.span<{ variant: 'public' | 'private' | 'owner' | 'member' |
 `;
 
 const GroupDescription = styled.p`
-  color: #666;
+  color: var(--color-text-secondary);
   margin: 0 0 20px 0;
   line-height: 1.5;
 `;
@@ -104,7 +107,7 @@ const GroupMeta = styled.div`
 `;
 
 const MetaText = styled.span`
-  color: #888;
+  color: var(--color-text-light);
   font-size: 0.875rem;
 `;
 
@@ -119,36 +122,39 @@ const ActionsContainer = styled.div`
 `;
 
 const DetailsButton = styled(Link)`
-  color: #007bff;
+  color: var(--color-text-primary);
   text-decoration: none;
   padding: 8px 16px;
-  border: 1px solid #007bff;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   font-size: 0.875rem;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  background: var(--color-surface);
 
   &:hover {
-    background: #007bff;
-    color: white;
+    background: var(--color-surface-hover);
+    border-color: var(--color-primary);
   }
 `;
 
 const JoinButton = styled.button`
-  background: #28a745;
+  background: var(--gradient-primary);
   color: white;
   border: none;
   padding: 8px 16px;
   border-radius: 6px;
   font-size: 0.875rem;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-md);
 
   &:hover {
-    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
   }
 
   &:disabled {
-    background: #6c757d;
+    background: var(--color-gray-500);
     cursor: not-allowed;
   }
 `;

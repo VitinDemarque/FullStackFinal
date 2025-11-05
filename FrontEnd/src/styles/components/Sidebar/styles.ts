@@ -117,6 +117,10 @@ export const UserLevel = styled.p`
   color: #94a3b8;
   font-size: 0.8125rem;
   margin: 0;
+
+  .dark & {
+    color: white;
+  }
 `
 
 // ============================================
@@ -166,31 +170,36 @@ export const NavItem = styled(Link)<NavItemProps>`
   align-items: center;
   gap: 0.75rem;
   padding: 0.875rem 1rem;
-  color: ${(props) => (props.$isActive ? 'white' : '#94a3b8')};
+  color: ${(props) => (props.$isActive ? 'var(--color-text-primary)' : 'var(--color-text-light)')};
   text-decoration: none;
   border-radius: 10px;
   transition: ${theme.transitions.base};
   font-weight: ${theme.fontWeights.medium};
   font-size: 0.9375rem;
-  background: ${(props) =>
-    props.$isActive
-      ? 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)'
-      : 'transparent'};
-  box-shadow: ${(props) =>
-    props.$isActive ? '0 4px 15px rgba(59, 130, 246, 0.3)' : 'none'};
+  background: ${(props) => (props.$isActive ? 'var(--color-surface)' : 'transparent')};
+  border: ${(props) => (props.$isActive ? '1px solid var(--color-blue-400)' : '1px solid transparent')};
+  box-shadow: ${(props) => (props.$isActive ? 'var(--shadow-sm)' : 'none')};
 
   &:hover {
-    background: ${(props) =>
-      props.$isActive
-        ? 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)'
-        : 'rgba(255, 255, 255, 0.05)'};
-    color: white;
+    background: var(--color-surface-hover);
+    color: var(--color-text-primary);
+    border-color: var(--color-blue-400);
     transform: translateX(4px);
+  }
+
+  /* Dark mode: força texto branco para máxima legibilidade */
+  .dark & {
+    color: white;
   }
 
   svg {
     font-size: 1.25rem;
     flex-shrink: 0;
+    color: ${(props) => (props.$isActive ? 'var(--color-text-primary)' : 'var(--color-text-light)')};
+
+    .dark & {
+      color: white;
+    }
   }
 
   span {

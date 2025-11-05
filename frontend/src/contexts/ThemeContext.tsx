@@ -36,8 +36,10 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     // Aplica o tema ao documento
     if (newTheme === 'dark') {
       document.documentElement.classList.add('dark')
+      document.documentElement.setAttribute('data-theme', 'dark')
     } else {
       document.documentElement.classList.remove('dark')
+      document.documentElement.setAttribute('data-theme', 'light')
     }
   }
 
@@ -49,8 +51,10 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     // Aplica o tema inicial
     if (theme === 'dark') {
       document.documentElement.classList.add('dark')
+      document.documentElement.setAttribute('data-theme', 'dark')
     } else {
       document.documentElement.classList.remove('dark')
+      document.documentElement.setAttribute('data-theme', 'light')
     }
 
     // Escuta mudanças na preferência do sistema

@@ -71,8 +71,8 @@ export const ActionButton = styled.button`
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
-  background: white;
-  color: ${theme.colors.primary};
+  background: var(--color-surface);
+  color: var(--color-text-primary);
   padding: 1rem 2rem;
   border: none;
   border-radius: ${theme.borderRadius.md};
@@ -160,7 +160,7 @@ export const SectionTitle = styled.h2`
   gap: 0.75rem;
   font-size: ${theme.fontSizes['3xl']};
   font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.gray[800]};
+  color: var(--color-text-primary);
   margin-bottom: 1.5rem;
 
   svg {
@@ -187,7 +187,7 @@ interface ProgressCardProps {
 }
 
 export const ProgressCard = styled.div<ProgressCardProps>`
-  background: white;
+  background: var(--color-surface);
   border-radius: ${theme.borderRadius.lg};
   padding: 2rem;
   display: flex;
@@ -227,13 +227,13 @@ export const ProgressInfo = styled.div`
     font-size: ${theme.fontSizes['4xl']};
     font-weight: ${theme.fontWeights.bold};
     margin: 0;
-    color: ${theme.colors.gray[800]};
+    color: var(--color-text-primary);
   }
 
   p {
     font-size: ${theme.fontSizes.base};
     margin: 0;
-    color: ${theme.colors.gray[500]};
+    color: var(--color-text-secondary);
   }
 `
 
@@ -305,7 +305,7 @@ export const RecommendationsGrid = styled.div`
 `
 
 export const ExerciseCard = styled.div`
-  background: white;
+  background: var(--color-surface);
   border-radius: ${theme.borderRadius.lg};
   overflow: hidden;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
@@ -322,8 +322,8 @@ export const CardHeader = styled.div`
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  background: ${theme.colors.gray[50]};
-  border-bottom: 1px solid ${theme.colors.gray[200]};
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
 `
 
 interface DifficultyBadgeProps {
@@ -384,7 +384,7 @@ export const CardBody = styled.div`
 export const CardTitle = styled.h3`
   font-size: ${theme.fontSizes.lg};
   font-weight: ${theme.fontWeights.semibold};
-  color: ${theme.colors.gray[800]};
+  color: var(--color-text-primary);
   margin-bottom: 0.75rem;
 `
 
@@ -392,7 +392,7 @@ export const CardLanguage = styled.p`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: ${theme.colors.gray[500]};
+  color: var(--color-text-secondary);
   font-size: ${theme.fontSizes.sm};
 
   svg {
@@ -435,7 +435,7 @@ export const DetailsButton = styled.button`
   color: ${theme.colors.primary};
 
   &:hover {
-    background: #f5f7ff;
+    background: var(--color-surface-hover);
   }
 `
 
@@ -463,12 +463,12 @@ export const NoRecommendations = styled.div`
   grid-column: 1 / -1;
   text-align: center;
   padding: 3rem;
-  background: ${theme.colors.gray[50]};
+  background: var(--color-surface);
   border-radius: ${theme.borderRadius.lg};
 
   p {
     margin-bottom: 1rem;
-    color: ${theme.colors.gray[600]};
+    color: var(--color-text-secondary);
   }
 `
 
@@ -479,10 +479,10 @@ export const NoRecommendations = styled.div`
 export const ErrorAlert = styled.div`
   padding: 1rem;
   margin: 1rem 0;
-  background-color: #fee;
-  border: 1px solid #fcc;
+  background-color: var(--color-danger-bg);
+  border: 1px solid var(--color-red-400);
   border-radius: ${theme.borderRadius.sm};
-  color: #c33;
+  color: var(--color-danger-text);
 
   strong {
     font-weight: ${theme.fontWeights.bold};
@@ -491,15 +491,15 @@ export const ErrorAlert = styled.div`
   button {
     margin-left: 1rem;
     padding: 0.5rem 1rem;
-    background-color: #c33;
-    color: white;
+    background-color: var(--color-red-500);
+    color: var(--color-text-primary);
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-weight: ${theme.fontWeights.medium};
 
     &:hover {
-      background-color: #a22;
+      background-color: var(--color-red-600);
     }
   }
 `

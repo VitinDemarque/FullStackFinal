@@ -10,7 +10,7 @@ export const AuthContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #ffffff;
+  background: var(--color-background);
   position: relative;
   overflow: hidden;
   padding: 2rem;
@@ -79,7 +79,7 @@ interface AuthCardProps {
 }
 
 export const AuthCard = styled.div<AuthCardProps>`
-  background: white;
+  background: var(--color-surface);
   border-radius: 20px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
   padding: 3rem 2.5rem;
@@ -101,7 +101,7 @@ export const BackButton = styled.a`
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: ${theme.colors.gray[500]};
+  color: var(--color-text-secondary);
   font-size: ${theme.fontSizes.sm};
   text-decoration: none;
   margin-bottom: 1rem;
@@ -109,7 +109,7 @@ export const BackButton = styled.a`
   font-weight: ${theme.fontWeights.medium};
 
   &:hover {
-    color: ${theme.colors.blue[400]};
+    color: var(--color-blue-400);
     transform: translateX(-4px);
   }
 `
@@ -123,7 +123,7 @@ export const AuthTitle = styled.h1`
   font-weight: ${theme.fontWeights.bold};
   text-align: center;
   margin-bottom: 2rem;
-  color: ${theme.colors.gray[800]};
+  color: var(--color-text-primary);
 
   @media (max-width: ${theme.breakpoints.mobile}) {
     font-size: ${theme.fontSizes['3xl']};
@@ -131,7 +131,7 @@ export const AuthTitle = styled.h1`
 `
 
 export const Bracket = styled.span`
-  color: ${theme.colors.gray[500]};
+  color: var(--color-text-secondary);
   font-weight: ${theme.fontWeights.normal};
 `
 
@@ -165,29 +165,29 @@ export const FormGroup = styled.div`
 export const FormLabel = styled.label`
   font-size: ${theme.fontSizes.sm};
   font-weight: ${theme.fontWeights.medium};
-  color: ${theme.colors.gray[700]};
+  color: var(--color-text-primary);
 `
 
 export const FormInput = styled.input`
   width: 100%;
   padding: 0.875rem 1rem;
-  border: 1px solid ${theme.colors.gray[300]};
+  border: 1px solid var(--color-border);
   border-radius: ${theme.borderRadius.sm};
   font-size: 0.9375rem;
-  color: ${theme.colors.gray[800]};
+  color: var(--color-text-primary);
   transition: ${theme.transitions.base};
-  background: white;
+  background: var(--color-surface);
   font-family: inherit;
   box-sizing: border-box;
 
   &:focus {
     outline: none;
-    border-color: ${theme.colors.blue[400]};
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: var(--color-blue-400);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
   }
 
   &::placeholder {
-    color: ${theme.colors.gray[400]};
+    color: var(--color-text-light);
   }
 `
 
@@ -195,12 +195,12 @@ export const FormSelect = styled.select`
   width: 100%;
   padding: 0.875rem 1rem;
   padding-right: 2.5rem;
-  border: 1px solid ${theme.colors.gray[300]};
+  border: 1px solid var(--color-border);
   border-radius: ${theme.borderRadius.sm};
   font-size: 0.9375rem;
-  color: ${theme.colors.gray[800]};
+  color: var(--color-text-primary);
   transition: ${theme.transitions.base};
-  background: white;
+  background: var(--color-surface);
   font-family: inherit;
   box-sizing: border-box;
   cursor: pointer;
@@ -212,8 +212,8 @@ export const FormSelect = styled.select`
 
   &:focus {
     outline: none;
-    border-color: ${theme.colors.blue[400]};
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: var(--color-blue-400);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
   }
 
   &:disabled {
@@ -227,7 +227,7 @@ export const FormSelect = styled.select`
 // ============================================
 
 export const PrimaryButton = styled.button`
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: var(--gradient-primary);
   color: white;
   padding: 0.875rem 1.5rem;
   border: none;
@@ -240,7 +240,7 @@ export const PrimaryButton = styled.button`
 
   &:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+    box-shadow: var(--shadow-lg);
   }
 
   &:active:not(:disabled) {
@@ -261,17 +261,17 @@ export const AuthLink = styled.p`
   text-align: center;
   margin-top: 1.5rem;
   font-size: ${theme.fontSizes.sm};
-  color: ${theme.colors.gray[500]};
+  color: var(--color-text-secondary);
 `
 
 export const LinkHighlight = styled.a`
-  color: ${theme.colors.blue[400]};
+  color: var(--color-blue-400);
   text-decoration: none;
   font-weight: ${theme.fontWeights.semibold};
   transition: ${theme.transitions.fast};
 
   &:hover {
-    color: ${theme.colors.blue[500]};
+    color: var(--color-blue-500);
     text-decoration: underline;
   }
 `
@@ -286,7 +286,7 @@ export const SocialButtons = styled.div`
   gap: 0.75rem;
   margin-top: 1.5rem;
   padding-top: 1.5rem;
-  border-top: 1px solid ${theme.colors.gray[200]};
+  border-top: 1px solid var(--color-border);
 `
 
 interface SocialButtonProps {
@@ -299,10 +299,10 @@ export const SocialButton = styled.button<SocialButtonProps>`
   justify-content: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  border: 1px solid ${theme.colors.gray[300]};
+  border: 1px solid var(--color-border);
   border-radius: ${theme.borderRadius.sm};
-  background: white;
-  color: ${theme.colors.gray[700]};
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
   font-size: 0.9375rem;
   font-weight: ${theme.fontWeights.medium};
   cursor: pointer;
@@ -313,10 +313,10 @@ export const SocialButton = styled.button<SocialButtonProps>`
   }
 
   &:hover {
-    background: ${theme.colors.gray[50]};
-    border-color: ${theme.colors.gray[400]};
+    background: var(--color-surface-hover);
+    border-color: var(--color-border);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-sm);
 
     ${(props) =>
       props.variant === 'google' &&

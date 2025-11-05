@@ -21,6 +21,7 @@ import GroupCreatePage from './pages/Groups/GroupCreatePage';
 import GroupDetailsPage from './pages/Groups/GroupDetailsPage';
 import GroupEditPage from './pages/Groups/GroupEditPage';
 import GroupMembersPage from './pages/Groups/GroupMembersPage';
+import ThemeTest from '@components/ThemeTest';
 
 
 function App() {
@@ -152,6 +153,7 @@ function App() {
                 </PrivateRoute>
               }
             />
+            <Route path="/teste-tema" element={<ThemeTest />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Router>
