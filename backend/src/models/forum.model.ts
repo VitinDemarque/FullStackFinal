@@ -44,6 +44,8 @@ export interface IForum {
   criadoEm?: Date
   atualizadoEm?: Date
   ultimaAtividade?: Date
+  tokenConvite?: string
+  tokenConviteExpiraEm?: Date
 }
 
 const ModeradorSchema = new Schema<IModerador>(
@@ -107,6 +109,8 @@ const ForumSchema = new Schema<IForum>(
     criadoEm: { type: Date, default: Date.now },
     atualizadoEm: { type: Date, default: Date.now },
     ultimaAtividade: { type: Date, default: Date.now },
+    tokenConvite: { type: String, required: false },
+    tokenConviteExpiraEm: { type: Date, required: false },
   },
   { versionKey: false }
 )
