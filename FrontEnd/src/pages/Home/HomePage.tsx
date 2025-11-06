@@ -1,9 +1,9 @@
-import Navbar from '@components/Layout/Navbar'
-import HeroSection from '@components/HeroSection'
-import VideoSection from '@components/VideoSection'
-import TestimonialsSection from '@components/TestimonialsSection'
-import Footer from '@components/Footer'
-import styled from 'styled-components'
+import Navbar from "@components/Layout/Navbar";
+import HeroSection from "@components/HeroSection";
+import FeaturesCarousel from "@components/FeaturesCarousel";
+import TestimonialsSection from "@components/TestimonialsSection";
+import Footer from "@components/Footer";
+import styled from "styled-components";
 
 const PageContainer = styled.div`
   min-height: 100vh;
@@ -15,9 +15,9 @@ export default function HomePage() {
     <PageContainer>
       <Navbar />
       <HeroSection />
-      <VideoSection />
+      <FeaturesCarousel />
       <TestimonialsSection />
       <Footer />
     </PageContainer>
-  )
+  );
 }

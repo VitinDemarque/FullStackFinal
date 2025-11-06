@@ -20,10 +20,7 @@ export default function Navbar() {
 
         <S.NavMenu>
           <S.NavLink to="/">Início</S.NavLink>
-          <S.NavLink to="/desafios">Desafios</S.NavLink>
-          <S.NavLink to="/ranking">Ranking</S.NavLink>
-          <S.NavLink to="/grupos">Grupos</S.NavLink>
-          <S.NavLink to="/em-andamento">Meu Progresso</S.NavLink>
+          <S.NavLink to="/sobre">Sobre</S.NavLink>
         </S.NavMenu>
 
         <S.NavActions>
@@ -45,17 +42,8 @@ export default function Navbar() {
             <S.MobileNavLink to="/" onClick={toggleMobileMenu}>
               Início
             </S.MobileNavLink>
-            <S.MobileNavLink to="/desafios" onClick={toggleMobileMenu}>
-              Desafios
-            </S.MobileNavLink>
-            <S.MobileNavLink to="/ranking" onClick={toggleMobileMenu}>
-              Ranking
-            </S.MobileNavLink>
-            <S.MobileNavLink to="/grupos" onClick={toggleMobileMenu}>
-              Grupos
-            </S.MobileNavLink>
-            <S.MobileNavLink to="/em-andamento" onClick={toggleMobileMenu}>
-              Meu Progresso
+            <S.MobileNavLink to="/sobre" onClick={toggleMobileMenu}>
+              Sobre
             </S.MobileNavLink>
           </S.MobileMenuLinks>
           <S.MobileMenuActions>

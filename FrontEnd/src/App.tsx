@@ -1,27 +1,27 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { AuthProvider } from '@contexts/AuthContext'
-import { ThemeProvider } from '@contexts/ThemeContext'
-import HomePage from '@pages/Home/HomePage'
-import LoginPage from '@pages/Auth/LoginPage'
-import SignupPage from '@pages/Auth/SignupPage'
-import DashboardPage from '@pages/Dashboard/DashboardPage'
-import ChallengesPage from '@pages/Challenges/ChallengesPage'
-import InProgressPage from '@pages/InProgress/InProgressPage'
-import RankingPage from '@pages/Ranking/RankingPage'
-import RecommendationsPage from '@pages/Recommendations/RecommendationsPage'
-import ForunsPage from '@pages/Foruns/ForunsPage';
-import ForumDetalhesPage from '@pages/Foruns/ForumDetalhesPage';
-import TopicoPage from '@pages/Foruns/TopicoPage';
-import ProfilePage from '@pages/Profile/ProfilePage'
-import SettingsPage from '@pages/Settings/SettingsPage'
-import NotFoundPage from '@pages/NotFound/NotFoundPage'
-import PrivateRoute from '@components/PrivateRoute'
-import GroupListPage from './pages/Groups/GroupListPage';
-import GroupCreatePage from './pages/Groups/GroupCreatePage';
-import GroupDetailsPage from './pages/Groups/GroupDetailsPage';
-import GroupEditPage from './pages/Groups/GroupEditPage';
-import GroupMembersPage from './pages/Groups/GroupMembersPage';
-
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@contexts/AuthContext";
+import { ThemeProvider } from "@contexts/ThemeContext";
+import HomePage from "@pages/Home/HomePage";
+import AboutPage from "@pages/About/AboutPage";
+import LoginPage from "@pages/Auth/LoginPage";
+import SignupPage from "@pages/Auth/SignupPage";
+import DashboardPage from "@pages/Dashboard/DashboardPage";
+import ChallengesPage from "@pages/Challenges/ChallengesPage";
+import InProgressPage from "@pages/InProgress/InProgressPage";
+import RankingPage from "@pages/Ranking/RankingPage";
+import RecommendationsPage from "@pages/Recommendations/RecommendationsPage";
+import ForunsPage from "@pages/Foruns/ForunsPage";
+import ForumDetalhesPage from "@pages/Foruns/ForumDetalhesPage";
+import TopicoPage from "@pages/Foruns/TopicoPage";
+import ProfilePage from "@pages/Profile/ProfilePage";
+import SettingsPage from "@pages/Settings/SettingsPage";
+import NotFoundPage from "@pages/NotFound/NotFoundPage";
+import PrivateRoute from "@components/PrivateRoute";
+import GroupListPage from "./pages/Groups/GroupListPage";
+import GroupCreatePage from "./pages/Groups/GroupCreatePage";
+import GroupDetailsPage from "./pages/Groups/GroupDetailsPage";
+import GroupEditPage from "./pages/Groups/GroupEditPage";
+import GroupMembersPage from "./pages/Groups/GroupMembersPage";
 
 function App() {
   return (
@@ -30,6 +30,7 @@ function App() {
         <Router>
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/sobre" element={<AboutPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route
@@ -157,7 +158,7 @@ function App() {
         </Router>
       </AuthProvider>
     </ThemeProvider>
-  )
+  );
 }
 
-export default App
+export default App;
