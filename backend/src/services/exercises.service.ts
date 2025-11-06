@@ -29,7 +29,7 @@ export interface ListCommunityExercisesInput {
 export async function list(input: Partial<ListExercisesInput>) {
   const { q, languageId, authorId, skip = 0, limit = 20, requestUserId, excludeMyExercises = false } = input;
 
-  let where: FilterQuery<any> = { status: 'PUBLISHED' };
+  let where: FilterQuery<any> = {};
   if (q) where.title = { $regex: q, $options: 'i' };
   if (languageId) where.languageId = new Types.ObjectId(languageId);
   if (authorId) where.authorUserId = new Types.ObjectId(authorId);
@@ -46,19 +46,25 @@ export async function list(input: Partial<ListExercisesInput>) {
     where = {
         ...baseFilters,
         $or: [
-            { isPublic: true },
-            { groupId: { $in: userGroupIds } }
+            { 
+              status: 'PUBLISHED',
+              isPublic: true 
+            },
+            { 
+              groupId: { $in: userGroupIds },
+
+            }
         ]
     };
 
-    // Excluir desafios do próprio usuário se solicitado
     if (excludeMyExercises) {
       where.authorUserId = { $ne: new Types.ObjectId(requestUserId) };
     }
   } else {
     where = {
         ...baseFilters,
-        isPublic: true
+        isPublic: true,
+        status: 'PUBLISHED' 
     };
   }
 

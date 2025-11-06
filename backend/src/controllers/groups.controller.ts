@@ -112,21 +112,26 @@ export async function setMemberRole(req: AuthenticatedRequest, res: Response, ne
 }
 
 export async function listExercises(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-    try {
-        if (!req.user?.user_id) throw new BadRequestError('Missing user id');
-        
-        const { id: groupId } = req.params;
-        const page = parsePagination(req.query);
-        const { skip, limit } = toMongoPagination(page);
+  try {
+      console.log('🔍 [DEBUG] listExercises called with groupId:', req.params.id);
+      console.log('🔍 [DEBUG] User ID:', req.user?.user_id);
+      
+      if (!req.user?.user_id) throw new BadRequestError('Missing user id');
+      
+      const { id: groupId } = req.params;
+      const page = parsePagination(req.query);
+      const { skip, limit } = toMongoPagination(page);
 
-        const result = await GroupsService.listExercisesForGroup(
-            req.user.user_id, 
-            groupId, 
-            { skip, limit }
-        );
-        
-        return res.json(result);
-    } catch (err) {
-        return next(err);
-    }
+      const result = await GroupsService.listExercisesForGroup(
+          req.user.user_id, 
+          groupId, 
+          { skip, limit }
+      );
+      
+      console.log('🔍 [DEBUG] listExercises result:', result);
+      return res.json(result);
+  } catch (err) {
+      console.error('❌ [DEBUG] listExercises error:', err);
+      return next(err);
+  }
 }

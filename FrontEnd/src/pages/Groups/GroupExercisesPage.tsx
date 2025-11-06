@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { Group } from "../../types/group.types";
 import { Exercise } from "../../types";
@@ -9,6 +9,7 @@ import styled from "styled-components";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
 import ExerciseCard from "@components/ExerciseCard";
 import CreateGroupExerciseModal from "../../components/Groups/CreateGroupExerciseModal";
+import EditGroupExerciseModal, { UpdateGroupExerciseData } from "../../components/Groups/EditGroupExerciseModal";
 
 const Container = styled.div`
   max-width: 1200px;
@@ -221,7 +222,6 @@ const ResultsCount = styled.div`
 
 const GroupExercisesPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { user } = useAuth();
 
   const [group, setGroup] = useState<Group | null>(null);
@@ -237,6 +237,8 @@ const GroupExercisesPage: React.FC = () => {
   });
 
   const [showCreateExerciseModal, setShowCreateExerciseModal] = useState(false);
+  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
+  const [showEditExerciseModal, setShowEditExerciseModal] = useState(false);
 
   const loadGroup = async () => {
     if (!id) return;
@@ -253,25 +255,52 @@ const GroupExercisesPage: React.FC = () => {
 
   const loadGroupExercises = async () => {
     if (!id) return;
-
+  
     try {
       setExercisesLoading(true);
-      const response = await exercisesService.getAll({
-        page: 1,
-        limit: 50
-      });
+      console.log('🔍 [GroupExercisesPage] Loading exercises for group:', id);
       
-      const groupExercises = response.items
-        .filter(exercise => exercise.groupId === id)
-        .map(exercise => ({
-          ...exercise,
-          languageId: exercise.languageId || null
-        }));
+      // SOLUÇÃO: Use o método listExercises que já existe no groupService
+      const response = await groupService.listExercises(id, 0, 100);
+      
+      console.log('🔍 [GroupExercisesPage] Group exercises from API:', response.items);
+      console.log('🔍 [GroupExercisesPage] Total group exercises:', response.items.length);
+      
+      const groupExercises = response.items.map((exercise: any) => ({
+        ...exercise,
+        languageId: exercise.languageId || null
+      }));
+      
+      console.log('🔍 [GroupExercisesPage] Processed group exercises:', groupExercises);
+      
       setExercises(groupExercises);
     } catch (error: any) {
-      console.error('Erro ao carregar Desafio:', error);
+      console.error('Erro ao carregar exercícios do grupo:', error);
+      // Fallback: tenta buscar de outra forma se o endpoint não existir
+      await loadGroupExercisesFallback();
     } finally {
       setExercisesLoading(false);
+    }
+  };
+  
+  // Fallback caso o endpoint específico não exista
+  const loadGroupExercisesFallback = async () => {
+    try {
+      const response = await exercisesService.getAll({
+        page: 1,
+        limit: 100
+      });
+      
+      // Filtro mais robusto com tipagem correta
+      const groupExercises = response.items.filter((exercise: any) => {
+        console.log(`🔍 Exercise ${exercise.id}: groupId=${exercise.groupId}, targetGroupId=${id}`);
+        return exercise.groupId === id;
+      });
+      
+      console.log('🔍 [Fallback] Filtered exercises:', groupExercises);
+      setExercises(groupExercises);
+    } catch (error) {
+      console.error('Erro no fallback:', error);
     }
   };
 
@@ -320,7 +349,38 @@ const GroupExercisesPage: React.FC = () => {
   };
 
   const handleEditExercise = (exerciseId: string) => {
-    navigate(`/exercises/${exerciseId}/edit`);
+    console.log('🔍 [DEBUG] handleEditExercise called with id:', exerciseId);
+    console.log('🔍 [DEBUG] Current exercises:', exercises);
+    
+    const exerciseToEdit = exercises.find(ex => ex.id === exerciseId);
+    console.log('🔍 [DEBUG] Found exercise:', exerciseToEdit);
+    
+    if (exerciseToEdit) {
+      setEditingExercise(exerciseToEdit);
+      setShowEditExerciseModal(true);
+      console.log('🔍 [DEBUG] Modal states updated - editingExercise:', exerciseToEdit);
+      console.log('🔍 [DEBUG] Modal states updated - showEditExerciseModal: true');
+    } else {
+      console.log('🔍 [DEBUG] Exercise not found in exercises array');
+    }
+  };
+
+  const handleUpdateExercise = async (exerciseData: UpdateGroupExerciseData) => {
+    if (!editingExercise) return;
+
+    try {
+      setActionLoading(true);
+      
+      await exercisesService.update(editingExercise.id, exerciseData);
+      alert('Desafio atualizado com sucesso!');
+      setShowEditExerciseModal(false);
+      setEditingExercise(null);
+      loadGroupExercises(); // Recarrega a lista
+    } catch (error: any) {
+      alert(error.message || 'Erro ao atualizar Desafio');
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleDeleteExercise = async (exerciseId: string) => {
@@ -348,6 +408,13 @@ const GroupExercisesPage: React.FC = () => {
       status: 'all',
       languageId: 'all'
     });
+  };
+
+  const getUserRole = (): 'MEMBER' | 'MODERATOR' | 'OWNER' => {
+    if (!group || !user) return 'MEMBER';
+    
+    const member = group.members?.find(m => m.userId === user.id);
+    return member?.role || 'MEMBER';
   };
 
   const isUserMember = group?.members?.some(
@@ -535,6 +602,19 @@ const GroupExercisesPage: React.FC = () => {
           onSubmit={handleCreateExercise}
           groupId={id!}
           groupName={group.name}
+        />
+
+        <EditGroupExerciseModal
+          isOpen={showEditExerciseModal}
+          onClose={() => {
+            setShowEditExerciseModal(false);
+            setEditingExercise(null);
+          }}
+          onSubmit={handleUpdateExercise}
+          exercise={editingExercise}
+          groupId={id!}
+          groupName={group.name}
+          userRole={getUserRole()}
         />
       </Container>
     </AuthenticatedLayout>

@@ -9,6 +9,7 @@ import styled from "styled-components";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
 import ExerciseCard from "@components/ExerciseCard";
 import CreateGroupExerciseModal from "../../components/Groups/CreateGroupExerciseModal";
+import EditGroupExerciseModal, { UpdateGroupExerciseData } from "../../components/Groups/EditGroupExerciseModal";
 
 const Container = styled.div`
   max-width: 1000px;
@@ -378,6 +379,8 @@ const GroupDetailsPage: React.FC = () => {
   const [actionLoading, setActionLoading] = useState(false);
   
   const [showCreateExerciseModal, setShowCreateExerciseModal] = useState(false);
+  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
+  const [showEditExerciseModal, setShowEditExerciseModal] = useState(false);
 
   const loadGroup = async () => {
     if (!id) return;
@@ -394,23 +397,29 @@ const GroupDetailsPage: React.FC = () => {
 
   const loadGroupExercises = async () => {
     if (!id) return;
-
+  
     try {
       setExercisesLoading(true);
-      const response = await exercisesService.getAll({
-        page: 1,
-        limit: 50
-      });
+      console.log('🔍 [FRONTEND] Loading group exercises for groupId:', id);
       
-      const groupExercises = response.items
-        .filter(exercise => exercise.groupId === id)
-        .map(exercise => ({
-          ...exercise,
-          languageId: exercise.languageId || null
-        }));
+      // ⭐ USE O SERVIÇO DE GRUPO QUE DEVE FUNCIONAR
+      const response = await groupService.listExercises(id, 0, 50);
+      
+      console.log('🔍 [FRONTEND] Group exercises response:', response);
+      console.log('🔍 [FRONTEND] Response items:', response.items);
+      console.log('🔍 [FRONTEND] Response total:', response.total);
+      
+      const groupExercises = response.items.map((exercise: any) => ({
+        ...exercise,
+        languageId: exercise.languageId || null
+      }));
+      
+      console.log('🔍 [FRONTEND] Processed group exercises:', groupExercises);
       setExercises(groupExercises);
+      
     } catch (error: any) {
-      console.error('Erro ao carregar exercícios:', error);
+      console.error('❌ [FRONTEND] Erro ao carregar exercícios:', error);
+      console.error('❌ [FRONTEND] Error message:', error.message);
     } finally {
       setExercisesLoading(false);
     }
@@ -502,7 +511,31 @@ const GroupDetailsPage: React.FC = () => {
   };
 
   const handleEditExercise = (exerciseId: string) => {
-    navigate(`/exercises/${exerciseId}/edit`);
+    console.log('🔍 [GroupDetailsPage] Edit clicked for exercise:', exerciseId);
+    
+    const exerciseToEdit = exercises.find(ex => ex.id === exerciseId);
+    if (exerciseToEdit) {
+      setEditingExercise(exerciseToEdit);
+      setShowEditExerciseModal(true);
+    }
+  };
+
+  const handleUpdateExercise = async (exerciseData: UpdateGroupExerciseData) => {
+    if (!editingExercise) return;
+
+    try {
+      setActionLoading(true);
+      
+      await exercisesService.update(editingExercise.id, exerciseData);
+      alert('Desafio atualizado com sucesso!');
+      setShowEditExerciseModal(false);
+      setEditingExercise(null);
+      loadGroupExercises(); // Recarrega a lista
+    } catch (error: any) {
+      alert(error.message || 'Erro ao atualizar Desafio');
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleDeleteExercise = async (exerciseId: string) => {
@@ -515,6 +548,13 @@ const GroupDetailsPage: React.FC = () => {
     } catch (error: any) {
       alert(error.message || 'Erro ao excluir Desafio');
     }
+  };
+
+  const getUserRole = (): 'MEMBER' | 'MODERATOR' | 'OWNER' => {
+    if (!group || !user) return 'MEMBER';
+    
+    const member = group.members?.find(m => m.userId === user.id);
+    return member?.role || 'MEMBER';
   };
 
   const isUserMember = group?.members?.some(
@@ -750,6 +790,19 @@ const GroupDetailsPage: React.FC = () => {
           onSubmit={handleCreateExercise}
           groupId={id!}
           groupName={group.name}
+        />
+
+        <EditGroupExerciseModal
+          isOpen={showEditExerciseModal}
+          onClose={() => {
+            setShowEditExerciseModal(false);
+            setEditingExercise(null);
+          }}
+          onSubmit={handleUpdateExercise}
+          exercise={editingExercise}
+          groupId={id!}
+          groupName={group.name}
+          userRole={getUserRole()}
         />
       </Container>
     </AuthenticatedLayout>

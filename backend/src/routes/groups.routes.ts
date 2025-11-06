@@ -28,4 +28,6 @@ router.delete('/:id/members/:userId', auth(), GroupsController.removeMember); //
  */
 router.post('/:id/members/:userId/role', auth(), GroupsController.setMemberRole); // body: { role: 'MEMBER' | 'MODERATOR' }
 
+router.get('/:id/exercises', auth(), GroupsController.listExercises);
+
 export default router;

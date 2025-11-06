@@ -202,41 +202,52 @@ function sanitizeExerciseLite(e: IExercise) {
 }
 
 export async function listExercisesForGroup(
-    requestUserId: string, 
-    groupId: string, 
-    { skip, limit }: Paging
+  requestUserId: string, 
+  groupId: string, 
+  { skip, limit }: Paging
 ) {
-    // 1. Validar se o usuário é membro
-    const membership = await GroupMember.findOne({
-        groupId: new Types.ObjectId(groupId),
-        userId: new Types.ObjectId(requestUserId)
-    }).lean();
+  console.log('🔍 [BACKEND] listExercisesForGroup called');
+  console.log('🔍 [BACKEND] requestUserId:', requestUserId);
+  console.log('🔍 [BACKEND] groupId:', groupId);
+  
+  // 1. Validar se o usuário é membro
+  const membership = await GroupMember.findOne({
+      groupId: new Types.ObjectId(groupId),
+      userId: new Types.ObjectId(requestUserId)
+  }).lean();
 
-    if (!membership) {
-        // Verificar se o grupo existe antes de dar 403 (para não vazar informação)
-        const group = await Group.findById(groupId).lean<IGroup | null>();
-        if (!group) throw new NotFoundError('Group not found');
-        
-        throw new ForbiddenError('You must be a member of this group to view its exercises');
-    }
+  console.log('🔍 [BACKEND] Membership found:', membership);
 
-    // 2. Buscar exercícios (publicados) do grupo
-    const where = {
-        groupId: new Types.ObjectId(groupId),
-        status: 'PUBLISHED'
-    };
+  if (!membership) {
+      // Verificar se o grupo existe antes de dar 403 (para não vazar informação)
+      const group = await Group.findById(groupId).lean<IGroup | null>();
+      console.log('🔍 [BACKEND] Group found:', group);
+      if (!group) throw new NotFoundError('Group not found');
+      
+      throw new ForbiddenError('You must be a member of this group to view its exercises');
+  }
 
-    const [items, total] = await Promise.all([
-        Exercise.find(where)
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit)
-            .lean<IExercise[]>(),
-        Exercise.countDocuments(where)
-    ]);
+  // 2. Buscar exercícios do grupo
+  const where = {
+      groupId: new Types.ObjectId(groupId)
+  };
 
-    return {
-        items: items.map(sanitizeExerciseLite),
-        total
-    };
+  console.log('🔍 [BACKEND] MongoDB query where:', where);
+
+  const [items, total] = await Promise.all([
+      Exercise.find(where)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .lean<IExercise[]>(),
+      Exercise.countDocuments(where)
+  ]);
+
+  console.log('🔍 [BACKEND] Found exercises:', items);
+  console.log('🔍 [BACKEND] Total count:', total);
+
+  return {
+      items: items.map(sanitizeExerciseLite),
+      total
+  };
 }
