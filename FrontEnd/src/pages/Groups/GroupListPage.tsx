@@ -8,9 +8,12 @@ import styled from 'styled-components';
 import AuthenticatedLayout from '@components/Layout/AuthenticatedLayout';
 
 const Container = styled.div`
-  max-width: 1200px;
-  margin: 0; /* remove centering to alinhar com o sidebar */
+  max-width: 100%;
+  margin: 0; /* alinhado com o sidebar */
   padding: 24px;
+  min-height: 100vh;
+  background: var(--color-background);
+  overflow-x: hidden;
 `;
 
 const Header = styled.div`

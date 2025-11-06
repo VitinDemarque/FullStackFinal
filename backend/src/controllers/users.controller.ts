@@ -26,6 +26,20 @@ export async function updateMe(req: AuthenticatedRequest, res: Response, next: N
   }
 }
 
+export async function changeMyPassword(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new NotFoundError('User not in token');
+    const { currentPassword, newPassword } = req.body ?? {};
+    if (!currentPassword || !newPassword) {
+      throw new BadRequestError('Missing required fields: currentPassword, newPassword');
+    }
+    await UsersService.changePassword(req.user.user_id, currentPassword, newPassword);
+    return res.status(204).send();
+  } catch (err) {
+    return next(err);
+  }
+}
+
 export async function getById(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
