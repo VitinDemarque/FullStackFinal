@@ -217,4 +217,201 @@ describe('forum.service', () => {
             await expect(forumService.excluir(forumId, usuarioId)).rejects.toThrow(NotFoundError);
         });
     });
+    describe('listarMeus', () => {
+        it('deve listar fóruns do usuário', async () => {
+            const mockForuns = [{ _id: '1', nome: 'Meu Fórum' }];
+            (Forum.find as jest.Mock).mockReturnValue({
+                sort: jest.fn().mockReturnThis(),
+                skip: jest.fn().mockReturnThis(),
+                limit: jest.fn().mockReturnThis(),
+                lean: jest.fn().mockResolvedValue(mockForuns),
+            });
+
+            const result = await forumService.listarMeus('u123');
+            expect(result).toEqual(mockForuns);
+        });
+    });
+
+    describe('listarParticipantes', () => {
+        it('deve listar participantes de um fórum', async () => {
+            const mockModeradores = [{ usuarioId: 'u1', aprovado: true }];
+            const mockMembros = [{ usuarioId: 'u2', aprovado: false }];
+            const mockParticipantes = [...mockModeradores, ...mockMembros];
+
+            (Forum.findById as jest.Mock).mockReturnValue({
+                lean: jest.fn().mockResolvedValue({
+                    _id: 'f1',
+                    donoUsuarioId: 'u0',
+                    moderadores: mockModeradores,
+                    membros: mockMembros,
+                }),
+            });
+
+            const result: any = await forumService.listarParticipantes('f1');
+
+            // usamos any para evitar conflito entre tipos de membros e moderadores
+            expect([...result.moderadores, ...result.membros]).toEqual(mockParticipantes);
+        });
+    });
+
+    describe('sair', () => {
+        it('deve permitir que o usuário saia do fórum', async () => {
+            (Forum.findById as jest.Mock).mockReturnValue({
+                lean: jest.fn().mockResolvedValue({
+                    _id: 'f1',
+                    donoUsuarioId: 'u0',
+                    membros: [{ usuarioId: 'u123' }],
+                    moderadores: [],
+                }),
+            });
+
+            (Forum.findByIdAndUpdate as jest.Mock).mockReturnValue({
+                lean: jest.fn().mockResolvedValue({
+                    _id: 'f1',
+                    membros: [],
+                    moderadores: [],
+                    atualizadoEm: new Date(),
+                }),
+            });
+
+            const result: any = await forumService.sair('f1', 'u123');
+            expect(result?._id).toBe('f1');
+        });
+    });
+
+    describe('participar', () => {
+        it('deve permitir que usuário participe de fórum público', async () => {
+            (Forum.findById as jest.Mock).mockReturnValue({
+                lean: jest.fn().mockResolvedValue({
+                    _id: 'f1',
+                    privacidade: 'PUBLICO',
+                    membros: [],
+                }),
+            });
+
+            (Forum.findByIdAndUpdate as jest.Mock).mockReturnValue({
+                lean: jest.fn().mockResolvedValue({
+                    _id: 'f1',
+                    membros: [{ usuarioId: 'u1', aprovado: true }],
+                }),
+            });
+
+            const result: any = await forumService.participar('f1', 'u1');
+            expect(result?.membros?.some((m: any) => m.usuarioId === 'u1')).toBe(true);
+        });
+    });
+
+    describe('transferirDono', () => {
+        it('deve transferir propriedade do fórum', async () => {
+            (Forum.findById as jest.Mock).mockReturnValue({
+                lean: jest.fn().mockResolvedValue({
+                    _id: 'f1',
+                    donoUsuarioId: 'u1',
+                    moderadores: [{ usuarioId: 'u2', aprovado: true }],
+                }),
+            });
+
+            (Forum.findByIdAndUpdate as jest.Mock).mockReturnValue({
+                lean: jest.fn().mockResolvedValue({
+                    _id: 'f1',
+                    donoUsuarioId: 'u2',
+                }),
+            });
+
+            const result: any = await forumService.transferirDono('f1', 'u1', 'u2');
+            expect(result?.donoUsuarioId).toBe('u2');
+        });
+    });
+
+    describe('adicionarModerador', () => {
+        it('deve adicionar um moderador ao fórum', async () => {
+            (Forum.findById as jest.Mock).mockReturnValue({
+                lean: jest.fn().mockResolvedValue({
+                    _id: 'f1',
+                    donoUsuarioId: 'u1',
+                    membros: [{ usuarioId: 'u2', aprovado: true }],
+                    moderadores: [],
+                }),
+            });
+
+            (Forum.findByIdAndUpdate as jest.Mock).mockReturnValue({
+                lean: jest.fn().mockResolvedValue({
+                    _id: 'f1',
+                    moderadores: [{ usuarioId: 'u2', aprovado: true }],
+                }),
+            });
+
+            const result: any = await forumService.adicionarModerador('f1', 'u1', 'u2');
+            expect(result?.moderadores?.some((m: any) => m.usuarioId === 'u2')).toBe(true);
+        });
+    });
+
+    describe('removerModerador', () => {
+        it('deve remover moderador do fórum', async () => {
+            (Forum.findById as jest.Mock).mockReturnValue({
+                lean: jest.fn().mockResolvedValue({
+                    _id: 'f1',
+                    donoUsuarioId: 'u1',
+                    moderadores: [{ usuarioId: 'u2' }],
+                }),
+            });
+
+            (Forum.findByIdAndUpdate as jest.Mock).mockReturnValue({
+                lean: jest.fn().mockResolvedValue({
+                    _id: 'f1',
+                    moderadores: [],
+                }),
+            });
+
+            const result: any = await forumService.removerModerador('f1', 'u1', 'u2');
+            expect(result?.moderadores?.length).toBe(0);
+        });
+    });
+
+    describe('gerarLinkCompartilhamento', () => {
+        it('deve gerar link de compartilhamento', async () => {
+            (Forum.findById as jest.Mock).mockReturnValue({
+                lean: jest.fn().mockResolvedValue({
+                    _id: 'f1',
+                    donoUsuarioId: 'u1',
+                    moderadores: [],
+                }),
+            });
+
+            (Forum.findByIdAndUpdate as jest.Mock).mockReturnValue({
+                lean: jest.fn().mockResolvedValue({
+                    link: 'https://forum.com/convite/token123',
+                    expiraEm: new Date(),
+                }),
+            });
+
+            const result: any = await forumService.gerarLinkCompartilhamento('f1', 'u1');
+            expect(result?.link).toMatch(/\/forum\/entrar\?token=\w+/);
+        });
+    });
+
+    describe('entrarPorToken', () => {
+        it('deve permitir que o usuário entre via token válido', async () => {
+            const mockForum = {
+                _id: 'f1',
+                privacidade: 'PRIVADO',
+                tokensConvite: [{ token: 'token123', criadoEm: new Date() }],
+                membros: [],
+            };
+
+            (Forum.findById as jest.Mock).mockReturnValue({
+                lean: jest.fn().mockResolvedValue(mockForum),
+            });
+
+            (Forum.findByIdAndUpdate as jest.Mock).mockReturnValue({
+                lean: jest.fn().mockResolvedValue({
+                    ...mockForum,
+                    membros: [{ usuarioId: 'u1', aprovado: true }],
+                }),
+            });
+
+            const result: any = await forumService.entrarPorToken('f1', 'u1', 'token123');
+            expect(result?.membros?.some((m: any) => m.usuarioId === 'u1')).toBe(true);
+        });
+    });
 });
