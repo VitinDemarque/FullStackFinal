@@ -36,7 +36,7 @@ export const groupService = {
   },
 
   async addMember(groupId: string, targetUserId: string): Promise<{ added: boolean }> {
-    return apiRequest('POST', `/groups/${groupId}/members`, { userId: targetUserId });
+    return apiRequest('POST', `/groups/${groupId}/members/${targetUserId}`);
   },
 
   async removeMember(groupId: string, targetUserId: string): Promise<{ removed: boolean }> {
@@ -48,7 +48,7 @@ export const groupService = {
     targetUserId: string, 
     role: 'MEMBER' | 'MODERATOR'
   ): Promise<{ updated: boolean }> {
-    return apiRequest('PUT', `/groups/${groupId}/members/${targetUserId}/role`, { role });
+    return apiRequest('POST', `/groups/${groupId}/members/${targetUserId}/role`, { role });
   },
 
   async listExercises(

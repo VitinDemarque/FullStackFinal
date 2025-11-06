@@ -18,20 +18,25 @@ const Header = styled.div`
 `;
 
 const Title = styled.h1`
-  color: #333;
+  color: var(--color-text-primary);
   margin: 0 0 8px 0;
+
+  .dark & {
+    color: white;
+  }
 `;
 
 const Subtitle = styled.p`
-  color: #666;
+  color: var(--color-text-secondary);
   margin: 0;
 `;
 
 const Content = styled.div`
-  background: white;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 30px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
 `;
 
 const MembersList = styled.div`
@@ -45,12 +50,15 @@ const MemberCard = styled.div`
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
   border-radius: 8px;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, box-shadow 0.2s, transform 0.2s;
 
   &:hover {
-    background: #f8f9fa;
+    background: var(--color-surface-hover);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-1px);
   }
 `;
 
@@ -67,12 +75,12 @@ const MemberDetails = styled.div`
 
 const MemberName = styled.span`
   font-weight: 500;
-  color: #333;
+  color: var(--color-text-primary);
 `;
 
 const MemberMeta = styled.span`
   font-size: 0.875rem;
-  color: #666;
+  color: var(--color-text-secondary);
 `;
 
 const RoleBadge = styled.span<{ role: string }>`
@@ -85,18 +93,18 @@ const RoleBadge = styled.span<{ role: string }>`
     switch (props.role) {
       case "MODERATOR":
         return `
-          background: #fff3e0;
-          color: #f57c00;
+          background: var(--color-warning-bg);
+          color: var(--color-warning-text);
         `;
       case "OWNER":
         return `
-          background: #fce4ec;
-          color: #c2185b;
+          background: var(--color-danger-bg);
+          color: var(--color-danger-text);
         `;
       default:
         return `
-          background: #e3f2fd;
-          color: #1976d2;
+          background: var(--color-blue-100);
+          color: var(--color-blue-600);
         `;
     }
   }}
@@ -110,9 +118,9 @@ const Actions = styled.div`
 
 const ActionButton = styled.button<{ variant?: "danger" }>`
   padding: 6px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
   font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -120,20 +128,20 @@ const ActionButton = styled.button<{ variant?: "danger" }>`
   ${(props) =>
     props.variant === "danger"
       ? `
-    color: #dc3545;
-    border-color: #dc3545;
+    color: var(--color-red-600);
+    border-color: var(--color-red-600);
 
     &:hover {
-      background: #dc3545;
+      background: var(--color-red-600);
       color: white;
     }
   `
       : `
-    color: #007bff;
-    border-color: #007bff;
+    color: var(--color-blue-600);
+    border-color: var(--color-blue-600);
 
     &:hover {
-      background: #007bff;
+      background: var(--color-blue-600);
       color: white;
     }
   `}
@@ -153,20 +161,20 @@ const LoadingContainer = styled.div`
 
 const Spinner = styled.div`
   font-size: 1.125rem;
-  color: #666;
+  color: var(--color-text-secondary);
 `;
 
 const ErrorMessage = styled.div`
-  background: #f8d7da;
-  color: #721c24;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
   padding: 20px;
   border-radius: 6px;
   text-align: center;
 `;
 
 const BackButton = styled.button`
-  background: #6c757d;
-  color: white;
+  background: var(--color-gray-200);
+  color: var(--color-text-primary);
   border: none;
   padding: 10px 20px;
   border-radius: 6px;
@@ -174,7 +182,12 @@ const BackButton = styled.button`
   margin-bottom: 20px;
 
   &:hover {
-    background: #545b62;
+    filter: brightness(0.95);
+  }
+
+  .dark & {
+    background: var(--color-gray-700);
+    color: var(--color-text-primary);
   }
 `;
 

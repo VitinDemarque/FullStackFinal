@@ -61,9 +61,7 @@ export async function create(ownerUserId: string, payload: Partial<IGroup>) {
 export async function update(requestUserId: string, id: string, payload: Partial<IGroup>) {
   const g = await Group.findById(id);
   if (!g) throw new NotFoundError('Group not found');
-  if (String(g.ownerUserId) !== requestUserId) {
-    throw new ForbiddenError('Only owner can update group');
-  }
+  await assertModeratorOrOwner(requestUserId, id);
 
   if (payload.name !== undefined) g.name = payload.name;
   if (payload.description !== undefined) g.description = payload.description;
@@ -76,9 +74,7 @@ export async function update(requestUserId: string, id: string, payload: Partial
 export async function remove(requestUserId: string, id: string) {
   const g = await Group.findById(id);
   if (!g) return; // idempotente
-  if (String(g.ownerUserId) !== requestUserId) {
-    throw new ForbiddenError('Only owner can delete group');
-  }
+  await assertModeratorOrOwner(requestUserId, id);
 
   await Promise.all([
     GroupMember.deleteMany({ groupId: g._id }),
