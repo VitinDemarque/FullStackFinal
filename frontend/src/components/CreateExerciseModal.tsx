@@ -38,7 +38,7 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit }: Creat
       await onSubmit(formData);
       handleClose();
     } catch (error) {
-      console.error('Erro ao criar Desafio:', error);
+      // Error handled by parent component
     } finally {
       setIsSubmitting(false);
     }

@@ -30,7 +30,6 @@ export const statsService = {
         weekProgress: response.weekProgress || 0,
       }
     } catch (error) {
-      console.error('Erro ao carregar stats do dashboard:', error)
       return {
         languages: 0,
         challenges: 0,
@@ -54,7 +53,6 @@ export const statsService = {
         streak: response.streak || 0,
       }
     } catch (error) {
-      console.error('Erro ao carregar progresso do usuário:', error)
       return {
         exercisesSolved: 0,
         exercisesCreated: 0,

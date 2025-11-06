@@ -46,7 +46,7 @@ export default function EditExerciseModal({ isOpen, onClose, onSubmit, exercise 
       await onSubmit(formData);
       handleClose();
     } catch (error) {
-      console.error('Erro ao editar exercício:', error);
+      // Error handled by parent component
     } finally {
       setIsSubmitting(false);
     }

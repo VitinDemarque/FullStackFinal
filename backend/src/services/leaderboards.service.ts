@@ -7,29 +7,24 @@ import { BadRequestError } from '../utils/httpErrors';
 export interface Paging { skip: number; limit: number; }
 
 /**
- * Ranking geral: soma de xpAwarded em submissões ACCEPTED
+ * Ranking geral: baseado no xpTotal dos usuários
  */
 export async function general({ skip, limit }: Paging) {
-  const pipeline: PipelineStage[] = [
-    { $match: { status: 'ACCEPTED' } },
-    { $group: { _id: '$userId', points: { $sum: '$xpAwarded' } } },
-    { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user' } },
-    { $unwind: '$user' },
-    { $project: { _id: 0, userId: '$_id', points: 1, xpTotal: '$user.xpTotal', name: '$user.name', handle: '$user.handle', collegeId: '$user.collegeId' } },
-    { $sort: { points: -1 } },
-    { $skip: skip },
-    { $limit: limit }
-  ];
+  const users = await User.find({})
+    .select('_id name handle collegeId xpTotal level')
+    .sort({ xpTotal: -1, level: -1 })
+    .skip(skip)
+    .limit(limit)
+    .lean();
 
-  const rows = await Submission.aggregate(pipeline);
-  return rows.map((r: any, idx: any) => ({
+  return users.map((user: any, idx: number) => ({
     position: skip + idx + 1,
-    userId: String(r.userId),
-    name: r.name,
-    handle: r.handle,
-    collegeId: r.collegeId ? String(r.collegeId) : null,
-    points: r.points,
-    xpTotal: r.xpTotal
+    userId: String(user._id),
+    name: user.name,
+    handle: user.handle,
+    collegeId: user.collegeId ? String(user.collegeId) : null,
+    points: user.xpTotal,
+    xpTotal: user.xpTotal
   }));
 }
 

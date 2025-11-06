@@ -41,10 +41,34 @@ export default function SignupPage() {
       setColleges(response.items);
     } catch (error) {
       setColleges([
-        { id: '1', name: 'Faculdade de Minas', acronym: 'FAMINAS', city: 'Muriaé', state: 'MG' },
-        { id: '2', name: 'Universidade de São Paulo', acronym: 'USP', city: 'São Paulo', state: 'SP' },
-        { id: '3', name: 'Universidade Federal de Minas Gerais', acronym: 'UFMG', city: 'Belo Horizonte', state: 'MG' },
-        { id: '4', name: 'Pontifícia Universidade Católica', acronym: 'PUC-SP', city: 'São Paulo', state: 'SP' },
+        {
+          id: "1",
+          name: "Faculdade de Minas",
+          acronym: "FAMINAS",
+          city: "Muriaé",
+          state: "MG",
+        },
+        {
+          id: "2",
+          name: "Universidade de São Paulo",
+          acronym: "USP",
+          city: "São Paulo",
+          state: "SP",
+        },
+        {
+          id: "3",
+          name: "Universidade Federal de Minas Gerais",
+          acronym: "UFMG",
+          city: "Belo Horizonte",
+          state: "MG",
+        },
+        {
+          id: "4",
+          name: "Pontifícia Universidade Católica",
+          acronym: "PUC-SP",
+          city: "São Paulo",
+          state: "SP",
+        },
       ]);
     } finally {
       setLoadingColleges(false);
@@ -89,7 +113,7 @@ export default function SignupPage() {
 
   function handleRetry() {
     clearError();
-    handleSubmit(new Event('submit') as any);
+    handleSubmit(new Event("submit") as any);
   }
 
   function handleChange(
@@ -112,8 +136,8 @@ export default function SignupPage() {
       )}
 
       <S.AuthContainer>
-        <S.Shape variant="yellow-top" />
-        <S.Shape variant="orange-bottom" />
+        <S.Shape $variant="yellow-top" />
+        <S.Shape $variant="orange-bottom" />
 
         <S.AuthCard isSignup>
           <S.BackButton as={Link} to="/">

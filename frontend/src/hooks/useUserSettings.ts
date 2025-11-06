@@ -38,7 +38,7 @@ export function useUserSettings() {
         setSettings({ ...DEFAULT_SETTINGS, ...parsedSettings })
       }
     } catch (error) {
-      console.error('Erro ao carregar configurações:', error)
+      // Error loading settings
     } finally {
       setIsLoading(false)
     }
@@ -63,10 +63,8 @@ export function useUserSettings() {
     try {
       // Aqui você pode adicionar uma chamada para a API para salvar as configurações no servidor
       // await apiService.saveUserSettings(settings)
-      console.log('Configurações salvas:', settings)
       return true
     } catch (error) {
-      console.error('Erro ao salvar configurações:', error)
       return false
     }
   }

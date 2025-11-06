@@ -42,7 +42,7 @@ export default function Sidebar() {
         </S.Logo>
       </S.SidebarHeader>
 
-      <S.UserInfo>
+      <S.UserInfo onClick={() => navigate("/profile")}>
         <S.UserAvatar>
           {user?.avatarUrl ? (
             <S.UserAvatarImage src={user.avatarUrl} alt={user.name} />

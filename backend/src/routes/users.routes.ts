@@ -19,4 +19,7 @@ router.get('/:id/profile', UsersController.getPublicProfile);
 // Scoreboard do perfil (contadores de criados/concluídos)
 router.get('/:id/scoreboard', UsersController.getProfileScoreboard);
 
+// Badges do usuário
+router.get('/:id/badges', UsersController.getUserBadges);
+
 export default router;

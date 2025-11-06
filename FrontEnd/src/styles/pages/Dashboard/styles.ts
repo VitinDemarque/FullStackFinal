@@ -5,9 +5,11 @@ import { theme } from '../../theme'
 // CONTAINER PRINCIPAL
 // ============================================
 
-export const DashboardPage = styled.div`
+export const DashboardPage = styled.div<{ $isDark?: boolean }>`
   min-height: 100vh;
   width: 100%;
+  background: ${({ $isDark }) => ($isDark ? '#0f172a' : 'transparent')};
+  transition: background 0.3s ease;
 `
 
 export const DashboardContainer = styled.div`
@@ -107,7 +109,7 @@ export const HeroStats = styled.div`
 `
 
 interface StatCardProps {
-  variant?: 'trophy' | 'star'
+  $variant?: 'trophy' | 'star'
 }
 
 export const StatCard = styled.div<StatCardProps>`
@@ -128,7 +130,7 @@ export const StatCard = styled.div<StatCardProps>`
   svg {
     font-size: 2.5rem;
     color: ${(props) =>
-    props.variant === 'trophy'
+    props.$variant === 'trophy'
       ? theme.colors.secondary
       : theme.colors.yellow[200]};
   }
@@ -154,25 +156,27 @@ export const Section = styled.section`
   margin-bottom: 3rem;
 `
 
-export const SectionTitle = styled.h2`
+export const SectionTitle = styled.h2<{ $isDark?: boolean }>`
   display: flex;
   align-items: center;
   gap: 0.75rem;
   font-size: ${theme.fontSizes['3xl']};
   font-weight: ${theme.fontWeights.bold};
-  color: var(--color-text-primary);
+  color: ${({ $isDark }) => ($isDark ? '#f1f5f9' : theme.colors.gray[900])};
   margin-bottom: 1.5rem;
+  transition: color 0.3s ease;
 
   svg {
     color: ${theme.colors.primary};
   }
 `
 
-export const SectionDescription = styled.p`
+export const SectionDescription = styled.p<{ $isDark?: boolean }>`
   font-size: ${theme.fontSizes.base};
-  color: var(--color-text-secondary);
+  color: ${({ $isDark }) => ($isDark ? '#94a3b8' : theme.colors.gray[600])};
   margin-bottom: 1.5rem;
   margin-top: -1rem;
+  transition: color 0.3s ease;
 `
 
 // ============================================
@@ -190,7 +194,7 @@ export const ProgressGrid = styled.div`
 `
 
 interface ProgressCardProps {
-  variant?: 'purple' | 'blue' | 'green'
+  $variant?: 'purple' | 'blue' | 'green'
 }
 
 export const ProgressCard = styled.div<ProgressCardProps>`
@@ -215,7 +219,7 @@ export const ProgressCard = styled.div<ProgressCardProps>`
     padding: 1rem;
     border-radius: ${theme.borderRadius.md};
     background: ${(props) => {
-    switch (props.variant) {
+    switch (props.$variant) {
       case 'purple':
         return theme.gradients.primary
       case 'blue':
@@ -311,27 +315,30 @@ export const RecommendationsGrid = styled.div`
   }
 `
 
-export const ExerciseCard = styled.div`
-  background: white;
+export const ExerciseCard = styled.div<{ $isDark?: boolean }>`
+  background: ${({ $isDark }) => ($isDark ? '#1e293b' : 'white')};
   border-radius: ${theme.borderRadius.lg};
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  box-shadow: ${({ $isDark }) =>
+    $isDark ? '0 4px 15px rgba(0, 0, 0, 0.5)' : '0 4px 15px rgba(0, 0, 0, 0.08)'};
   transition: ${theme.transitions.all};
-  border: 1px solid ${theme.colors.gray[200]};
+  border: 1px solid ${({ $isDark }) => ($isDark ? '#334155' : theme.colors.gray[200])};
 
   &:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    box-shadow: ${({ $isDark }) =>
+    $isDark ? '0 8px 25px rgba(0, 0, 0, 0.7)' : '0 8px 25px rgba(0, 0, 0, 0.12)'};
   }
 `
 
-export const CardHeader = styled.div`
+export const CardHeader = styled.div<{ $isDark?: boolean }>`
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  background: ${theme.colors.gray[50]};
-  border-bottom: 1px solid ${theme.colors.gray[200]};
+  background: ${({ $isDark }) => ($isDark ? '#0f172a' : theme.colors.gray[50])};
+  border-bottom: 1px solid ${({ $isDark }) => ($isDark ? '#334155' : theme.colors.gray[200])};
+  transition: background 0.3s ease, border-color 0.3s ease;
 `
 
 interface DifficultyBadgeProps {
@@ -393,16 +400,17 @@ export const CardBody = styled.div`
   padding: 1.5rem;
 `
 
-export const CardTitle = styled.h3`
+export const CardTitle = styled.h3<{ $isDark?: boolean }>`
   font-size: ${theme.fontSizes.lg};
   font-weight: ${theme.fontWeights.semibold};
-  color: var(--color-text-primary);
+  color: ${({ $isDark }) => ($isDark ? '#f1f5f9' : theme.colors.gray[900])};
   margin-bottom: 0.75rem;
+  transition: color 0.3s ease;
 `
 
-export const CardDescription = styled.p`
+export const CardDescription = styled.p<{ $isDark?: boolean }>`
   font-size: ${theme.fontSizes.sm};
-  color: var(--color-text-secondary);
+  color: ${({ $isDark }) => ($isDark ? '#94a3b8' : theme.colors.gray[600])};
   line-height: 1.6;
   margin: 0;
   overflow: hidden;
@@ -410,6 +418,7 @@ export const CardDescription = styled.p`
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  transition: color 0.3s ease;
 `
 
 export const CardLanguage = styled.p`

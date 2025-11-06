@@ -310,12 +310,12 @@ export const XpProgressBar = styled.div`
 `
 
 interface XpProgressFillProps {
-  progress: number
+  $progress: number
 }
 
 export const XpProgressFill = styled.div<XpProgressFillProps>`
   height: 100%;
-  width: ${(props) => props.progress}%;
+  width: ${(props) => props.$progress}%;
   background: var(--gradient-blue);
   border-radius: ${theme.borderRadius.full};
   transition: width 0.5s ease;
@@ -392,15 +392,15 @@ export const BadgeTrophy = styled.div<BadgeTrophyProps>`
 
   @media (max-width: ${theme.breakpoints.tablet}) {
     font-size: ${(props) => {
-      switch (props.position) {
-        case 1:
-          return '3rem'
-        case 2:
-          return '2.5rem'
-        case 3:
-          return '2.5rem'
-      }
-    }};
+    switch (props.position) {
+      case 1:
+        return '3rem'
+      case 2:
+        return '2.5rem'
+      case 3:
+        return '2.5rem'
+    }
+  }};
   }
 `
 
@@ -447,17 +447,17 @@ export const BadgeItem = styled.div<BadgeItemProps>`
     font-size: 2.5rem;
     transition: ${theme.transitions.all};
     color: ${(props) => {
-      if (!props.isEarned) return theme.colors.gray[300]
-      const colors = [
-        theme.colors.secondary,
-        '#c0c0c0',
-        '#cd7f32',
-        '#8b5cf6',
-        theme.colors.red[500],
-        theme.colors.green[400],
-      ]
-      return colors[props.colorIndex % 6]
-    }};
+    if (!props.isEarned) return theme.colors.gray[300]
+    const colors = [
+      theme.colors.secondary,
+      '#c0c0c0',
+      '#cd7f32',
+      '#8b5cf6',
+      theme.colors.red[500],
+      theme.colors.green[400],
+    ]
+    return colors[props.colorIndex % 6]
+  }};
     opacity: ${(props) => (props.isEarned ? 1 : 0.5)};
 
     @media (max-width: ${theme.breakpoints.tablet}) {
@@ -467,9 +467,9 @@ export const BadgeItem = styled.div<BadgeItemProps>`
 
   &:hover svg {
     transform: ${(props) =>
-      props.isEarned ? 'scale(1.1) rotate(5deg)' : 'none'};
+    props.isEarned ? 'scale(1.1) rotate(5deg)' : 'none'};
     filter: ${(props) =>
-      props.isEarned ? 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2))' : 'none'};
+    props.isEarned ? 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2))' : 'none'};
   }
 `
 

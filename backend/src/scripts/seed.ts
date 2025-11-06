@@ -10,6 +10,7 @@ import Language from '../models/Language.model';
 import College from '../models/College.model';
 import Exercise from '../models/Exercise.model';
 import UserStat from '../models/UserStat.model';
+import Submission from '../models/Submission.model';
 
 async function seed() {
   try {
@@ -27,6 +28,7 @@ async function seed() {
       College.deleteMany({}),
       Exercise.deleteMany({}),
       UserStat.deleteMany({}),
+      Submission.deleteMany({}),
     ]);
     console.log('✅ Dados antigos removidos\n');
 
@@ -296,12 +298,153 @@ export default function TodoList() {
     ]);
     console.log(`✅ ${exercises.length} desafios criados\n`);
 
+    // ==================== SUBMISSÕES (para o Ranking) ====================
+    console.log('📝 Criando submissões para o ranking...');
+    const submissions = await Submission.insertMany([
+      // João Santos (1º lugar - 1500 pts)
+      {
+        userId: users[2]._id,
+        exerciseId: exercises[0]._id,
+        languageId: languages[0]._id,
+        code: 'function helloWorld() { return "Hello, World!"; }',
+        status: 'ACCEPTED',
+        score: 100,
+        timeSpentSeconds: 300,
+        xpAwarded: 300,
+      },
+      {
+        userId: users[2]._id,
+        exerciseId: exercises[1]._id,
+        languageId: languages[0]._id,
+        code: 'function soma(a, b) { return a + b; }',
+        status: 'ACCEPTED',
+        score: 100,
+        timeSpentSeconds: 180,
+        xpAwarded: 250,
+      },
+      {
+        userId: users[2]._id,
+        exerciseId: exercises[3]._id,
+        languageId: languages[0]._id,
+        code: 'function fizzBuzz(n) { /* code */ }',
+        status: 'ACCEPTED',
+        score: 100,
+        timeSpentSeconds: 600,
+        xpAwarded: 450,
+      },
+      {
+        userId: users[2]._id,
+        exerciseId: exercises[4]._id,
+        languageId: languages[0]._id,
+        code: 'function fibonacci(n) { /* code */ }',
+        status: 'ACCEPTED',
+        score: 100,
+        timeSpentSeconds: 900,
+        xpAwarded: 500,
+      },
+      // Maria Silva (2º lugar - 950 pts)
+      {
+        userId: users[1]._id,
+        exerciseId: exercises[0]._id,
+        languageId: languages[0]._id,
+        code: 'function helloWorld() { return "Hello, World!"; }',
+        status: 'ACCEPTED',
+        score: 100,
+        timeSpentSeconds: 250,
+        xpAwarded: 200,
+      },
+      {
+        userId: users[1]._id,
+        exerciseId: exercises[1]._id,
+        languageId: languages[0]._id,
+        code: 'function soma(a, b) { return a + b; }',
+        status: 'ACCEPTED',
+        score: 100,
+        timeSpentSeconds: 200,
+        xpAwarded: 250,
+      },
+      {
+        userId: users[1]._id,
+        exerciseId: exercises[2]._id,
+        languageId: languages[0]._id,
+        code: 'function isPalindrome(palavra) { /* code */ }',
+        status: 'ACCEPTED',
+        score: 100,
+        timeSpentSeconds: 450,
+        xpAwarded: 300,
+      },
+      {
+        userId: users[1]._id,
+        exerciseId: exercises[6]._id,
+        languageId: languages[0]._id,
+        code: 'function buscaBinaria(arr, target) { /* code */ }',
+        status: 'ACCEPTED',
+        score: 100,
+        timeSpentSeconds: 800,
+        xpAwarded: 200,
+      },
+      // Teste Teste (3º lugar - 450 pts)
+      {
+        userId: users[0]._id,
+        exerciseId: exercises[0]._id,
+        languageId: languages[0]._id,
+        code: 'function helloWorld() { return "Hello, World!"; }',
+        status: 'ACCEPTED',
+        score: 100,
+        timeSpentSeconds: 400,
+        xpAwarded: 150,
+      },
+      {
+        userId: users[0]._id,
+        exerciseId: exercises[1]._id,
+        languageId: languages[0]._id,
+        code: 'function soma(a, b) { return a + b; }',
+        status: 'ACCEPTED',
+        score: 100,
+        timeSpentSeconds: 350,
+        xpAwarded: 200,
+      },
+      {
+        userId: users[0]._id,
+        exerciseId: exercises[2]._id,
+        languageId: languages[0]._id,
+        code: 'function isPalindrome(palavra) { /* code */ }',
+        status: 'ACCEPTED',
+        score: 80,
+        timeSpentSeconds: 500,
+        xpAwarded: 100,
+      },
+      // Admin (4º lugar - 250 pts)
+      {
+        userId: users[3]._id,
+        exerciseId: exercises[0]._id,
+        languageId: languages[0]._id,
+        code: 'function helloWorld() { return "Hello, World!"; }',
+        status: 'ACCEPTED',
+        score: 100,
+        timeSpentSeconds: 200,
+        xpAwarded: 150,
+      },
+      {
+        userId: users[3]._id,
+        exerciseId: exercises[1]._id,
+        languageId: languages[0]._id,
+        code: 'function soma(a, b) { return a + b; }',
+        status: 'ACCEPTED',
+        score: 90,
+        timeSpentSeconds: 250,
+        xpAwarded: 100,
+      },
+    ]);
+    console.log(`✅ ${submissions.length} submissões criadas\n`);
+
     console.log('🎉 Seed concluído com sucesso!\n');
     console.log('📊 Resumo:');
     console.log(`   - ${languages.length} linguagens`);
     console.log(`   - ${colleges.length} faculdades`);
     console.log(`   - ${users.length} usuários`);
     console.log(`   - ${exercises.length} desafios`);
+    console.log(`   - ${submissions.length} submissões`);
     console.log('\n💡 Use as credenciais acima para fazer login na aplicação.\n');
 
     process.exit(0);

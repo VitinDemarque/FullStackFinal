@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../middlewares/auth';
 import * as UsersService from '../services/users.service';
 import * as StatsService from '../services/stats.service';
+import * as BadgesService from '../services/badges.service';
 import { BadRequestError, NotFoundError } from '../utils/httpErrors';
 import { parsePagination, toMongoPagination } from '../utils/pagination';
 
@@ -84,6 +85,16 @@ export async function getProfileScoreboard(req: Request, res: Response, next: Ne
     const { id } = req.params;
     const scoreboard = await StatsService.getUserScoreboard(id);
     return res.json(scoreboard);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export async function getUserBadges(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params;
+    const badges = await BadgesService.getUserBadges(id);
+    return res.json(badges);
   } catch (err) {
     return next(err);
   }
