@@ -53,4 +53,12 @@ router.delete('/:id/moderadores/:userId', auth(), ForumController.removerModerad
 // Transferir dono (autenticado, dono)
 router.post('/:id/transferir-dono', auth(), ForumController.transferirDono)
 
+
+
+// Gerar link de compartilhamento (dono/moderador)
+router.get('/:id/compartilhar', auth(), ForumController.compartilhar)
+
+// Entrar via link/token público
+router.post('/:id/entrar-por-token', auth(), ForumController.entrarPorToken)
+
 export default router
