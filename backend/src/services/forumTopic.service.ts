@@ -41,6 +41,13 @@ export async function obterPorId(id: string) {
   return topico
 }
 
+// Contar tópicos de um fórum
+export async function contarPorForum(forumId: string) {
+  if (!Types.ObjectId.isValid(forumId)) throw new BadRequestError('forumId inválido')
+  const total = await ForumTopic.countDocuments({ forumId: new Types.ObjectId(forumId) })
+  return { total }
+}
+
 export async function criar(forumId: string, usuarioId: string, payload: CriarTopicoPayload) {
   if (!payload.titulo || !payload.conteudo) {
     throw new BadRequestError('Título e conteúdo são obrigatórios')

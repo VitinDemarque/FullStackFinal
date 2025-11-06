@@ -4,6 +4,7 @@ import * as statsService from '@/services/stats.service';
 import ExerciseStat from '@/models/ExerciseStat.model';
 import UserStat from '@/models/UserStat.model';
 import Exercise from '@/models/Exercise.model';
+import Submission from '@/models/Submission.model';
 import { Types } from 'mongoose';
 
 /*
@@ -30,6 +31,10 @@ jest.mock('@/models/UserStat.model', () => ({
 }));
 jest.mock('@/models/Exercise.model', () => ({
     find: jest.fn(),
+    countDocuments: jest.fn(),
+}));
+jest.mock('@/models/Submission.model', () => ({
+    distinct: jest.fn(),
 }));
 
 describe('stats.service', () => {
@@ -100,6 +105,9 @@ describe('stats.service', () => {
                 }),
             });
 
+            (Submission.distinct as jest.Mock).mockResolvedValue(['js', 'ts']);
+            (Exercise.countDocuments as jest.Mock).mockResolvedValue(3);
+
             const result = await statsService.getUserStats('507f1f77bcf86cd799439011');
 
             expect(result).toMatchObject({
@@ -135,6 +143,9 @@ describe('stats.service', () => {
                     lastUpdatedAt: new Date(),
                 }),
             });
+
+            (Submission.distinct as jest.Mock).mockResolvedValue([]);
+            (Exercise.countDocuments as jest.Mock).mockResolvedValue(0);
 
             const result = await statsService.getUserScoreboard('507f1f77bcf86cd799439011');
 

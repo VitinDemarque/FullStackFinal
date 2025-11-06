@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import { AuthenticatedRequest } from '../middlewares/auth'
 import * as ForumService from '../services/forum.service'
 import { NotFoundError, BadRequestError } from '../utils/httpErrors'
+import { isDono } from '../utils/forumAuth'
 
 // Buscar fóruns públicos
 export async function listarPublicos(req: Request, res: Response, next: NextFunction) {
@@ -184,6 +185,24 @@ export async function adicionarModerador(req: AuthenticatedRequest, res: Respons
       return res.status(400).json({ mensagem: 'O campo "userId" é obrigatorio.' })
     }
 
+    const forum = await ForumService.obterPorId(id)
+
+    if (!isDono(forum, req.user.user_id)) {
+      return res.status(403).json({
+        mensagem: 'Apenas o dono do fórum pode adicionar moderadores.',
+      })
+    }
+
+    const ehMembro = forum.membros?.some(
+      (m) => String(m.usuarioId) === userId
+    )
+
+    if (!ehMembro) {
+      return res.status(400).json({
+        mensagem: 'O usuário precisa ser membro do fórum antes de ser promovido a moderador.',
+      })
+    }
+
     const atualizado = await ForumService.adicionarModerador(id, req.user.user_id, userId)
     return res.status(200).json(atualizado)
   } catch (err) {
@@ -202,6 +221,39 @@ export async function removerModerador(req: AuthenticatedRequest, res: Response,
 
     const atualizado = await ForumService.removerModerador(id, req.user.user_id, userId)
     return res.status(200).json(atualizado)
+  } catch (err) {
+    return next(err)
+  }
+}
+
+// Gerar link público de compartilhamento
+export async function compartilhar(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id)
+      return res.status(401).json({ mensagem: 'Usuário não autenticado.' })
+
+    const { id } = req.params
+    const resultado = await ForumService.gerarLinkCompartilhamento(id, req.user.user_id)
+    return res.json(resultado)
+  } catch (err) {
+    return next(err)
+  }
+}
+
+// Entrar no fórum via token de convite
+export async function entrarPorToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id)
+      return res.status(401).json({ mensagem: 'Usuário não autenticado.' })
+
+    const { id } = req.params
+    const { token } = req.body as { token?: string }
+
+    if (!token)
+      return res.status(400).json({ mensagem: 'Token de convite é obrigatório.' })
+
+    const resultado = await ForumService.entrarPorToken(id, req.user.user_id, token)
+    return res.json(resultado)
   } catch (err) {
     return next(err)
   }

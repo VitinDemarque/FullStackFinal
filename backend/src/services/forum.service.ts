@@ -302,6 +302,73 @@ export async function transferirDono(forumId: string, donoAtualId: string, novoD
   return atualizado;
 }
 
+import crypto from 'crypto'
+
+// Gerar ou obter link de compartilhamento
+export async function gerarLinkCompartilhamento(forumId: string, usuarioId: string) {
+  const forum = await Forum.findById(forumId).lean<IForum | null>()
+  if (!forum) throw new NotFoundError('Fórum não encontrado')
+
+  const ehDono = String(forum.donoUsuarioId) === usuarioId
+  const ehModerador = forum.moderadores?.some(m => String(m.usuarioId) === usuarioId)
+
+  if (!ehDono && !ehModerador) {
+    throw new BadRequestError('Apenas o dono ou moderadores podem gerar links de convite.')
+  }
+
+  // Se já houver token ativo, reutiliza
+  if (forum.tokenConvite && forum.tokenConviteExpiraEm && forum.tokenConviteExpiraEm > new Date()) {
+    return { link: `${process.env.FRONTEND_URL}/forum/entrar?token=${forum.tokenConvite}` }
+  }
+
+  // Gera novo token e define validade (7 dias, por exemplo)
+  const token = crypto.randomBytes(16).toString('hex')
+  const expiraEm = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+
+  await Forum.findByIdAndUpdate(forumId, {
+    $set: { tokenConvite: token, tokenConviteExpiraEm: expiraEm },
+  })
+
+  const link = `${process.env.FRONTEND_URL}/forum/entrar?token=${token}`
+  return { link, expiraEm }
+}
+
+// Entrar no fórum via token
+export async function entrarPorToken(forumId: string, usuarioId: string, token: string) {
+  const forum = await Forum.findById(forumId).lean<IForum | null>()
+  if (!forum) throw new NotFoundError('Fórum não encontrado')
+
+  if (forum.statusPrivacidade === 'PRIVADO' && (!forum.tokenConvite || forum.tokenConvite !== token)) {
+    throw new BadRequestError('Token inválido ou fórum privado sem convite válido.')
+  }
+
+  if (forum.tokenConviteExpiraEm && forum.tokenConviteExpiraEm < new Date()) {
+    throw new BadRequestError('Token de convite expirado.')
+  }
+
+  const jaEhMembro =
+    String(forum.donoUsuarioId) === usuarioId ||
+    forum.moderadores?.some(m => String(m.usuarioId) === usuarioId) ||
+    forum.membros?.some(m => String(m.usuarioId) === usuarioId)
+
+  if (jaEhMembro) {
+    throw new BadRequestError('Usuário já participa deste fórum.')
+  }
+
+  const atualizado = await Forum.findByIdAndUpdate(
+    forumId,
+    {
+      $push: { membros: { usuarioId: new Types.ObjectId(usuarioId), desde: new Date() } },
+      $set: { atualizadoEm: new Date(), ultimaAtividade: new Date() },
+    },
+    { new: true }
+  ).lean<IForum | null>()
+
+  if (!atualizado) throw new NotFoundError('Erro ao ingressar no fórum.')
+
+  return atualizado
+}
+
 // Listar moderadores do forum
 export async function listarModeradores(forumId: string) {
   const forum = await Forum.findById(forumId).lean<IForum | null>()

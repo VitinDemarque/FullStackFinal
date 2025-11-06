@@ -24,6 +24,17 @@ export async function obterPorId(req: Request, res: Response, next: NextFunction
   }
 }
 
+// Contar tópicos por fórum (público)
+export async function contarPorForum(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { forumId } = req.params
+    const result = await TopicService.contarPorForum(forumId)
+    return res.json(result)
+  } catch (err) {
+    return next(err)
+  }
+}
+
 // Criar tópico (autenticado)
 export async function criar(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {

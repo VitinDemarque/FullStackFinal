@@ -500,3 +500,69 @@ export const TopicActions = styled.div`
   align-items: center;
   gap: 0.5rem;
 `
+
+// ------- Topic details page: comments UI -------
+export const CommentsHeader = styled.h2`
+  font-size: ${({ theme }) => theme.fontSizes.xl};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  color: var(--color-text-primary);
+  margin: 0 0 0.75rem 0;
+`
+
+export const CommentsList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+`
+
+export const CommentsListWrapper = styled.div`
+  position: relative;
+`
+
+export const CommentItem = styled.li`
+  padding: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  box-shadow: var(--shadow-sm);
+`
+
+export const CommentContent = styled.p`
+  margin: 0;
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  white-space: pre-wrap;
+`
+
+export const CommentMeta = styled.div`
+  margin-top: 0.5rem;
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  color: var(--color-text-light);
+`
+
+export const FadeOverlay = styled.div`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, var(--color-surface) 80%);
+`
+
+export const CommentsFooter = styled.div`
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+`
+
+export const FormRow = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+`

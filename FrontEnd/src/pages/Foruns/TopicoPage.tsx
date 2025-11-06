@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import AuthenticatedLayout from '@/components/Layout/AuthenticatedLayout'
 import { forumTopicService } from '@/services/forumTopic.service'
 import { forumCommentService } from '@/services/forumComment.service'
+import * as S from '@/styles/pages/Foruns/styles'
 import type { ForumComment, ForumTopic } from '@/types/forum'
 
 export default function TopicoPage() {
@@ -15,6 +16,8 @@ export default function TopicoPage() {
   const [erro, setErro] = useState<string | null>(null)
   const [novoComentario, setNovoComentario] = useState('')
   const [enviando, setEnviando] = useState(false)
+  const [mostrarTodos, setMostrarTodos] = useState(false)
+  const formSectionRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     const carregar = async () => {
@@ -52,59 +55,87 @@ export default function TopicoPage() {
     }
   }
 
+  const comentariosVisiveis = mostrarTodos ? comentarios : comentarios.slice(0, 2)
+  const restantes = Math.max(0, comentarios.length - comentariosVisiveis.length)
+
+  const scrollToForm = () => {
+    formSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   return (
     <AuthenticatedLayout>
-      <div className="p-6 bg-gray-100 min-h-screen text-gray-900">
-        <button
-          onClick={() => navigate(-1)}
-          className="mb-4 bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2 rounded transition"
-        >
-          ← Voltar
-        </button>
+      <S.Container>
+        <S.BackButton to={id ? `/foruns/${id}` : '/foruns'}>← Voltar</S.BackButton>
 
-        {loading && <p>Carregando tópico...</p>}
-        {erro && <p className="text-red-600">{erro}</p>}
+        {loading && <S.Loading>Carregando tópico...</S.Loading>}
+        {erro && <S.Error>{erro}</S.Error>}
 
         {topico && (
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h1 className="text-2xl font-bold mb-2">{topico.titulo}</h1>
-            <p className="text-gray-800 whitespace-pre-wrap mb-4">{topico.conteudo}</p>
+          <S.DetailContainer>
+            <S.DetailTitle>{topico.titulo}</S.DetailTitle>
+            <S.DetailText style={{ whiteSpace: 'pre-wrap', marginBottom: '1rem' }}>
+              {topico.conteudo}
+            </S.DetailText>
 
-            <div className="border-t pt-4">
-              <h2 className="text-xl font-semibold mb-2">Comentários</h2>
+            <S.DetailSection>
+              <S.CommentsHeader>Comentários</S.CommentsHeader>
               {comentarios.length === 0 ? (
-                <p className="text-gray-600">Ainda não há comentários.</p>
+                <S.DetailText>Ainda não há comentários.</S.DetailText>
               ) : (
-                <ul className="space-y-3">
-                  {comentarios.map((c) => (
-                    <li key={c._id} className="p-4 bg-gray-50 rounded border">
-                      <p className="text-gray-800 whitespace-pre-wrap">{c.conteudo}</p>
-                      <p className="text-xs text-gray-500 mt-2">{new Date(c.criadoEm || '').toLocaleString()}</p>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+                <>
+                  <S.CommentsListWrapper>
+                    <S.CommentsList>
+                      {comentariosVisiveis.map((c) => (
+                        <S.CommentItem key={c._id}>
+                          <S.CommentContent>{c.conteudo}</S.CommentContent>
+                          <S.CommentMeta>
+                            {new Date(c.criadoEm || '').toLocaleString()}
+                          </S.CommentMeta>
+                        </S.CommentItem>
+                      ))}
+                    </S.CommentsList>
+                    {!mostrarTodos && restantes > 0 && <S.FadeOverlay />}
+                  </S.CommentsListWrapper>
 
-            <div className="border-t pt-4 mt-4">
-              <h3 className="text-lg font-semibold mb-2">Novo comentário</h3>
-              <textarea
-                value={novoComentario}
-                onChange={(e) => setNovoComentario(e.target.value)}
-                placeholder="Escreva seu comentário..."
-                className="w-full border rounded px-3 py-2 h-28"
-              />
-              <button
-                onClick={handleEnviarComentario}
-                disabled={enviando || !novoComentario.trim()}
-                className={`${enviando ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white px-4 py-2 rounded mt-2`}
-              >
-                {enviando ? 'Enviando...' : 'Enviar comentário'}
-              </button>
-            </div>
-          </div>
+                  <S.CommentsFooter>
+                    {restantes > 0 && (
+                      <S.Button variant="secondary" onClick={() => setMostrarTodos(true)}>
+                        Ver mais respostas ({restantes})
+                      </S.Button>
+                    )}
+                    {mostrarTodos && (
+                      <S.Button variant="secondary" onClick={() => setMostrarTodos(false)}>
+                        Mostrar menos
+                      </S.Button>
+                    )}
+                    <S.Button variant="primary" onClick={scrollToForm}>
+                      Comentar
+                    </S.Button>
+                  </S.CommentsFooter>
+                </>
+              )}
+            </S.DetailSection>
+
+            <S.DetailSection ref={formSectionRef}>
+              <S.DetailSectionTitle>Novo comentário</S.DetailSectionTitle>
+              <S.FormRow>
+                <S.Textarea
+                  value={novoComentario}
+                  onChange={(e) => setNovoComentario(e.target.value)}
+                  placeholder="Escreva seu comentário..."
+                />
+                <S.Button
+                  onClick={handleEnviarComentario}
+                  disabled={enviando || !novoComentario.trim()}
+                  variant="primary"
+                >
+                  {enviando ? 'Enviando...' : 'Enviar comentário'}
+                </S.Button>
+              </S.FormRow>
+            </S.DetailSection>
+          </S.DetailContainer>
         )}
-      </div>
+      </S.Container>
     </AuthenticatedLayout>
   )
 }

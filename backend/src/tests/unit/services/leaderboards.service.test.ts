@@ -2,6 +2,7 @@
 
 import * as leaderboardService from '@/services/leaderboards.service';
 import Submission from '@/models/Submission.model';
+import User from '@/models/User.model';
 import { BadRequestError } from '@/utils/httpErrors';
 import { Types } from 'mongoose';
 
@@ -13,7 +14,9 @@ jest.mock('@/models/Submission.model', () => ({
   aggregate: jest.fn(),
 }));
 jest.mock('@/models/Exercise.model', () => ({}));
-jest.mock('@/models/User.model', () => ({}));
+jest.mock('@/models/User.model', () => ({
+  find: jest.fn(),
+}));
 
 /*
 
@@ -54,11 +57,21 @@ describe('leaderboards.service', () => {
   // Testa do general()
   describe('general', () => {
     it('deve retornar ranking geral com posições', async () => {
-      (Submission.aggregate as jest.Mock).mockResolvedValueOnce(mockRows);
+
+      (User.find as jest.Mock).mockReturnValue({
+        select: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValue([
+          { _id: '1', name: 'Alice', handle: 'alice', xpTotal: 100, level: 3 },
+          { _id: '2', name: 'Bob', handle: 'bob', xpTotal: 80, level: 2 },
+        ]),
+      });
 
       const result = await leaderboardService.general({ skip: 0, limit: 10 });
 
-      expect(Submission.aggregate).toHaveBeenCalledTimes(1);
+      expect(User.find).toHaveBeenCalledTimes(1);
       expect(result).toHaveLength(2);
       expect(result[0]).toMatchObject({
         position: 1,

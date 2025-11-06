@@ -5,6 +5,7 @@ import { Group } from "../../types/group.types";
 import { Exercise } from "../../types";
 import { groupService } from "../../services/group.service";
 import { exercisesService } from "../../services/exercises.service";
+import { userService } from "../../services/user.service";
 import styled from "styled-components";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
 import ExerciseCard from "@components/ExerciseCard";
@@ -31,12 +32,6 @@ const BackButton = styled(Link)`
   margin-bottom: 1.5rem;
   transition: all 0.3s ease;
   font-size: 0.875rem;
-
-  &:hover {
-    background: var(--color-surface-hover);
-    border-color: var(--color-border);
-    color: var(--color-text-primary);
-  }
 `;
 
 const Header = styled.div`
@@ -104,9 +99,8 @@ const Button = styled.button<{ variant?: "secondary" | "danger" }>`
           color: var(--color-text-primary);
           border-color: var(--color-border);
 
-          &:hover {
-            background: var(--color-surface-hover);
-            border-color: var(--color-blue-400);
+          .dark & {
+            color: white;
           }
         `;
       case "danger":
@@ -114,22 +108,12 @@ const Button = styled.button<{ variant?: "secondary" | "danger" }>`
           background: var(--color-red-600);
           color: white;
           border-color: var(--color-red-600);
-
-          &:hover {
-            background: var(--color-red-700);
-            border-color: var(--color-red-700);
-          }
         `;
       default:
         return `
           background: var(--color-blue-500);
           color: white;
           border-color: var(--color-blue-500);
-
-          &:hover {
-            background: var(--color-blue-600);
-            border-color: var(--color-blue-600);
-          }
         `;
     }
   }}
@@ -149,17 +133,23 @@ const LinkButton = styled(Link)`
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: none;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   border: 1px solid var(--color-blue-500);
 
-  &:hover {
-    background: var(--color-blue-600);
-    border-color: var(--color-blue-600);
+  .dark & {
     color: white;
+  }
+
+  &:hover,
+  &:focus {
+    color: white !important;
+    background: var(--color-blue-500);
+    border-color: var(--color-blue-500);
+    text-decoration: none;
   }
 `;
 
@@ -171,17 +161,15 @@ const NavLink = styled(Link)`
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: none;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   border: 1px solid var(--color-border);
 
-  &:hover {
-    background: var(--color-surface-hover);
-    border-color: var(--color-blue-400);
-    color: var(--color-text-primary);
+  .dark & {
+    color: white;
   }
 `;
 
@@ -193,17 +181,23 @@ const ProgressLink = styled(Link)`
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: none;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   border: 1px solid var(--color-green-500);
 
-  &:hover {
-    background: var(--color-green-600);
-    border-color: var(--color-green-600);
+  .dark & {
     color: white;
+  }
+
+  &:hover,
+  &:focus {
+    color: white !important;
+    background: var(--color-green-500);
+    border-color: var(--color-green-500);
+    text-decoration: none;
   }
 `;
 
@@ -377,6 +371,7 @@ const GroupDetailsPage: React.FC = () => {
   const [exercisesLoading, setExercisesLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [memberNames, setMemberNames] = useState<Record<string, string>>({});
   
   const [showCreateExerciseModal, setShowCreateExerciseModal] = useState(false);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
@@ -432,6 +427,45 @@ const GroupDetailsPage: React.FC = () => {
   useEffect(() => {
     if (group) {
       loadGroupExercises();
+      // Buscar nomes de membros e do dono
+      const fetchNames = async () => {
+        try {
+          const ids = Array.from(
+            new Set([
+              ...(group.members?.map((m) => m.userId) || []),
+              group.ownerUserId,
+            ].filter((id): id is string => !!id))
+          );
+
+          if (ids.length === 0) return;
+
+          const pairs = await Promise.all(
+            ids.map(async (uid) => {
+              try {
+                const profile = await userService.getPublicProfile(uid);
+                return [uid, profile.user.name] as const;
+              } catch {
+                try {
+                  const user = await userService.getById(uid);
+                  return [uid, user.name] as const;
+                } catch {
+                  return [uid, `Usuário ${uid}`] as const;
+                }
+              }
+            })
+          );
+
+          const map: Record<string, string> = {};
+          pairs.forEach(([uid, name]) => {
+            map[uid] = name;
+          });
+          setMemberNames((prev) => ({ ...prev, ...map }));
+        } catch (e) {
+          // silencioso: mantém fallback para ID
+        }
+      };
+
+      fetchNames();
     }
   }, [group]);
 
@@ -494,14 +528,12 @@ const GroupDetailsPage: React.FC = () => {
         groupId: id,
         authorUserId: user.id
       };
-      
-      await exercisesService.create(exerciseWithGroup);
-      alert('Desafio criado com sucesso no grupo!');
+      const created = await exercisesService.create(exerciseWithGroup);
+      // Publica automaticamente para aparecer na lista do grupo
+      await exercisesService.publish(created.id);
+      alert('Desafio criado e publicado com sucesso no grupo!');
       setShowCreateExerciseModal(false);
-      
-      setTimeout(() => {
-        loadGroupExercises();
-      }, 1000);
+      await loadGroupExercises();
       
     } catch (error: any) {
       alert(error.message || 'Erro ao criar Desafio');
@@ -676,7 +708,7 @@ const GroupDetailsPage: React.FC = () => {
                     <MemberInfo>
                       <MemberName>
                         {member.userId === group.ownerUserId ? "👑 " : ""}
-                        Usuário {member.userId}
+                        {memberNames[member.userId] || `Usuário ${member.userId}`}
                         {member.userId === user?.id && " (Você)"}
                       </MemberName>
                       <MemberRole role={member.role}>
@@ -772,13 +804,6 @@ const GroupDetailsPage: React.FC = () => {
                     : "Os membros do grupo ainda não criaram Desafios."
                   }
                 </EmptyExercisesText>
-                {canCreateExercises && (
-                  <CreateExerciseButton 
-                    onClick={() => setShowCreateExerciseModal(true)}
-                  >
-                    ➕ Criar Primeiro Desafio
-                  </CreateExerciseButton>
-                )}
               </EmptyExercisesState>
             )}
           </ExercisesSection>
