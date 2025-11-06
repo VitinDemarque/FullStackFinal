@@ -30,6 +30,7 @@ export interface Exercise {
   languageId?: string | null
   title: string
   description?: string
+  groupId: string | null;
   difficulty: number
   baseXp: number
   isPublic: boolean

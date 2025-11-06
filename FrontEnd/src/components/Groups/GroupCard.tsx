@@ -207,7 +207,7 @@ interface GroupCardProps {
             
             {isAuthenticated && !isUserMember && group.visibility === 'PUBLIC' && (
               <JoinButton onClick={() => onJoinGroup(group.id)}>
-                Entrar
+                Acessar
               </JoinButton>
             )}
             

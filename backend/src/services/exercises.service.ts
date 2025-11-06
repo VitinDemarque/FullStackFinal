@@ -107,7 +107,7 @@ export async function create(userId: string, payload: Partial<any>) {
     if (!lang) throw new NotFoundError('Language not found');
   }
 
-  let exerciseGroupId: Types.ObjectId | undefined = undefined;
+  let exerciseGroupId: Types.ObjectId | null = null;
   let exerciseIsPublic: boolean = Boolean(payload.isPublic ?? true);
 
   if (payload.groupId) {

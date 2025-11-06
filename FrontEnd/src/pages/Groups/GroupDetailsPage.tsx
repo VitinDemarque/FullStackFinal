@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import { groupService } from "../../services/group.service";
 import { Group } from "../../types/group.types";
+import { Exercise } from "../../types";
+import { groupService } from "../../services/group.service";
+import { exercisesService } from "../../services/exercises.service";
 import styled from "styled-components";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
+import ExerciseCard from "@components/ExerciseCard";
+import CreateGroupExerciseModal from "../../components/Groups/CreateGroupExerciseModal";
 
 const Container = styled.div`
   max-width: 1000px;
@@ -20,12 +24,12 @@ const BackButton = styled(Link)`
   color: var(--color-text-secondary);
   text-decoration: none;
   padding: 0.5rem 1rem;
-  border-radius: ${({ theme }) => theme.borderRadius.md};
+  border-radius: 6px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   margin-bottom: 1.5rem;
   transition: all 0.3s ease;
-  font-size: ${({ theme }) => theme.fontSizes.base};
+  font-size: 0.875rem;
 
   &:hover {
     background: var(--color-surface-hover);
@@ -51,30 +55,13 @@ const TitleSection = styled.div`
 `;
 
 const Title = styled.h1`
-  font-size: ${({ theme }) => theme.fontSizes["4xl"]};
-  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  font-size: 2rem;
+  font-weight: bold;
   color: var(--color-text-primary);
   margin: 0 0 8px 0;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  position: relative;
-
-  &::before {
-    content: "{";
-    color: var(--color-yellow-400);
-    margin-right: 0.25rem;
-  }
-
-  &::after {
-    content: "}";
-    color: var(--color-yellow-400);
-    margin-left: 0.25rem;
-  }
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
-    font-size: ${({ theme }) => theme.fontSizes["2xl"]};
-  }
 `;
 
 const Description = styled.p`
@@ -87,27 +74,26 @@ const MetaInfo = styled.div`
   display: flex;
   gap: 16px;
   color: var(--color-text-light);
-  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-size: 0.875rem;
 `;
 
 const ActionsSection = styled.div`
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
+  align-items: flex-start;
 `;
 
 const Button = styled.button<{ variant?: "secondary" | "danger" }>`
   padding: 0.75rem 1.25rem;
-  border-radius: ${({ theme }) => theme.borderRadius.md};
-  font-size: ${({ theme }) => theme.fontSizes.sm};
+  border-radius: 6px;
+  font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   border: 1px solid transparent;
-  box-shadow: var(--shadow-sm);
 
   ${(props) => {
     switch (props.variant) {
@@ -120,7 +106,6 @@ const Button = styled.button<{ variant?: "secondary" | "danger" }>`
           &:hover {
             background: var(--color-surface-hover);
             border-color: var(--color-blue-400);
-            box-shadow: var(--shadow-md);
           }
         `;
       case "danger":
@@ -128,13 +113,10 @@ const Button = styled.button<{ variant?: "secondary" | "danger" }>`
           background: var(--color-red-600);
           color: white;
           border-color: var(--color-red-600);
-          box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25);
 
           &:hover {
             background: var(--color-red-700);
             border-color: var(--color-red-700);
-            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);
-            transform: translateY(-1px);
           }
         `;
       default:
@@ -142,13 +124,10 @@ const Button = styled.button<{ variant?: "secondary" | "danger" }>`
           background: var(--color-blue-500);
           color: white;
           border-color: var(--color-blue-500);
-          box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
 
           &:hover {
             background: var(--color-blue-600);
             border-color: var(--color-blue-600);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
-            transform: translateY(-1px);
           }
         `;
     }
@@ -158,17 +137,16 @@ const Button = styled.button<{ variant?: "secondary" | "danger" }>`
     background: var(--color-gray-400);
     border-color: var(--color-gray-400);
     cursor: not-allowed;
-    box-shadow: none;
   }
 `;
 
 const LinkButton = styled(Link)`
   padding: 0.75rem 1.25rem;
   background: var(--color-blue-500);
-  color: #fff !important;
-  border-radius: ${({ theme }) => theme.borderRadius.md};
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  color: white;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
@@ -176,31 +154,62 @@ const LinkButton = styled(Link)`
   align-items: center;
   gap: 0.5rem;
   border: 1px solid var(--color-blue-500);
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
-
-  &:link,
-  &:visited {
-    color: #fff !important;
-  }
 
   &:hover {
     background: var(--color-blue-600);
     border-color: var(--color-blue-600);
-    color: #fff !important;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
-    transform: translateY(-1px);
+    color: white;
   }
+`;
 
-  &:active {
-    color: #fff !important;
+const NavLink = styled(Link)`
+  padding: 0.75rem 1.25rem;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--color-border);
+
+  &:hover {
+    background: var(--color-surface-hover);
+    border-color: var(--color-blue-400);
+    color: var(--color-text-primary);
+  }
+`;
+
+const ProgressLink = styled(Link)`
+  padding: 0.75rem 1.25rem;
+  background: var(--color-green-500);
+  color: white;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--color-green-500);
+
+  &:hover {
+    background: var(--color-green-600);
+    border-color: var(--color-green-600);
+    color: white;
   }
 `;
 
 const Content = styled.div`
   background: var(--color-surface);
   color: var(--color-text-primary);
-  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  border-radius: 12px;
   padding: 2rem;
   box-shadow: var(--shadow-md);
   border: 1px solid var(--color-border);
@@ -217,7 +226,7 @@ const Section = styled.div`
 const SectionTitle = styled.h2`
   color: var(--color-text-primary);
   margin: 0 0 16px 0;
-  font-size: ${({ theme }) => theme.fontSizes.xl};
+  font-size: 1.25rem;
 `;
 
 const MembersList = styled.div`
@@ -232,9 +241,8 @@ const MemberItem = styled.div`
   align-items: center;
   padding: 12px;
   border: 1px solid var(--color-border);
-  border-radius: ${({ theme }) => theme.borderRadius.md};
+  border-radius: 8px;
   background: var(--color-surface);
-  box-shadow: var(--shadow-sm);
 `;
 
 const MemberInfo = styled.div`
@@ -244,15 +252,15 @@ const MemberInfo = styled.div`
 `;
 
 const MemberName = styled.span`
-  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  font-weight: 500;
   color: var(--color-text-primary);
 `;
 
 const MemberRole = styled.span<{ role: string }>`
   padding: 4px 8px;
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
-  font-size: ${({ theme }) => theme.fontSizes.xs};
-  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
 
   ${(props) =>
     props.role === "MODERATOR"
@@ -276,7 +284,7 @@ const LoadingContainer = styled.div`
 `;
 
 const Spinner = styled.div`
-  font-size: ${({ theme }) => theme.fontSizes.base};
+  font-size: 1.125rem;
   color: var(--color-text-secondary);
 `;
 
@@ -284,9 +292,78 @@ const ErrorMessage = styled.div`
   background: var(--color-danger-bg);
   color: var(--color-danger-text);
   padding: 1rem;
-  border-radius: ${({ theme }) => theme.borderRadius.md};
+  border-radius: 8px;
   text-align: center;
   border: 1px solid var(--color-red-400);
+`;
+
+const ExercisesSection = styled(Section)`
+  margin-top: 40px;
+`;
+
+const ExercisesHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+`;
+
+const ExercisesTitle = styled(SectionTitle)`
+  margin: 0;
+`;
+
+const CreateExerciseButton = styled.button`
+  background: var(--color-blue-500);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &:hover {
+    background: var(--color-blue-600);
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    background: var(--color-gray-400);
+    cursor: not-allowed;
+  }
+`;
+
+const ExercisesGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const EmptyExercisesState = styled.div`
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--color-text-secondary);
+  border: 2px dashed var(--color-border);
+  border-radius: 12px;
+`;
+
+const EmptyExercisesTitle = styled.h3`
+  margin: 0 0 12px 0;
+  color: var(--color-text-primary);
+`;
+
+const EmptyExercisesText = styled.p`
+  margin: 0 0 24px 0;
 `;
 
 const GroupDetailsPage: React.FC = () => {
@@ -295,8 +372,12 @@ const GroupDetailsPage: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
 
   const [group, setGroup] = useState<Group | null>(null);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [exercisesLoading, setExercisesLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  
+  const [showCreateExerciseModal, setShowCreateExerciseModal] = useState(false);
 
   const loadGroup = async () => {
     if (!id) return;
@@ -305,15 +386,45 @@ const GroupDetailsPage: React.FC = () => {
       const groupData = await groupService.getById(id);
       setGroup(groupData);
     } catch (error: any) {
-      // Error loading group
+      console.error('Erro ao carregar grupo:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadGroupExercises = async () => {
+    if (!id) return;
+
+    try {
+      setExercisesLoading(true);
+      const response = await exercisesService.getAll({
+        page: 1,
+        limit: 50
+      });
+      
+      const groupExercises = response.items
+        .filter(exercise => exercise.groupId === id)
+        .map(exercise => ({
+          ...exercise,
+          languageId: exercise.languageId || null
+        }));
+      setExercises(groupExercises);
+    } catch (error: any) {
+      console.error('Erro ao carregar exercícios:', error);
+    } finally {
+      setExercisesLoading(false);
     }
   };
 
   useEffect(() => {
     loadGroup();
   }, [id]);
+
+  useEffect(() => {
+    if (group) {
+      loadGroupExercises();
+    }
+  }, [group]);
 
   const handleJoin = async () => {
     if (!id || !isAuthenticated) return;
@@ -350,12 +461,7 @@ const GroupDetailsPage: React.FC = () => {
   const handleDelete = async () => {
     if (!id || !isAuthenticated) return;
 
-    if (
-      !confirm(
-        "Tem certeza que deseja excluir este grupo? Esta ação não pode ser desfeita."
-      )
-    )
-      return;
+    if (!confirm("Tem certeza que deseja excluir este grupo? Esta ação não pode ser desfeita.")) return;
 
     setActionLoading(true);
     try {
@@ -369,6 +475,48 @@ const GroupDetailsPage: React.FC = () => {
     }
   };
 
+  const handleCreateExercise = async (exerciseData: any) => {
+    if (!id || !user) return;
+
+    try {
+      setActionLoading(true);
+      const exerciseWithGroup = {
+        ...exerciseData,
+        groupId: id,
+        authorUserId: user.id
+      };
+      
+      await exercisesService.create(exerciseWithGroup);
+      alert('Desafio criado com sucesso no grupo!');
+      setShowCreateExerciseModal(false);
+      
+      setTimeout(() => {
+        loadGroupExercises();
+      }, 1000);
+      
+    } catch (error: any) {
+      alert(error.message || 'Erro ao criar Desafio');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleEditExercise = (exerciseId: string) => {
+    navigate(`/exercises/${exerciseId}/edit`);
+  };
+
+  const handleDeleteExercise = async (exerciseId: string) => {
+    if (!confirm('Tem certeza que deseja excluir este Desafio?')) return;
+
+    try {
+      await exercisesService.delete(exerciseId);
+      alert('Desafio excluído com sucesso!');
+      loadGroupExercises();
+    } catch (error: any) {
+      alert(error.message || 'Erro ao excluir Desafio');
+    }
+  };
+
   const isUserMember = group?.members?.some(
     (member) => member.userId === user?.id
   );
@@ -376,6 +524,8 @@ const GroupDetailsPage: React.FC = () => {
   const isUserModerator = group?.members?.some(
     (member) => member.userId === user?.id && member.role === "MODERATOR"
   );
+
+  const canCreateExercises = isUserMember;
 
   if (loading) {
     return (
@@ -404,7 +554,8 @@ const GroupDetailsPage: React.FC = () => {
   return (
     <AuthenticatedLayout>
       <Container>
-        <BackButton to="/grupos">← Voltar</BackButton>
+        <BackButton to="/grupos">← Voltar para Grupos</BackButton>
+        
         <Header>
           <TitleSection>
             <Title>{group.name}</Title>
@@ -440,23 +591,35 @@ const GroupDetailsPage: React.FC = () => {
               </Button>
             )}
 
+            {isUserMember && (
+              <>
+                <NavLink to={`/grupos/${group.id}/exercicios`}>
+                  💻 Ver Desafios
+                </NavLink>
+                
+                <ProgressLink to={`/grupos/${group.id}/progresso`}>
+                  📊 Meu Progresso
+                </ProgressLink>
+              </>
+            )}
+
             {(isUserOwner || isUserModerator) && (
               <LinkButton to={`/grupos/${group.id}/membros`}>
-                Gerenciar Membros
+                👥 Gerenciar Membros
               </LinkButton>
             )}
 
             {isUserOwner && (
               <>
                 <LinkButton to={`/grupos/${group.id}/editar`}>
-                  Editar Grupo
+                  ✏️ Editar Grupo
                 </LinkButton>
                 <Button
                   variant="danger"
                   onClick={handleDelete}
                   disabled={actionLoading}
                 >
-                  {actionLoading ? "Excluindo..." : "Excluir Grupo"}
+                  {actionLoading ? "Excluindo..." : "🗑️ Excluir Grupo"}
                 </Button>
               </>
             )}
@@ -474,6 +637,7 @@ const GroupDetailsPage: React.FC = () => {
                       <MemberName>
                         {member.userId === group.ownerUserId ? "👑 " : ""}
                         Usuário {member.userId}
+                        {member.userId === user?.id && " (Você)"}
                       </MemberName>
                       <MemberRole role={member.role}>
                         {member.role === "MODERATOR" ? "Moderador" : "Membro"}
@@ -493,7 +657,100 @@ const GroupDetailsPage: React.FC = () => {
               )}
             </MembersList>
           </Section>
+
+          <ExercisesSection>
+            <ExercisesHeader>
+              <ExercisesTitle>
+                Desafios do Grupo ({exercises.length})
+              </ExercisesTitle>
+              
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                {exercises.length > 0 && (
+                  <NavLink to={`/grupos/${group.id}/exercicios`}>
+                    Ver Todos os Desafios →
+                  </NavLink>
+                )}
+                
+                {canCreateExercises && (
+                  <CreateExerciseButton 
+                    onClick={() => setShowCreateExerciseModal(true)}
+                    disabled={actionLoading}
+                  >
+                    ➕ Criar Desafio
+                  </CreateExerciseButton>
+                )}
+              </div>
+            </ExercisesHeader>
+
+            {exercisesLoading ? (
+              <LoadingContainer>
+                <Spinner>Carregando Desafios...</Spinner>
+              </LoadingContainer>
+            ) : exercises.length > 0 ? (
+              <ExercisesGrid>
+                {exercises.slice(0, 3).map((exercise) => (
+                  <ExerciseCard
+                    key={exercise.id}
+                    id={exercise.id}
+                    title={exercise.title}
+                    description={exercise.description || ''}
+                    icon="💻"
+                    votes={0}
+                    comments={0}
+                    lastModified={new Date(exercise.updatedAt || exercise.createdAt).toLocaleDateString('pt-BR')}
+                    status={exercise.status}
+                    onEdit={() => handleEditExercise(exercise.id)}
+                    onDelete={() => handleDeleteExercise(exercise.id)}
+                    onInactivate={() => {}}
+                  />
+                ))}
+                {exercises.length > 3 && (
+                  <div style={{ 
+                    gridColumn: '1 / -1', 
+                    textAlign: 'center', 
+                    padding: '20px',
+                    border: '2px dashed var(--color-border)',
+                    borderRadius: '12px'
+                  }}>
+                    <p style={{ margin: '0 0 16px 0', color: 'var(--color-text-secondary)' }}>
+                      E mais {exercises.length - 3} Desafios...
+                    </p>
+                    <NavLink to={`/grupos/${group.id}/exercicios`}>
+                      Ver Todos os {exercises.length} Desafios
+                    </NavLink>
+                  </div>
+                )}
+              </ExercisesGrid>
+            ) : (
+              <EmptyExercisesState>
+                <EmptyExercisesTitle>
+                  {canCreateExercises ? "Nenhum Desafio criado ainda" : "Nenhum Desafio no grupo"}
+                </EmptyExercisesTitle>
+                <EmptyExercisesText>
+                  {canCreateExercises 
+                    ? "Seja o primeiro a criar um Desafio para este grupo!"
+                    : "Os membros do grupo ainda não criaram Desafios."
+                  }
+                </EmptyExercisesText>
+                {canCreateExercises && (
+                  <CreateExerciseButton 
+                    onClick={() => setShowCreateExerciseModal(true)}
+                  >
+                    ➕ Criar Primeiro Desafio
+                  </CreateExerciseButton>
+                )}
+              </EmptyExercisesState>
+            )}
+          </ExercisesSection>
         </Content>
+
+        <CreateGroupExerciseModal
+          isOpen={showCreateExerciseModal}
+          onClose={() => setShowCreateExerciseModal(false)}
+          onSubmit={handleCreateExercise}
+          groupId={id!}
+          groupName={group.name}
+        />
       </Container>
     </AuthenticatedLayout>
   );

@@ -21,6 +21,8 @@ import GroupCreatePage from "./pages/Groups/GroupCreatePage";
 import GroupDetailsPage from "./pages/Groups/GroupDetailsPage";
 import GroupEditPage from "./pages/Groups/GroupEditPage";
 import GroupMembersPage from "./pages/Groups/GroupMembersPage";
+import GroupExercisesPage from "./pages/Groups/GroupExercisesPage";
+import GroupProgressPage from "./pages/Groups/GroupProgressPage";
 import ThemeTest from "@components/ThemeTest";
 import CollegeCreatePage from "@pages/Colleges/CollegeCreatePage";
 
@@ -110,6 +112,7 @@ function App() {
                 </PrivateRoute>
               }
             />
+            {/* ROTAS DE GRUPOS */}
             <Route
               path="/grupos"
               element={
@@ -147,6 +150,23 @@ function App() {
               element={
                 <PrivateRoute>
                   <GroupMembersPage />
+                </PrivateRoute>
+              }
+            />
+            {/* NOVAS ROTAS ADICIONADAS */}
+            <Route
+              path="/grupos/:id/exercicios"
+              element={
+                <PrivateRoute>
+                  <GroupExercisesPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/grupos/:id/progresso"
+              element={
+                <PrivateRoute>
+                  <GroupProgressPage />
                 </PrivateRoute>
               }
             />
