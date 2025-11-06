@@ -1,6 +1,5 @@
 import { PipelineStage, Types } from 'mongoose';
 import Submission from '../models/Submission.model';
-import Exercise from '../models/Exercise.model';
 import User from '../models/User.model';
 import { BadRequestError } from '../utils/httpErrors';
 
