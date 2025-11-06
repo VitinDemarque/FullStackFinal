@@ -5,7 +5,7 @@ import { useAuth } from '@contexts/AuthContext'
 import { collegesService } from '@services/colleges.service'
 import { apiRequest } from '@services/api'
 import type { College } from '@/types/index'
-import { FaArrowLeft, FaSave, FaUserEdit, FaKey } from 'react-icons/fa'
+import { FaArrowLeft, FaSave, FaUserEdit, FaKey, FaPlus } from 'react-icons/fa'
 import styled from 'styled-components'
 
 const PageContainer = styled.div`
@@ -88,32 +88,44 @@ const Label = styled.label`
 `
 
 const Input = styled.input`
-  background: var(--background);
+  background: var(--color-gray-200);
   color: var(--text-primary);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 10px 12px;
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+
+  &::placeholder {
+    color: var(--color-text-light);
+  }
 
   &:focus {
     border-color: var(--primary);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
   }
+
+  .dark & {
+    background: var(--color-gray-800);
+  }
 `
 
 const Select = styled.select`
-  background: var(--background);
+  background: var(--color-gray-200);
   color: var(--text-primary);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 10px 12px;
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 
   &:focus {
     border-color: var(--primary);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
+
+  .dark & {
+    background: var(--color-gray-800);
   }
 `
 
@@ -127,9 +139,9 @@ const PrimaryButton = styled.button`
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: var(--primary);
+  background: var(--gradient-green);
   color: #fff;
-  border: 1px solid var(--primary);
+  border: 1px solid var(--color-green-500);
   border-radius: 10px;
   padding: 10px 14px;
   cursor: pointer;
@@ -137,8 +149,6 @@ const PrimaryButton = styled.button`
   transition: all 0.2s ease;
 
   &:hover {
-    background: var(--primary-hover);
-    border-color: var(--primary-hover);
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);
   }
@@ -153,9 +163,9 @@ const SecondaryButton = styled.button`
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: var(--surface);
-  color: var(--text-secondary);
-  border: 1px solid var(--border);
+  background: var(--color-red-600);
+  color: #fff;
+  border: 1px solid var(--color-red-600);
   border-radius: 10px;
   padding: 10px 14px;
   cursor: pointer;
@@ -163,9 +173,10 @@ const SecondaryButton = styled.button`
   transition: all 0.2s ease;
 
   &:hover {
-    background: var(--surface-hover);
-    color: var(--text-primary);
+    background: var(--color-red-700);
+    border-color: var(--color-red-700);
     transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
   }
 `
 
@@ -173,12 +184,51 @@ const HelpText = styled.small`
   color: var(--text-light);
 `
 
+const ErrorText = styled.small`
+  color: var(--color-red-600);
+  font-weight: 600;
+`
+
 const Inline = styled.div`
   grid-column: 1 / -1;
 `
 
+const InlineRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`
+
+const IconButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--color-blue-500);
+  background: var(--color-blue-500);
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.35);
+
+  &:hover {
+    background: var(--color-blue-600);
+    border-color: var(--color-blue-600);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.45);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35);
+  }
+`
+
 export default function ProfileEditPage() {
   const navigate = useNavigate()
+  const [newCollegeId, setNewCollegeId] = useState<string | null>(null)
   const { user, updateUser } = useAuth()
 
   const [loading, setLoading] = useState(false)
@@ -186,10 +236,10 @@ export default function ProfileEditPage() {
   const [form, setForm] = useState({
     name: '',
     email: '',
-    handle: '',
     collegeId: '' as string | '',
     currentPassword: '',
     newPassword: '',
+    confirmNewPassword: '',
   })
 
   useEffect(() => {
@@ -198,20 +248,38 @@ export default function ProfileEditPage() {
         ...prev,
         name: user.name || '',
         email: user.email || '',
-        handle: user.handle || '',
         collegeId: user.collegeId || '',
       }))
     }
 
+    // Detectar newCollegeId via query string
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const createdId = params.get('newCollegeId')
+      if (createdId) {
+        setNewCollegeId(createdId)
+      }
+    } catch {}
+
     // carregar faculdades
     collegesService.getAll(1, 100)
-      .then((res) => setColleges(res.items))
+      .then((res) => {
+        setColleges(res.items)
+        if (newCollegeId) {
+          setForm((prev) => ({ ...prev, collegeId: newCollegeId }))
+        }
+      })
       .catch(() => setColleges([]))
-  }, [user?.id])
+  }, [user?.id, newCollegeId])
 
   const canSubmitProfile = useMemo(() => {
-    return !!form.name && !!form.email
-  }, [form.name, form.email])
+    const isChangingPassword = !!form.currentPassword || !!form.newPassword || !!form.confirmNewPassword
+    const passwordsValid = !isChangingPassword || (
+      !!form.currentPassword && !!form.newPassword && form.newPassword === form.confirmNewPassword
+    )
+    const basicsValid = !!form.name && !!form.email
+    return basicsValid && passwordsValid
+  }, [form.name, form.email, form.currentPassword, form.newPassword, form.confirmNewPassword])
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const { name, value } = e.target
@@ -228,7 +296,6 @@ export default function ProfileEditPage() {
       const payload: any = {
         name: form.name,
         email: form.email,
-        handle: form.handle,
         collegeId: form.collegeId || null,
       }
 
@@ -238,7 +305,17 @@ export default function ProfileEditPage() {
       }
 
       // Alterar senha se informada
-      if (form.currentPassword && form.newPassword) {
+      if (form.currentPassword || form.newPassword || form.confirmNewPassword) {
+        if (!form.currentPassword || !form.newPassword || !form.confirmNewPassword) {
+          alert('❌ Para alterar a senha, preencha os três campos: senha atual, nova senha e confirmação.')
+          setLoading(false)
+          return
+        }
+        if (form.newPassword !== form.confirmNewPassword) {
+          alert('❌ As novas senhas não coincidem. Verifique e tente novamente.')
+          setLoading(false)
+          return
+        }
         await apiRequest<any>('POST', '/users/me/password', {
           currentPassword: form.currentPassword,
           newPassword: form.newPassword,
@@ -267,35 +344,47 @@ export default function ProfileEditPage() {
         <Card>
           <SectionTitle>Informações Pessoais</SectionTitle>
           <Form onSubmit={handleSubmit}>
-            <FormGroup>
-              <Label>Nome</Label>
-              <Input name="name" value={form.name} onChange={handleChange} placeholder="Seu nome" />
-            </FormGroup>
-
-            <FormGroup>
-              <Label>Email</Label>
-              <Input type="email" name="email" value={form.email} onChange={handleChange} placeholder="Seu email" />
-            </FormGroup>
-
             <Inline>
               <FormGroup>
-                <Label>Apelido (handle)</Label>
-                <Input name="handle" value={form.handle} onChange={handleChange} placeholder="Seu apelido" />
-                <HelpText>Como seu nome aparece publicamente no sistema.</HelpText>
+                <Label>Nome</Label>
+                <Input name="name" value={form.name} onChange={handleChange} placeholder="Seu nome" />
               </FormGroup>
             </Inline>
 
             <Inline>
               <FormGroup>
+                <Label>Email</Label>
+                <Input type="email" name="email" value={form.email} onChange={handleChange} placeholder="Seu email" />
+              </FormGroup>
+            </Inline>
+
+            {/* Campo de apelido removido conforme solicitado */}
+
+            <Inline>
+              <FormGroup>
                 <Label>Faculdade</Label>
-                <Select name="collegeId" value={form.collegeId} onChange={handleChange}>
-                  <option value="">Selecionar...</option>
-                  {colleges.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} {c.acronym ? `(${c.acronym})` : ''}
-                    </option>
-                  ))}
-                </Select>
+                <InlineRow>
+                  <Select name="collegeId" value={form.collegeId} onChange={handleChange}>
+                    <option value="">Selecionar...</option>
+                    {colleges.map((c) => {
+                      const acronym = c.acronym?.trim()
+                      const hasAcronymInName = acronym
+                        ? (c.name || '').toLowerCase().includes(`(${acronym.toLowerCase()})`)
+                        : false
+                      const displayName = hasAcronymInName
+                        ? c.name
+                        : `${c.name}${acronym ? ` (${acronym})` : ''}`
+                      return (
+                        <option key={c.id} value={c.id}>
+                          {displayName}
+                        </option>
+                      )
+                    })}
+                  </Select>
+                  <IconButton type="button" aria-label="Cadastrar nova faculdade" title="Cadastrar nova faculdade" onClick={() => navigate('/faculdades/criar')}>
+                    <FaPlus />
+                  </IconButton>
+                </InlineRow>
                 <HelpText>Opcional: altere sua instituição de ensino.</HelpText>
               </FormGroup>
             </Inline>
@@ -304,15 +393,36 @@ export default function ProfileEditPage() {
               <SectionTitle><FaKey /> Alterar Senha</SectionTitle>
             </Inline>
 
-            <FormGroup>
-              <Label>Senha atual</Label>
-              <Input type="password" name="currentPassword" value={form.currentPassword} onChange={handleChange} placeholder="Informe sua senha atual" />
-            </FormGroup>
+            <Inline>
+              <FormGroup>
+                <Label>Senha atual</Label>
+                <Input type="password" name="currentPassword" value={form.currentPassword} onChange={handleChange} placeholder="Informe sua senha atual" />
+              </FormGroup>
+            </Inline>
 
-            <FormGroup>
-              <Label>Nova senha</Label>
-              <Input type="password" name="newPassword" value={form.newPassword} onChange={handleChange} placeholder="Escolha uma nova senha" />
-            </FormGroup>
+            <Inline>
+              <FormGroup>
+                <Label>Nova senha</Label>
+                <Input type="password" name="newPassword" value={form.newPassword} onChange={handleChange} placeholder="Escolha uma nova senha" />
+              </FormGroup>
+            </Inline>
+
+            <Inline>
+              <FormGroup>
+                <Label>Confirmar nova senha</Label>
+                <Input
+                  type="password"
+                  name="confirmNewPassword"
+                  value={form.confirmNewPassword}
+                  onChange={handleChange}
+                  placeholder="Confirme a nova senha"
+                  aria-invalid={form.newPassword && form.confirmNewPassword && form.newPassword !== form.confirmNewPassword ? true : undefined}
+                />
+                {form.newPassword && form.confirmNewPassword && form.newPassword !== form.confirmNewPassword && (
+                  <ErrorText role="alert">As novas senhas não coincidem.</ErrorText>
+                )}
+              </FormGroup>
+            </Inline>
 
             <Inline>
               <Actions>

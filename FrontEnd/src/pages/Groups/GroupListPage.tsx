@@ -9,8 +9,8 @@ import AuthenticatedLayout from '@components/Layout/AuthenticatedLayout';
 
 const Container = styled.div`
   max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+  margin: 0; /* remove centering to alinhar com o sidebar */
+  padding: 24px;
 `;
 
 const Header = styled.div`

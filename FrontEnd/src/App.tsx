@@ -23,6 +23,7 @@ import GroupDetailsPage from './pages/Groups/GroupDetailsPage';
 import GroupEditPage from './pages/Groups/GroupEditPage';
 import GroupMembersPage from './pages/Groups/GroupMembersPage';
 import ThemeTest from '@components/ThemeTest';
+import CollegeCreatePage from '@pages/Colleges/CollegeCreatePage'
 
 
 function App() {
@@ -111,6 +112,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <ProfileEditPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/faculdades/criar"
+              element={
+                <PrivateRoute>
+                  <CollegeCreatePage />
                 </PrivateRoute>
               }
             />
