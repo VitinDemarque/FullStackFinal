@@ -10,6 +10,7 @@
     "start": "node dist/server.js",
     "test": "jest",
     "test:coverage": "jest --coverage",
+    "seed": "ts-node src/scripts/seed.ts",
     "seed:colleges": "ts-node src/scripts/seed-colleges.ts"
   },
   "keywords": [],

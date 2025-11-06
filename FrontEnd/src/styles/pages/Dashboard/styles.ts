@@ -128,9 +128,9 @@ export const StatCard = styled.div<StatCardProps>`
   svg {
     font-size: 2.5rem;
     color: ${(props) =>
-      props.variant === 'trophy'
-        ? theme.colors.secondary
-        : theme.colors.yellow[200]};
+    props.variant === 'trophy'
+      ? theme.colors.secondary
+      : theme.colors.yellow[200]};
   }
 `
 
@@ -166,6 +166,13 @@ export const SectionTitle = styled.h2`
   svg {
     color: ${theme.colors.primary};
   }
+`
+
+export const SectionDescription = styled.p`
+  font-size: ${theme.fontSizes.base};
+  color: var(--color-text-secondary);
+  margin-bottom: 1.5rem;
+  margin-top: -1rem;
 `
 
 // ============================================
@@ -208,17 +215,17 @@ export const ProgressCard = styled.div<ProgressCardProps>`
     padding: 1rem;
     border-radius: ${theme.borderRadius.md};
     background: ${(props) => {
-      switch (props.variant) {
-        case 'purple':
-          return theme.gradients.primary
-        case 'blue':
-          return theme.gradients.blue
-        case 'green':
-          return theme.gradients.green
-        default:
-          return theme.gradients.primary
-      }
-    }};
+    switch (props.variant) {
+      case 'purple':
+        return theme.gradients.primary
+      case 'blue':
+        return theme.gradients.blue
+      case 'green':
+        return theme.gradients.green
+      default:
+        return theme.gradients.primary
+    }
+  }};
   }
 `
 
@@ -305,11 +312,12 @@ export const RecommendationsGrid = styled.div`
 `
 
 export const ExerciseCard = styled.div`
-  background: var(--color-surface);
+  background: white;
   border-radius: ${theme.borderRadius.lg};
   overflow: hidden;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
   transition: ${theme.transitions.all};
+  border: 1px solid ${theme.colors.gray[200]};
 
   &:hover {
     transform: translateY(-5px);
@@ -322,12 +330,12 @@ export const CardHeader = styled.div`
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  background: ${theme.colors.gray[50]};
+  border-bottom: 1px solid ${theme.colors.gray[200]};
 `
 
 interface DifficultyBadgeProps {
-  difficulty: 'fácil' | 'médio' | 'difícil' | 'expert'
+  difficulty: 'fácil' | 'médio' | 'difícil' | 'expert' | 'master'
 }
 
 export const DifficultyBadge = styled.span<DifficultyBadgeProps>`
@@ -343,8 +351,10 @@ export const DifficultyBadge = styled.span<DifficultyBadgeProps>`
       case 'médio':
         return theme.colors.warning.bg
       case 'difícil':
-      case 'expert':
         return theme.colors.danger.bg
+      case 'expert':
+      case 'master':
+        return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
       default:
         return theme.colors.warning.bg
     }
@@ -356,8 +366,10 @@ export const DifficultyBadge = styled.span<DifficultyBadgeProps>`
       case 'médio':
         return theme.colors.warning.text
       case 'difícil':
-      case 'expert':
         return theme.colors.danger.text
+      case 'expert':
+      case 'master':
+        return 'white'
       default:
         return theme.colors.warning.text
     }
@@ -386,6 +398,18 @@ export const CardTitle = styled.h3`
   font-weight: ${theme.fontWeights.semibold};
   color: var(--color-text-primary);
   margin-bottom: 0.75rem;
+`
+
+export const CardDescription = styled.p`
+  font-size: ${theme.fontSizes.sm};
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 `
 
 export const CardLanguage = styled.p`

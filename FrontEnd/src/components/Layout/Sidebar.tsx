@@ -1,37 +1,44 @@
-import { useLocation, useNavigate } from 'react-router-dom'
-import { FaComments, FaHome, FaCode, FaTrophy, FaStar, FaUser, FaCog, FaSignOutAlt, FaChartLine, FaUsers } from 'react-icons/fa'
-import { useAuth } from '@contexts/AuthContext'
-import * as S from '@/styles/components/Sidebar/styles'
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  FaComments,
+  FaHome,
+  FaCode,
+  FaTrophy,
+  FaUser,
+  FaCog,
+  FaSignOutAlt,
+  FaUsers,
+} from "react-icons/fa";
+import { useAuth } from "@contexts/AuthContext";
+import * as S from "@/styles/components/Sidebar/styles";
 
 export default function Sidebar() {
-  const location = useLocation()
-  const navigate = useNavigate()
-  const { user, logout } = useAuth()
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const menuItems = [
-    { path: '/dashboard', icon: FaHome, label: 'Dashboard' },
-    { path: '/desafios', icon: FaCode, label: 'Desafios' },
-    { path: '/foruns', icon: FaComments, label: 'Fóruns' },
-    { path: '/grupos', icon: FaUsers, label: 'Grupos' },
-    { path: '/em-andamento', icon: FaChartLine, label: 'Em Andamento' },
-    { path: '/ranking', icon: FaTrophy, label: 'Ranking' },
-    { path: '/recomendacoes', icon: FaStar, label: 'Recomendações' },
-    { path: '/profile', icon: FaUser, label: 'Perfil' },
-    { path: '/configuracoes', icon: FaCog, label: 'Configurações' },
-  ]
+    { path: "/dashboard", icon: FaHome, label: "Dashboard" },
+    { path: "/desafios", icon: FaCode, label: "Desafios" },
+    { path: "/foruns", icon: FaComments, label: "Fóruns" },
+    { path: "/grupos", icon: FaUsers, label: "Grupos" },
+    { path: "/ranking", icon: FaTrophy, label: "Ranking" },
+    { path: "/profile", icon: FaUser, label: "Perfil" },
+    { path: "/configuracoes", icon: FaCog, label: "Configurações" },
+  ];
 
   const handleLogout = () => {
-    logout()
-    navigate('/login', { replace: true })
-  }
+    logout();
+    navigate("/login", { replace: true });
+  };
 
   return (
     <S.SidebarContainer>
       <S.SidebarHeader>
         <S.Logo to="/dashboard">
-          <S.LogoBracket>{'{'}</S.LogoBracket>
+          <S.LogoBracket>{"{"}</S.LogoBracket>
           <S.LogoText>DevQuest</S.LogoText>
-          <S.LogoBracket>{'}'}</S.LogoBracket>
+          <S.LogoBracket>{"}"}</S.LogoBracket>
         </S.Logo>
       </S.SidebarHeader>
 
@@ -44,7 +51,7 @@ export default function Sidebar() {
           )}
         </S.UserAvatar>
         <S.UserDetails>
-          <S.UserName>{user?.name || 'Usuário'}</S.UserName>
+          <S.UserName>{user?.name || "Usuário"}</S.UserName>
           <S.UserLevel>Level {user?.level || 1}</S.UserLevel>
         </S.UserDetails>
       </S.UserInfo>
@@ -52,8 +59,8 @@ export default function Sidebar() {
       <S.Navigation>
         <S.NavList>
           {menuItems.map((item) => {
-            const Icon = item.icon
-            const isActive = location.pathname === item.path
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
 
             return (
               <li key={item.path}>
@@ -62,7 +69,7 @@ export default function Sidebar() {
                   <span>{item.label}</span>
                 </S.NavItem>
               </li>
-            )
+            );
           })}
         </S.NavList>
       </S.Navigation>
@@ -72,6 +79,5 @@ export default function Sidebar() {
         <span>Sair</span>
       </S.LogoutButton>
     </S.SidebarContainer>
-  )
+  );
 }
-

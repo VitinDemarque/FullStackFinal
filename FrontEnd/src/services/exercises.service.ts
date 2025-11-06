@@ -61,4 +61,13 @@ export const exercisesService = {
       params: filters,
     })
   },
+
+  async getMyPublished(filters?: ExerciseFilters): Promise<PaginatedResponse<Exercise>> {
+    return apiRequest<PaginatedResponse<Exercise>>('GET', '/exercises/mine', undefined, {
+      params: {
+        ...filters,
+        status: 'PUBLISHED',
+      },
+    })
+  },
 }

@@ -74,13 +74,13 @@ export function useFetch<T>(
       }
       throw err
     }
-  }, [fetchFunction, ...dependencies])
+  }, dependencies)
 
   useEffect(() => {
     if (immediate) {
       execute()
     }
-  }, [execute])
+  }, [immediate, execute])
 
   return {
     ...state,

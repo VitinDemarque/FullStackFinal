@@ -53,10 +53,23 @@ export async function getUserStats(userId: string) {
   // TIPAGEM explícita no lean()
   const stats = await UserStat.findOne({ userId: new Types.ObjectId(userId) }).lean<IUserStat | null>();
 
+  // Buscar linguagens únicas usadas pelo usuário em suas submissões
+  const languagesUsed = await Submission.distinct('languageId', { 
+    userId: new Types.ObjectId(userId) 
+  });
+
+  // Contar desafios publicados pelo usuário
+  const publishedChallenges = await Exercise.countDocuments({
+    authorUserId: new Types.ObjectId(userId),
+    status: 'PUBLISHED'
+  });
+
   return {
     userId,
     exercisesCreatedCount: stats?.exercisesCreatedCount ?? 0,
     exercisesSolvedCount: stats?.exercisesSolvedCount ?? 0,
+    languagesUsed: languagesUsed.length,
+    publishedChallenges,
     lastUpdatedAt: stats?.lastUpdatedAt ?? null
   };
 }

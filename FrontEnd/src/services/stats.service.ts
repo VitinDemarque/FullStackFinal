@@ -3,7 +3,6 @@ import { apiRequest } from './api'
 export interface DashboardStats {
   languages: number
   challenges: number
-  exercises: number
   totalXp: number
   level: number
   weekProgress: number
@@ -21,32 +20,31 @@ export interface UserProgress {
 export const statsService = {
   async getDashboardStats(userId: string): Promise<DashboardStats> {
     try {
-      const response = await apiRequest<any>('GET', `/users/${userId}/stats`)
-      
+      const response = await apiRequest<any>('GET', `/stats/users/${userId}`)
+
       return {
         languages: response.languagesUsed || 0,
-        challenges: response.challengesCompleted || 0,
-        exercises: response.exercisesSolvedCount || 0,
+        challenges: response.publishedChallenges || 0,
         totalXp: response.totalXp || 0,
         level: response.level || 1,
         weekProgress: response.weekProgress || 0,
       }
     } catch (error) {
+      console.error('Erro ao carregar stats do dashboard:', error)
       return {
-        languages: 5,
-        challenges: 12,
-        exercises: 8,
+        languages: 0,
+        challenges: 0,
         totalXp: 0,
         level: 1,
-        weekProgress: 65,
+        weekProgress: 0,
       }
     }
   },
 
   async getUserProgress(userId: string): Promise<UserProgress> {
     try {
-      const response = await apiRequest<any>('GET', `/users/${userId}/scoreboard`)
-      
+      const response = await apiRequest<any>('GET', `/stats/users/${userId}`)
+
       return {
         exercisesSolved: response.solved || 0,
         exercisesCreated: response.created || 0,
@@ -56,6 +54,7 @@ export const statsService = {
         streak: response.streak || 0,
       }
     } catch (error) {
+      console.error('Erro ao carregar progresso do usuário:', error)
       return {
         exercisesSolved: 0,
         exercisesCreated: 0,

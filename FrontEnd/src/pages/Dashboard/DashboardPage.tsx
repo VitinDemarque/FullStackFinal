@@ -1,6 +1,9 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@contexts/AuthContext";
-import { FaCode, FaTrophy, FaDumbbell, FaFire, FaStar } from "react-icons/fa";
+import { FaCode, FaTrophy, FaFire, FaStar, FaPlus } from "react-icons/fa";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
+import ChallengeModal from "@components/ChallengeModal";
 import { exercisesService, statsService } from "@services/index";
 import { useFetch } from "@hooks/useFetch";
 import type { Exercise } from "../../types";
@@ -15,22 +18,34 @@ import * as S from "@/styles/pages/Dashboard/styles";
 
 interface DashboardData {
   stats: DashboardStatsType;
-  recommendations: Exercise[];
+  publishedExercises: Exercise[];
 }
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
+    null
+  );
 
   const { data, loading, error, refetch } = useFetch<DashboardData>(
     async () => {
       if (!user) throw new Error("Usuário não autenticado");
 
-      const [stats, recommendations] = await Promise.all([
+      const [stats, exercisesResponse] = await Promise.all([
         statsService.getDashboardStats(user.id),
-        exercisesService.getRecommendations(6),
+        exercisesService.getAll({
+          page: 1,
+          limit: 8,
+          isPublic: true,
+          status: "PUBLISHED",
+        }),
       ]);
 
-      return { stats, recommendations };
+      return {
+        stats,
+        publishedExercises: exercisesResponse.items,
+      };
     },
     {
       immediate: true,
@@ -41,14 +56,24 @@ export default function DashboardPage() {
   const stats = data?.stats || {
     languages: 0,
     challenges: 0,
-    exercises: 0,
     weekProgress: 0,
   };
-  const recommendations = data?.recommendations || [];
-  const weekProgress = stats.weekProgress || 0;
+  const publishedExercises = data?.publishedExercises || [];
+
+  const handleSubmitChallenge = async (code: string, timeSpent: number) => {
+    alert("Submissão recebida! (IA de correção será implementada em breve)");
+    setSelectedExercise(null);
+  };
 
   return (
     <AuthenticatedLayout>
+      {selectedExercise && (
+        <ChallengeModal
+          exercise={selectedExercise}
+          onClose={() => setSelectedExercise(null)}
+          onSubmit={handleSubmitChallenge}
+        />
+      )}
       <S.DashboardPage>
         <S.DashboardContainer>
           {error && (
@@ -70,9 +95,9 @@ export default function DashboardPage() {
                 jornada de aprendizado e conquiste novos desafios. Você está
                 indo muito bem!
               </S.HeroDescription>
-              <S.ActionButton>
-                <FaFire />
-                Iniciar Desafio
+              <S.ActionButton onClick={() => navigate("/desafios")}>
+                <FaPlus />
+                Criar Desafio
               </S.ActionButton>
             </S.HeroContent>
             <S.HeroStats>
@@ -110,14 +135,7 @@ export default function DashboardPage() {
                 <FaTrophy />
                 <S.ProgressInfo>
                   <h3>{loading ? "..." : stats.challenges}</h3>
-                  <p>Desafios</p>
-                </S.ProgressInfo>
-              </S.ProgressCard>
-              <S.ProgressCard variant="green">
-                <FaDumbbell />
-                <S.ProgressInfo>
-                  <h3>{loading ? "..." : stats.exercises}</h3>
-                  <p>Exercícios</p>
+                  <p>Desafios Publicados</p>
                 </S.ProgressInfo>
               </S.ProgressCard>
             </S.ProgressGrid>
@@ -126,30 +144,11 @@ export default function DashboardPage() {
           <S.Section>
             <S.SectionTitle>
               <FaCode />
-              Em Desenvolvimento
+              Desafios Publicados
             </S.SectionTitle>
-            <S.DevelopmentBanner>
-              <S.BannerContent>
-                <h3>🚀 Continue Aprendendo!</h3>
-                <p>
-                  Você está progredindo bem! Mantenha o ritmo e complete seus
-                  desafios para desbloquear novas conquistas.
-                </p>
-                <S.ProgressBar>
-                  <S.ProgressFill progress={weekProgress} />
-                </S.ProgressBar>
-                <S.ProgressText>
-                  {weekProgress}% dos desafios completos esta semana
-                </S.ProgressText>
-              </S.BannerContent>
-            </S.DevelopmentBanner>
-          </S.Section>
-
-          <S.Section>
-            <S.SectionTitle>
-              <FaStar />
-              Recomendações
-            </S.SectionTitle>
+            <S.SectionDescription>
+              Todos os desafios disponíveis na plataforma
+            </S.SectionDescription>
             <S.RecommendationsGrid>
               {loading ? (
                 Array.from({ length: 6 }).map((_, index) => (
@@ -159,13 +158,14 @@ export default function DashboardPage() {
                     <SkeletonFooter />
                   </SkeletonCard>
                 ))
-              ) : recommendations.length > 0 ? (
-                recommendations.map((exercise) => {
+              ) : publishedExercises.length > 0 ? (
+                publishedExercises.map((exercise) => {
                   const difficultyMap: Record<number, string> = {
                     1: "Fácil",
                     2: "Médio",
                     3: "Difícil",
                     4: "Expert",
+                    5: "Master",
                   };
                   const difficultyText =
                     difficultyMap[exercise.difficulty] || "Médio";
@@ -179,25 +179,29 @@ export default function DashboardPage() {
                           {difficultyText}
                         </S.DifficultyBadge>
                         <S.XpBadge>
-                          <FaStar /> {exercise.baseXp} XP
+                          <FaTrophy /> {exercise.baseXp} XP
                         </S.XpBadge>
                       </S.CardHeader>
                       <S.CardBody>
                         <S.CardTitle>{exercise.title}</S.CardTitle>
-                        <S.CardLanguage>
-                          <FaCode /> {exercise.languageId || "Multi-linguagem"}
-                        </S.CardLanguage>
+                        <S.CardDescription>
+                          {exercise.description ||
+                            "Resolva este desafio e ganhe experiência"}
+                        </S.CardDescription>
                       </S.CardBody>
                       <S.CardFooter>
-                        <S.StartButton>Começar</S.StartButton>
-                        <S.DetailsButton>Detalhes</S.DetailsButton>
+                        <S.StartButton
+                          onClick={() => setSelectedExercise(exercise)}
+                        >
+                          Iniciar Desafio
+                        </S.StartButton>
                       </S.CardFooter>
                     </S.ExerciseCard>
                   );
                 })
               ) : (
                 <S.NoRecommendations>
-                  <p>Nenhuma recomendação disponível no momento.</p>
+                  <p>Nenhum desafio disponível no momento.</p>
                   <S.RefreshButton onClick={refetch}>
                     Recarregar
                   </S.RefreshButton>

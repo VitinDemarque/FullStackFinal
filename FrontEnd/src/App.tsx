@@ -7,14 +7,12 @@ import LoginPage from "@pages/Auth/LoginPage";
 import SignupPage from "@pages/Auth/SignupPage";
 import DashboardPage from "@pages/Dashboard/DashboardPage";
 import ChallengesPage from "@pages/Challenges/ChallengesPage";
-import InProgressPage from "@pages/InProgress/InProgressPage";
 import RankingPage from "@pages/Ranking/RankingPage";
-import RecommendationsPage from "@pages/Recommendations/RecommendationsPage";
 import ForunsPage from "@pages/Foruns/ForunsPage";
 import ForumDetalhesPage from "@pages/Foruns/ForumDetalhesPage";
 import TopicoPage from "@pages/Foruns/TopicoPage";
 import ProfilePage from "@pages/Profile/ProfilePage";
-import ProfileEditPage from '@pages/Profile/ProfileEditPage'
+import ProfileEditPage from "@pages/Profile/ProfileEditPage";
 import SettingsPage from "@pages/Settings/SettingsPage";
 import NotFoundPage from "@pages/NotFound/NotFoundPage";
 import PrivateRoute from "@components/PrivateRoute";
@@ -23,8 +21,8 @@ import GroupCreatePage from "./pages/Groups/GroupCreatePage";
 import GroupDetailsPage from "./pages/Groups/GroupDetailsPage";
 import GroupEditPage from "./pages/Groups/GroupEditPage";
 import GroupMembersPage from "./pages/Groups/GroupMembersPage";
-import ThemeTest from '@components/ThemeTest';
-import CollegeCreatePage from '@pages/Colleges/CollegeCreatePage'
+import ThemeTest from "@components/ThemeTest";
+import CollegeCreatePage from "@pages/Colleges/CollegeCreatePage";
 
 function App() {
   return (
@@ -53,26 +51,10 @@ function App() {
               }
             />
             <Route
-              path="/em-andamento"
-              element={
-                <PrivateRoute>
-                  <InProgressPage />
-                </PrivateRoute>
-              }
-            />
-            <Route
               path="/ranking"
               element={
                 <PrivateRoute>
                   <RankingPage />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/recomendacoes"
-              element={
-                <PrivateRoute>
-                  <RecommendationsPage />
                 </PrivateRoute>
               }
             />
