@@ -1,24 +1,28 @@
-import { FcGoogle } from 'react-icons/fc'
-import * as S from '@/styles/components/HeroSection/styles'
-import { useAuth } from '@/contexts/AuthContext'
-import { GoogleLogin } from '@react-oauth/google'
+import { FcGoogle } from "react-icons/fc";
+import { useNavigate } from "react-router-dom";
+import * as S from "@/styles/components/HeroSection/styles";
+import { useAuth } from "@/contexts/AuthContext";
+import { GoogleLogin } from "@react-oauth/google";
+
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 export default function HeroSection() {
-  const { loginWithGoogle } = useAuth()
+  const { loginWithGoogle } = useAuth();
+  const navigate = useNavigate();
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     if (credentialResponse.credential) {
       try {
-        await loginWithGoogle(credentialResponse.credential)
+        await loginWithGoogle(credentialResponse.credential);
       } catch (err) {
-        console.error('Erro ao fazer login com Google:', err)
+        // Error handled by AuthContext
       }
     }
-  }
+  };
 
   const handleGoogleError = () => {
-    console.error('Erro no login do Google')
-  }
+    // Error handled by Google OAuth component
+  };
 
   return (
     <S.HeroSectionContainer>
@@ -27,24 +31,33 @@ export default function HeroSection() {
 
       <S.HeroContent>
         <S.LeftContent>
-          <S.Title>{'{'}Aprenda a Programar Jogando{'}'}</S.Title>
+          <S.Title>
+            {"{"}Aprenda a Programar Jogando{"}"}
+          </S.Title>
           <S.Description>
-            Transforme seu aprendizado em código com desafios práticos e divertidos.
-            Suba no ranking, ganhe XP, conquiste badges e torne-se um desenvolvedor de elite
-            através da gamificação educacional!
+            Transforme seu aprendizado em código com desafios práticos e
+            divertidos. Suba no ranking, ganhe XP, conquiste badges e torne-se
+            um desenvolvedor de elite através da gamificação educacional!
           </S.Description>
 
           <S.GoogleButtonWrapper>
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={handleGoogleError}
-              render={({ onClick, disabled }) => (
-                <S.GoogleButtonAction onClick={onClick} disabled={disabled}>
-                  <FcGoogle />
-                  <span>Continuar com Google</span>
-                </S.GoogleButtonAction>
-              )}
-            />
+            {googleClientId ? (
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                render={({ onClick, disabled }) => (
+                  <S.GoogleButtonAction onClick={onClick} disabled={disabled}>
+                    <FcGoogle />
+                    <span>Continuar com Google</span>
+                  </S.GoogleButtonAction>
+                )}
+              />
+            ) : (
+              <S.GoogleButtonAction onClick={() => navigate("/login")}>
+                <FcGoogle />
+                <span>Começar Agora</span>
+              </S.GoogleButtonAction>
+            )}
           </S.GoogleButtonWrapper>
 
           <S.Stats>
@@ -71,5 +84,5 @@ export default function HeroSection() {
         </S.IllustrationContainer>
       </S.HeroContent>
     </S.HeroSectionContainer>
-  )
+  );
 }

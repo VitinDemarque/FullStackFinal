@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@contexts/AuthContext";
+import { useTheme } from "@contexts/ThemeContext";
 import { FaCode, FaTrophy, FaFire, FaStar, FaPlus } from "react-icons/fa";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
 import ChallengeModal from "@components/ChallengeModal";
@@ -23,6 +24,8 @@ interface DashboardData {
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const navigate = useNavigate();
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
     null
@@ -74,7 +77,7 @@ export default function DashboardPage() {
           onSubmit={handleSubmitChallenge}
         />
       )}
-      <S.DashboardPage>
+      <S.DashboardPage $isDark={isDark}>
         <S.DashboardContainer>
           {error && (
             <S.ErrorAlert>
@@ -101,14 +104,14 @@ export default function DashboardPage() {
               </S.ActionButton>
             </S.HeroContent>
             <S.HeroStats>
-              <S.StatCard variant="trophy">
+              <S.StatCard $variant="trophy">
                 <FaTrophy />
                 <div>
                   <S.StatValue>Level {user?.level || 1}</S.StatValue>
                   <S.StatLabel>Seu Nível</S.StatLabel>
                 </div>
               </S.StatCard>
-              <S.StatCard variant="star">
+              <S.StatCard $variant="star">
                 <FaStar />
                 <div>
                   <S.StatValue>{user?.xpTotal || 0} XP</S.StatValue>
@@ -124,14 +127,14 @@ export default function DashboardPage() {
               Em Andamento
             </S.SectionTitle>
             <S.ProgressGrid>
-              <S.ProgressCard variant="purple">
+              <S.ProgressCard $variant="purple">
                 <FaCode />
                 <S.ProgressInfo>
                   <h3>{loading ? "..." : stats.languages}</h3>
                   <p>Linguagens</p>
                 </S.ProgressInfo>
               </S.ProgressCard>
-              <S.ProgressCard variant="blue">
+              <S.ProgressCard $variant="blue">
                 <FaTrophy />
                 <S.ProgressInfo>
                   <h3>{loading ? "..." : stats.challenges}</h3>
@@ -142,11 +145,11 @@ export default function DashboardPage() {
           </S.Section>
 
           <S.Section>
-            <S.SectionTitle>
+            <S.SectionTitle $isDark={isDark}>
               <FaCode />
               Desafios Publicados
             </S.SectionTitle>
-            <S.SectionDescription>
+            <S.SectionDescription $isDark={isDark}>
               Todos os desafios disponíveis na plataforma
             </S.SectionDescription>
             <S.RecommendationsGrid>
@@ -171,8 +174,8 @@ export default function DashboardPage() {
                     difficultyMap[exercise.difficulty] || "Médio";
 
                   return (
-                    <S.ExerciseCard key={exercise.id}>
-                      <S.CardHeader>
+                    <S.ExerciseCard key={exercise.id} $isDark={isDark}>
+                      <S.CardHeader $isDark={isDark}>
                         <S.DifficultyBadge
                           difficulty={difficultyText.toLowerCase() as any}
                         >
@@ -183,8 +186,10 @@ export default function DashboardPage() {
                         </S.XpBadge>
                       </S.CardHeader>
                       <S.CardBody>
-                        <S.CardTitle>{exercise.title}</S.CardTitle>
-                        <S.CardDescription>
+                        <S.CardTitle $isDark={isDark}>
+                          {exercise.title}
+                        </S.CardTitle>
+                        <S.CardDescription $isDark={isDark}>
                           {exercise.description ||
                             "Resolva este desafio e ganhe experiência"}
                         </S.CardDescription>

@@ -14,6 +14,7 @@ import collegesRoutes from './colleges.routes';
 import statsRoutes from './stats.routes';
 import forumTopicRoutes from './forumTopic.routes';
 import forumCommentRoutes from './forumComment.routes';
+import badgesRoutes from './badges.routes';
 
 const router = Router();
 
@@ -31,5 +32,6 @@ router.use('/colleges', collegesRoutes);
 router.use('/stats', statsRoutes);
 router.use('/forum-topics', forumTopicRoutes);
 router.use('/forum-comments', forumCommentRoutes);
+router.use('/badges', badgesRoutes);
 
 export default router;

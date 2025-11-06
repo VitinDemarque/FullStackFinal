@@ -21,7 +21,7 @@ export const AuthContainer = styled.div`
 // ============================================
 
 interface ShapeProps {
-  variant: 'blue-top' | 'yellow-bottom' | 'yellow-top' | 'orange-bottom'
+  $variant: 'blue-top' | 'yellow-bottom' | 'yellow-top' | 'orange-bottom'
 }
 
 export const Shape = styled.div<ShapeProps>`
@@ -32,7 +32,7 @@ export const Shape = styled.div<ShapeProps>`
   height: 400px;
 
   ${(props) => {
-    switch (props.variant) {
+    switch (props.$variant) {
       case 'blue-top':
         return `
           top: -200px;
@@ -290,7 +290,7 @@ export const SocialButtons = styled.div`
 `
 
 interface SocialButtonProps {
-  variant: 'google' | 'facebook'
+  $variant: 'google' | 'facebook'
 }
 
 export const SocialButton = styled.button<SocialButtonProps>`
@@ -319,15 +319,15 @@ export const SocialButton = styled.button<SocialButtonProps>`
     box-shadow: var(--shadow-sm);
 
     ${(props) =>
-      props.variant === 'google' &&
-      `
+    props.$variant === 'google' &&
+    `
       border-color: #ea4335;
       color: #ea4335;
     `}
 
     ${(props) =>
-      props.variant === 'facebook' &&
-      `
+    props.$variant === 'facebook' &&
+    `
       border-color: #1877f2;
       color: #1877f2;
     `}

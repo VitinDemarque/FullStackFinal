@@ -46,3 +46,16 @@ export async function grantToUser(userId: string, badgeId: string, source?: stri
     { upsert: true }
   );
 }
+
+export async function getUserBadges(userId: string) {
+  const userBadges = await UserBadge.find({ userId: new Types.ObjectId(userId) })
+    .populate('badgeId')
+    .lean();
+
+  return userBadges.map((ub: any) => ({
+    _id: ub._id,
+    badge: ub.badgeId,
+    awardedAt: ub.awardedAt,
+    source: ub.source
+  }));
+}

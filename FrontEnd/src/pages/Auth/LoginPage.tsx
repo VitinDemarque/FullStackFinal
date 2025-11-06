@@ -2,7 +2,7 @@ import { useState, FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@contexts/AuthContext";
 import { FaGoogle, FaFacebook, FaArrowLeft } from "react-icons/fa";
-import  Notification  from '@components/Notification'
+import Notification from "@components/Notification";
 import ErrorAlert from "@components/ErrorAlert";
 import { useErrorHandler } from "@hooks/useErrorHandler";
 import * as S from "@/styles/pages/Auth/styles";
@@ -50,7 +50,7 @@ export default function LoginPage() {
 
   function handleRetry() {
     clearError();
-    handleSubmit(new Event('submit') as any);
+    handleSubmit(new Event("submit") as any);
   }
 
   return (
@@ -64,8 +64,8 @@ export default function LoginPage() {
       )}
 
       <S.AuthContainer>
-        <S.Shape variant="blue-top" />
-        <S.Shape variant="yellow-bottom" />
+        <S.Shape $variant="blue-top" />
+        <S.Shape $variant="yellow-bottom" />
 
         <S.AuthCard>
           <S.BackButton as={Link} to="/">
@@ -122,7 +122,7 @@ export default function LoginPage() {
 
           <S.SocialButtons>
             <S.SocialButton
-              variant="google"
+              $variant="google"
               type="button"
               onClick={() => alert("Login com Google em breve!")}
             >
@@ -130,7 +130,7 @@ export default function LoginPage() {
               Entrar com Google
             </S.SocialButton>
             <S.SocialButton
-              variant="facebook"
+              $variant="facebook"
               type="button"
               onClick={() => alert("Login com Facebook em breve!")}
             >

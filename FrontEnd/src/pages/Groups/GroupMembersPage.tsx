@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { groupService } from '../../services/group.service';
-import { Group } from '../../types/group.types';
-import styled from 'styled-components';
-import AuthenticatedLayout from '@components/Layout/AuthenticatedLayout';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { groupService } from "../../services/group.service";
+import { Group } from "../../types/group.types";
+import styled from "styled-components";
+import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
 
 const Container = styled.div`
   max-width: 800px;
@@ -80,14 +80,14 @@ const RoleBadge = styled.span<{ role: string }>`
   font-size: 0.75rem;
   font-weight: 500;
 
-  ${props => {
+  ${(props) => {
     switch (props.role) {
-      case 'MODERATOR':
+      case "MODERATOR":
         return `
           background: #fff3e0;
           color: #f57c00;
         `;
-      case 'OWNER':
+      case "OWNER":
         return `
           background: #fce4ec;
           color: #c2185b;
@@ -107,7 +107,7 @@ const Actions = styled.div`
   align-items: center;
 `;
 
-const ActionButton = styled.button<{ variant?: 'danger' }>`
+const ActionButton = styled.button<{ variant?: "danger" }>`
   padding: 6px 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -116,7 +116,9 @@ const ActionButton = styled.button<{ variant?: 'danger' }>`
   cursor: pointer;
   transition: all 0.2s;
 
-  ${props => props.variant === 'danger' ? `
+  ${(props) =>
+    props.variant === "danger"
+      ? `
     color: #dc3545;
     border-color: #dc3545;
 
@@ -124,7 +126,8 @@ const ActionButton = styled.button<{ variant?: 'danger' }>`
       background: #dc3545;
       color: white;
     }
-  ` : `
+  `
+      : `
     color: #007bff;
     border-color: #007bff;
 
@@ -178,7 +181,7 @@ const GroupMembersPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  
+
   const [group, setGroup] = useState<Group | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -190,7 +193,7 @@ const GroupMembersPage: React.FC = () => {
       const groupData = await groupService.getById(id);
       setGroup(groupData);
     } catch (error: any) {
-      console.error('Erro ao carregar grupo:', error);
+      // Error loading group
     } finally {
       setLoading(false);
     }
@@ -202,7 +205,7 @@ const GroupMembersPage: React.FC = () => {
 
   const isUserOwner = group?.ownerUserId === user?.id;
   const isUserModerator = group?.members?.some(
-    member => member.userId === user?.id && member.role === 'MODERATOR'
+    (member) => member.userId === user?.id && member.role === "MODERATOR"
   );
 
   const canManageMembers = isUserOwner || isUserModerator;
@@ -212,11 +215,11 @@ const GroupMembersPage: React.FC = () => {
 
     setActionLoading(targetUserId);
     try {
-      await groupService.setMemberRole(id, targetUserId, 'MODERATOR');
-      alert('Usuário promovido a moderador!');
+      await groupService.setMemberRole(id, targetUserId, "MODERATOR");
+      alert("Usuário promovido a moderador!");
       loadGroup();
     } catch (error: any) {
-      alert(error.message || 'Erro ao promover usuário');
+      alert(error.message || "Erro ao promover usuário");
     } finally {
       setActionLoading(null);
     }
@@ -227,28 +230,32 @@ const GroupMembersPage: React.FC = () => {
 
     setActionLoading(targetUserId);
     try {
-      await groupService.setMemberRole(id, targetUserId, 'MEMBER');
-      alert('Usuário destituído de moderador!');
+      await groupService.setMemberRole(id, targetUserId, "MEMBER");
+      alert("Usuário destituído de moderador!");
       loadGroup();
     } catch (error: any) {
-      alert(error.message || 'Erro ao destituir usuário');
+      alert(error.message || "Erro ao destituir usuário");
     } finally {
       setActionLoading(null);
     }
   };
 
-  const handleRemoveMember = async (targetUserId: string, targetUserName: string) => {
+  const handleRemoveMember = async (
+    targetUserId: string,
+    targetUserName: string
+  ) => {
     if (!id || !canManageMembers) return;
 
-    if (!confirm(`Tem certeza que deseja remover ${targetUserName} do grupo?`)) return;
+    if (!confirm(`Tem certeza que deseja remover ${targetUserName} do grupo?`))
+      return;
 
     setActionLoading(targetUserId);
     try {
       await groupService.removeMember(id, targetUserId);
-      alert('Membro removido do grupo!');
+      alert("Membro removido do grupo!");
       loadGroup();
     } catch (error: any) {
-      alert(error.message || 'Erro ao remover membro');
+      alert(error.message || "Erro ao remover membro");
     } finally {
       setActionLoading(null);
     }
@@ -268,9 +275,7 @@ const GroupMembersPage: React.FC = () => {
     return (
       <AuthenticatedLayout>
         <Container>
-          <ErrorMessage>
-            Grupo não encontrado
-          </ErrorMessage>
+          <ErrorMessage>Grupo não encontrado</ErrorMessage>
         </Container>
       </AuthenticatedLayout>
     );
@@ -290,82 +295,104 @@ const GroupMembersPage: React.FC = () => {
 
   return (
     <AuthenticatedLayout>
-    <Container>
-      <BackButton onClick={() => navigate(`/grupos/${id}`)}>
-        ← Voltar para o Grupo
-      </BackButton>
+      <Container>
+        <BackButton onClick={() => navigate(`/grupos/${id}`)}>
+          ← Voltar para o Grupo
+        </BackButton>
 
-      <Header>
-        <Title>Gerenciar Membros</Title>
-        <Subtitle>
-          {group.name} - {group.members?.length || 0} membros
-        </Subtitle>
-      </Header>
+        <Header>
+          <Title>Gerenciar Membros</Title>
+          <Subtitle>
+            {group.name} - {group.members?.length || 0} membros
+          </Subtitle>
+        </Header>
 
-      <Content>
-        <MembersList>
-          {group.members && group.members.length > 0 ? (
-            group.members.map((member) => {
-              const isOwner = member.userId === group.ownerUserId;
-              const isCurrentUser = member.userId === user?.id;
-              
-              return (
-                <MemberCard key={member.userId}>
-                  <MemberInfo>
-                    <MemberDetails>
-                      <MemberName>
-                        Usuário {member.userId}
-                        {isOwner && ' 👑'}
-                        {isCurrentUser && ' (Você)'}
-                      </MemberName>
-                      <MemberMeta>
-                        Entrou em: {new Date(member.joinedAt).toLocaleDateString('pt-BR')}
-                      </MemberMeta>
-                    </MemberDetails>
-                  </MemberInfo>
+        <Content>
+          <MembersList>
+            {group.members && group.members.length > 0 ? (
+              group.members.map((member) => {
+                const isOwner = member.userId === group.ownerUserId;
+                const isCurrentUser = member.userId === user?.id;
 
-                  <Actions>
-                    <RoleBadge role={isOwner ? 'OWNER' : member.role}>
-                      {isOwner ? 'Dono' : member.role === 'MODERATOR' ? 'Moderador' : 'Membro'}
-                    </RoleBadge>
+                return (
+                  <MemberCard key={member.userId}>
+                    <MemberInfo>
+                      <MemberDetails>
+                        <MemberName>
+                          Usuário {member.userId}
+                          {isOwner && " 👑"}
+                          {isCurrentUser && " (Você)"}
+                        </MemberName>
+                        <MemberMeta>
+                          Entrou em:{" "}
+                          {new Date(member.joinedAt).toLocaleDateString(
+                            "pt-BR"
+                          )}
+                        </MemberMeta>
+                      </MemberDetails>
+                    </MemberInfo>
 
-                    {canManageMembers && !isOwner && !isCurrentUser && (
-                      <>
-                        {member.role === 'MEMBER' ? (
+                    <Actions>
+                      <RoleBadge role={isOwner ? "OWNER" : member.role}>
+                        {isOwner
+                          ? "Dono"
+                          : member.role === "MODERATOR"
+                          ? "Moderador"
+                          : "Membro"}
+                      </RoleBadge>
+
+                      {canManageMembers && !isOwner && !isCurrentUser && (
+                        <>
+                          {member.role === "MEMBER" ? (
+                            <ActionButton
+                              onClick={() =>
+                                handlePromoteToModerator(member.userId)
+                              }
+                              disabled={actionLoading === member.userId}
+                            >
+                              {actionLoading === member.userId
+                                ? "Promovendo..."
+                                : "Promover"}
+                            </ActionButton>
+                          ) : (
+                            <ActionButton
+                              onClick={() =>
+                                handleDemoteToMember(member.userId)
+                              }
+                              disabled={actionLoading === member.userId}
+                            >
+                              {actionLoading === member.userId
+                                ? "Destituindo..."
+                                : "Destituir"}
+                            </ActionButton>
+                          )}
+
                           <ActionButton
-                            onClick={() => handlePromoteToModerator(member.userId)}
+                            variant="danger"
+                            onClick={() =>
+                              handleRemoveMember(
+                                member.userId,
+                                `Usuário ${member.userId}`
+                              )
+                            }
                             disabled={actionLoading === member.userId}
                           >
-                            {actionLoading === member.userId ? 'Promovendo...' : 'Promover'}
+                            {actionLoading === member.userId
+                              ? "Removendo..."
+                              : "Remover"}
                           </ActionButton>
-                        ) : (
-                          <ActionButton
-                            onClick={() => handleDemoteToMember(member.userId)}
-                            disabled={actionLoading === member.userId}
-                          >
-                            {actionLoading === member.userId ? 'Destituindo...' : 'Destituir'}
-                          </ActionButton>
-                        )}
-                        
-                        <ActionButton
-                          variant="danger"
-                          onClick={() => handleRemoveMember(member.userId, `Usuário ${member.userId}`)}
-                          disabled={actionLoading === member.userId}
-                        >
-                          {actionLoading === member.userId ? 'Removendo...' : 'Remover'}
-                        </ActionButton>
-                      </>
-                    )}
-                  </Actions>
-                </MemberCard>
-              );
-            })
-          ) : (
-            <p>Nenhum membro no grupo.</p>
-          )}
-        </MembersList>
-      </Content>
-    </Container>
+                        </>
+                      )}
+                    </Actions>
+                  </MemberCard>
+                );
+              })
+            ) : (
+              <p>Nenhum membro no grupo.</p>
+            )}
+          </MembersList>
+        </Content>
+      </Container>
     </AuthenticatedLayout>
   );
 };

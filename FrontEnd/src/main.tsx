@@ -8,13 +8,23 @@ import "./index.css"
 import "./styles/theme-variables.css"
 import { GoogleOAuthProvider } from "@react-oauth/google"
 
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+
+const AppContent = () => (
+  <ThemeProvider theme={theme}>
+    <GlobalStyles />
+    <App />
+  </ThemeProvider>
+)
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-      <ThemeProvider theme={theme}>
-        <GlobalStyles />
-        <App />
-      </ThemeProvider>
-    </GoogleOAuthProvider>
+    {googleClientId ? (
+      <GoogleOAuthProvider clientId={googleClientId}>
+        <AppContent />
+      </GoogleOAuthProvider>
+    ) : (
+      <AppContent />
+    )}
   </React.StrictMode>
 );

@@ -72,6 +72,18 @@ export const UserInfo = styled.div`
   align-items: center;
   gap: 1rem;
   margin-bottom: 2rem;
+  cursor: pointer;
+  transition: ${theme.transitions.all};
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateX(2px);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
 `
 
 export const UserAvatar = styled.div`
@@ -165,7 +177,7 @@ interface NavItemProps {
   $isActive?: boolean
 }
 
-export const NavItem = styled(Link)<NavItemProps>`
+export const NavItem = styled(Link) <NavItemProps>`
   display: flex;
   align-items: center;
   gap: 0.75rem;

@@ -9,100 +9,98 @@ import type { User } from '@/types/index'
 import * as S from '@/styles/pages/Foruns/styles'
 
 export default function ForumDetalhesPage() {
-    const { id } = useParams<{ id: string }>()
-    const navigate = useNavigate()
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
-    const [forum, setForum] = useState<Forum | null>(null)
-    const [dono, setDono] = useState<User | null>(null)
-    const [usuarioAtual, setUsuarioAtual] = useState<User | null>(null)
-    const [participando, setParticipando] = useState(false)
-    const [loading, setLoading] = useState(true)
-    const [erro, setErro] = useState<string | null>(null)
-    const [processando, setProcessando] = useState(false)
-    const [topicos, setTopicos] = useState<ForumTopic[]>([])
-    const [criandoTopico, setCriandoTopico] = useState(false)
-    const [tituloTopico, setTituloTopico] = useState('')
-    const [conteudoTopico, setConteudoTopico] = useState('')
+  const [forum, setForum] = useState<Forum | null>(null);
+  const [dono, setDono] = useState<User | null>(null);
+  const [usuarioAtual, setUsuarioAtual] = useState<User | null>(null);
+  const [participando, setParticipando] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
+  const [processando, setProcessando] = useState(false);
+  const [topicos, setTopicos] = useState<ForumTopic[]>([]);
+  const [criandoTopico, setCriandoTopico] = useState(false);
+  const [tituloTopico, setTituloTopico] = useState("");
+  const [conteudoTopico, setConteudoTopico] = useState("");
 
-    useEffect(() => {
-        const carregarDados = async () => {
-            if (!id) {
-                setErro('ID do fórum não informado.')
-                return
-            }
+  useEffect(() => {
+    const carregarDados = async () => {
+      if (!id) {
+        setErro("ID do fórum não informado.");
+        return;
+      }
 
-            try {
-                setLoading(true)
+      try {
+        setLoading(true);
 
-                const me = await userService.getMe()
-                setUsuarioAtual(me)
+        const me = await userService.getMe();
+        setUsuarioAtual(me);
 
-                const data = await forunsService.getById(id)
-                setForum(data)
+        const data = await forunsService.getById(id);
+        setForum(data);
 
-                if (data.donoUsuarioId) {
-                    const donoUser = await userService.getById(data.donoUsuarioId)
-                    setDono(donoUser)
-                }
-
-                // Verifica se o usuário já participa
-                const ehParticipante =
-                    data.donoUsuarioId === me.id ||
-                    data.moderadores?.some((m) => m.usuarioId === me.id) ||
-                    data.membros?.some((m) => m.usuarioId === me.id)
-
-                setParticipando(!!ehParticipante)
-
-                // Carregar tópicos do fórum
-                const lista = await forumTopicService.listarPorForum(id)
-                setTopicos(lista)
-            } catch (err: any) {
-                console.error('Erro ao carregar fórum:', err)
-                setErro(err.message || 'Erro ao carregar fórum.')
-            } finally {
-                setLoading(false)
-            }
+        if (data.donoUsuarioId) {
+          const donoUser = await userService.getById(data.donoUsuarioId);
+          setDono(donoUser);
         }
 
-        carregarDados()
-    }, [id])
+        // Verifica se o usuário já participa
+        const ehParticipante =
+          data.donoUsuarioId === me.id ||
+          data.moderadores?.some((m) => m.usuarioId === me.id) ||
+          data.membros?.some((m) => m.usuarioId === me.id);
 
-    const handleParticipar = async () => {
-        if (!id) return
-        try {
-            setProcessando(true)
-            await forunsService.participar(id)
-            setParticipando(true)
-            const atualizado = await forunsService.getById(id)
-            setForum(atualizado)
-        } catch (err: any) {
-            console.error('Erro ao participar:', err)
-            setErro(err.message || 'Não foi possível participar deste fórum.')
-        } finally {
-            setProcessando(false)
-        }
+        setParticipando(!!ehParticipante);
+
+        // Carregar tópicos do fórum
+        const lista = await forumTopicService.listarPorForum(id);
+        setTopicos(lista);
+      } catch (err: any) {
+        setErro(err.message || "Erro ao carregar fórum.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    carregarDados();
+  }, [id]);
+
+  const handleParticipar = async () => {
+    if (!id) return;
+    try {
+      setProcessando(true);
+      await forunsService.participar(id);
+      setParticipando(true);
+      const atualizado = await forunsService.getById(id);
+      setForum(atualizado);
+    } catch (err: any) {
+      setErro(err.message || "Não foi possível participar deste fórum.");
+    } finally {
+      setProcessando(false);
     }
+  };
 
-    const handleCriarTopico = async () => {
-        if (!id) return
-        try {
-            setCriandoTopico(true)
-            const criado = await forumTopicService.criar(id, {
-                titulo: tituloTopico,
-                conteudo: conteudoTopico,
-                palavrasChave: [],
-            })
-            setTituloTopico('')
-            setConteudoTopico('')
-            // Recarregar lista
-            const lista = await forumTopicService.listarPorForum(id)
-            setTopicos(lista)
-        } catch (err: any) {
-            setErro(err.message || 'Não foi possível criar o tópico.')
-        } finally {
-            setCriandoTopico(false)
-        }
+  const handleCriarTopico = async () => {
+    if (!id) return;
+    try {
+      setCriandoTopico(true);
+      const criado = await forumTopicService.criar(id, {
+        titulo: tituloTopico,
+        conteudo: conteudoTopico,
+        palavrasChave: [],
+      });
+      setTituloTopico("");
+      setConteudoTopico("");
+      // Recarregar lista
+      const lista = await forumTopicService.listarPorForum(id);
+      setTopicos(lista);
+    } catch (err: any) {
+      setErro(err.message || "Não foi possível criar o tópico.");
+    } finally {
+      setCriandoTopico(false);
     }
+  };
 
     return (
         <AuthenticatedLayout>
