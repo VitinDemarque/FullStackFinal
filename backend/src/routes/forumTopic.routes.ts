@@ -7,6 +7,9 @@ const router = Router()
 // Listar tópicos por fórum
 router.get('/forum/:forumId', ForumTopicController.listarPorForum)
 
+// Contar tópicos por fórum
+router.get('/forum/:forumId/count', ForumTopicController.contarPorForum)
+
 // Obter tópico por ID
 router.get('/:id', ForumTopicController.obterPorId)
 

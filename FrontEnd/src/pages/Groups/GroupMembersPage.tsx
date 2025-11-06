@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { groupService } from "../../services/group.service";
+import { userService } from "../../services/user.service";
 import { Group } from "../../types/group.types";
 import styled from "styled-components";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
@@ -185,6 +186,7 @@ const GroupMembersPage: React.FC = () => {
   const [group, setGroup] = useState<Group | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [memberNames, setMemberNames] = useState<Record<string, string>>({});
 
   const loadGroup = async () => {
     if (!id) return;
@@ -202,6 +204,45 @@ const GroupMembersPage: React.FC = () => {
   useEffect(() => {
     loadGroup();
   }, [id]);
+
+  useEffect(() => {
+    const fetchNames = async () => {
+      if (!group) return;
+      try {
+        const ids = Array.from(
+          new Set([
+            ...(group.members?.map((m) => m.userId) || []),
+            group.ownerUserId,
+          ].filter((uid): uid is string => !!uid))
+        );
+        if (ids.length === 0) return;
+
+        const pairs = await Promise.all(
+          ids.map(async (uid) => {
+            try {
+              const profile = await userService.getPublicProfile(uid);
+              return [uid, profile.user.name] as const;
+            } catch {
+              try {
+                const user = await userService.getById(uid);
+                return [uid, user.name] as const;
+              } catch {
+                return [uid, `Usuário ${uid}`] as const;
+              }
+            }
+          })
+        );
+
+        const map: Record<string, string> = {};
+        pairs.forEach(([uid, name]) => {
+          map[uid] = name;
+        });
+        setMemberNames((prev) => ({ ...prev, ...map }));
+      } catch {}
+    };
+
+    fetchNames();
+  }, [group]);
 
   const isUserOwner = group?.ownerUserId === user?.id;
   const isUserModerator = group?.members?.some(
@@ -319,7 +360,7 @@ const GroupMembersPage: React.FC = () => {
                     <MemberInfo>
                       <MemberDetails>
                         <MemberName>
-                          Usuário {member.userId}
+                          {memberNames[member.userId] || `Usuário ${member.userId}`}
                           {isOwner && " 👑"}
                           {isCurrentUser && " (Você)"}
                         </MemberName>
@@ -372,7 +413,7 @@ const GroupMembersPage: React.FC = () => {
                             onClick={() =>
                               handleRemoveMember(
                                 member.userId,
-                                `Usuário ${member.userId}`
+                                memberNames[member.userId] || `Usuário ${member.userId}`
                               )
                             }
                             disabled={actionLoading === member.userId}

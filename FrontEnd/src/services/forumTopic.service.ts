@@ -26,4 +26,8 @@ export const forumTopicService = {
   async excluir(id: string): Promise<{ mensagem: string }> {
     return apiRequest<{ mensagem: string }>('DELETE', `/forum-topics/${id}`)
   },
+
+  async contarPorForum(forumId: string): Promise<{ total: number }> {
+    return apiRequest<{ total: number }>('GET', `/forum-topics/forum/${forumId}/count`)
+  },
 }

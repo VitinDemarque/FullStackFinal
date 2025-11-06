@@ -2,6 +2,8 @@ import { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AuthenticatedLayout from '@/components/Layout/AuthenticatedLayout'
 import { forunsService } from '@/services/forum.services'
+import { forumTopicService } from '@/services/forumTopic.service'
+import { userService } from '@/services/user.service'
 import { useAuth } from '@/contexts/AuthContext'
 import ModalCriarForum from '@/components/Forum/ModalCriarForum'
 import type { Forum } from '@/types/forum'
@@ -16,6 +18,8 @@ export default function ForunsPage() {
   const [mostrarModalCriar, setMostrarModalCriar] = useState(false)
   const [busca, setBusca] = useState('')
   const [mostrarMeus, setMostrarMeus] = useState(false)
+  const [ownerNames, setOwnerNames] = useState<Record<string, string>>({})
+  const [topicCounts, setTopicCounts] = useState<Record<string, number>>({})
   const navigate = useNavigate()
 
   const carregarForuns = async () => {
@@ -33,6 +37,78 @@ export default function ForunsPage() {
   useEffect(() => {
     carregarForuns()
   }, [])
+
+  // Busca os nomes dos donos dos fóruns quando a lista muda
+  useEffect(() => {
+    const fetchOwnerNames = async () => {
+      try {
+        const ids = Array.from(
+          new Set(
+            (foruns || [])
+              .map((f) => f.donoUsuarioId)
+              .filter((id): id is string => !!id)
+          )
+        )
+
+        if (ids.length === 0) return
+
+        const results = await Promise.all(
+          ids.map(async (id) => {
+            try {
+              // Endpoint público não exige autenticação
+              const profile = await userService.getPublicProfile(id)
+              return [id, profile.user.name] as const
+            } catch {
+              try {
+                // Fallback autenticado (caso token esteja presente)
+                const u = await userService.getById(id)
+                return [id, u.name] as const
+              } catch {
+                return [id, `Usuário ${id}`] as const
+              }
+            }
+          })
+        )
+
+        const map: Record<string, string> = {}
+        results.forEach(([id, name]) => {
+          map[id] = name
+        })
+        setOwnerNames((prev) => ({ ...prev, ...map }))
+      } catch {}
+    }
+
+    fetchOwnerNames()
+  }, [foruns])
+
+  // Busca a contagem de tópicos para cada fórum
+  useEffect(() => {
+    const fetchTopicCounts = async () => {
+      try {
+        const ids = (foruns || []).map((f) => f._id)
+        if (ids.length === 0) return
+
+        const results = await Promise.all(
+          ids.map(async (id) => {
+            try {
+              const { total } = await forumTopicService.contarPorForum(id)
+              return [id, total] as const
+            } catch {
+              return [id, 0] as const
+            }
+          })
+        )
+
+        const map: Record<string, number> = {}
+        results.forEach(([id, total]) => {
+          map[id] = total
+        })
+        setTopicCounts((prev) => ({ ...prev, ...map }))
+      } catch {}
+    }
+
+    fetchTopicCounts()
+  }, [foruns])
 
   const forunsFiltrados = useMemo(() => {
     return foruns.filter((forum) => {
@@ -100,9 +176,9 @@ export default function ForunsPage() {
                 </S.CardDescription>
 
                 <S.CardMeta>
-                  <S.MetaItem>🧩 Tópicos: {forum.topicos?.length ?? 0}</S.MetaItem>
+                  <S.MetaItem>🧩 Tópicos: {topicCounts[forum._id] ?? 0}</S.MetaItem>
                   <S.MetaItem>
-                    👑 Dono: {forum.donoUsuarioId ? `Usuário ${forum.donoUsuarioId}` : 'N/A'}
+                    👑 Dono: {forum.donoUsuarioId ? (ownerNames[forum.donoUsuarioId] || `Usuário ${forum.donoUsuarioId}`) : 'N/A'}
                   </S.MetaItem>
                 </S.CardMeta>
               </S.ForumCard>

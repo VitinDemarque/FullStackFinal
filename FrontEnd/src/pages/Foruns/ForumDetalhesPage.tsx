@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import AuthenticatedLayout from '@/components/Layout/AuthenticatedLayout'
+import ModalEditarForum from '@/components/Forum/ModalEditarForum'
+import ConfirmationModal from '@/components/ConfirmationModal'
 import { forunsService } from '@/services/forum.services'
 import { userService } from '@/services/user.service'
 import { forumTopicService } from '@/services/forumTopic.service'
@@ -23,6 +25,8 @@ export default function ForumDetalhesPage() {
   const [criandoTopico, setCriandoTopico] = useState(false);
   const [tituloTopico, setTituloTopico] = useState("");
   const [conteudoTopico, setConteudoTopico] = useState("");
+  const [mostrarEditar, setMostrarEditar] = useState(false);
+  const [confirmarExclusao, setConfirmarExclusao] = useState(false);
 
   const createSectionRef = useRef<HTMLDivElement | null>(null);
   const titleInputRef = useRef<HTMLInputElement | null>(null);
@@ -139,6 +143,22 @@ export default function ForumDetalhesPage() {
     }
   };
 
+  const isOwner = !!usuarioAtual && !!forum && String(forum.donoUsuarioId || '') === String(usuarioAtual._id || usuarioAtual.id || '');
+
+  const handleExcluirForum = async () => {
+    if (!forum) return;
+    try {
+      await forunsService.excluir(forum._id);
+      navigate('/foruns');
+    } catch (err: any) {
+      setErro(err?.message || 'Erro ao excluir fórum.');
+    }
+  };
+
+  const handleForumAtualizado = (f: Forum) => {
+    setForum(f);
+  };
+
   
 
     return (
@@ -152,6 +172,12 @@ export default function ForumDetalhesPage() {
                 {forum && (
                     <S.DetailContainer>
                         <S.DetailTitle>{forum.nome}</S.DetailTitle>
+                        {isOwner && (
+                          <S.ActionsRow>
+                            <S.Button variant="secondary" onClick={() => setMostrarEditar(true)}>✏️ Editar Fórum</S.Button>
+                            <S.Button variant="danger" onClick={() => setConfirmarExclusao(true)}>🗑️ Excluir Fórum</S.Button>
+                          </S.ActionsRow>
+                        )}
 
                         <S.DetailSection>
                             <S.DetailText>
@@ -232,6 +258,23 @@ export default function ForumDetalhesPage() {
                         )}
                     </S.DetailContainer>
                 )}
+                <ModalEditarForum
+                  aberto={mostrarEditar}
+                  forum={forum}
+                  onFechar={() => setMostrarEditar(false)}
+                  onAtualizado={handleForumAtualizado}
+                />
+
+                <ConfirmationModal
+                  isOpen={confirmarExclusao}
+                  onClose={() => setConfirmarExclusao(false)}
+                  onConfirm={handleExcluirForum}
+                  title="Excluir Fórum"
+                  message="Tem certeza que deseja excluir este fórum? Esta ação não pode ser desfeita."
+                  confirmText="Excluir"
+                  cancelText="Cancelar"
+                  type="danger"
+                />
             </S.Container>
         </AuthenticatedLayout>
     )
