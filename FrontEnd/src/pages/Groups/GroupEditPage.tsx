@@ -4,12 +4,13 @@ import { useAuth } from '../../contexts/AuthContext';
 import { groupService } from '../../services/group.service';
 import { Group, GroupVisibility } from '../../types/group.types';
 import styled from 'styled-components';
+import { ThemedButton, ThemedInput, ThemedTextarea, ThemedCard } from '../../styles/themed-components';
 import AuthenticatedLayout from '@components/Layout/AuthenticatedLayout';
 
 const Container = styled.div`
-  max-width: 600px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 24px;
 `;
 
 const Header = styled.div`
@@ -17,20 +18,18 @@ const Header = styled.div`
 `;
 
 const Title = styled.h1`
-  color: #333;
+  color: var(--color-text-primary);
   margin: 0 0 8px 0;
 `;
 
 const Subtitle = styled.p`
-  color: #666;
+  color: var(--color-text-secondary);
   margin: 0;
 `;
 
-const Form = styled.form`
-  background: white;
-  border-radius: 12px;
+const Form = styled(ThemedCard).attrs({ as: 'form' })`
   padding: 30px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
 `;
 
 const FormGroup = styled.div`
@@ -41,55 +40,45 @@ const Label = styled.label`
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
-  color: #333;
+  color: var(--color-text-primary);
 `;
 
-const Input = styled.input`
+const Input = styled(ThemedInput)`
   width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 1rem;
-  transition: border-color 0.2s;
-
-  &:focus {
-    outline: none;
-    border-color: #007bff;
-  }
 `;
 
-const TextArea = styled.textarea`
+const TextArea = styled(ThemedTextarea)`
   width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 1rem;
-  min-height: 100px;
-  resize: vertical;
-  transition: border-color 0.2s;
-
-  &:focus {
-    outline: none;
-    border-color: #007bff;
-  }
 `;
 
 const RadioGroup = styled.div`
   display: flex;
-  gap: 20px;
+  gap: 12px;
   margin-top: 8px;
+  flex-wrap: wrap;
 
   @media (max-width: 480px) {
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
 `;
 
 const RadioLabel = styled.label`
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--color-surface-hover);
+    border-color: var(--color-border);
+  }
 `;
 
 const RadioInput = styled.input`
@@ -103,59 +92,17 @@ const ButtonGroup = styled.div`
   margin-top: 32px;
 `;
 
-const Button = styled.button<{ variant?: 'secondary' | 'danger' }>`
-  padding: 12px 24px;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-
-  ${props => {
-    switch (props.variant) {
-      case 'secondary':
-        return `
-          background: #6c757d;
-          color: white;
-
-          &:hover {
-            background: #545b62;
-          }
-        `;
-      case 'danger':
-        return `
-          background: #dc3545;
-          color: white;
-
-          &:hover {
-            background: #c82333;
-          }
-        `;
-      default:
-        return `
-          background: #007bff;
-          color: white;
-
-          &:hover {
-            background: #0056b3;
-          }
-        `;
-    }
-  }}
-
-  &:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-  }
+const Button = styled(ThemedButton)`
+  padding: 12px 20px;
 `;
 
 const ErrorMessage = styled.div`
-  background: #f8d7da;
-  color: #721c24;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
   padding: 12px;
-  border-radius: 6px;
+  border-radius: 8px;
   margin-bottom: 20px;
-  border: 1px solid #f5c6cb;
+  border: 1px solid var(--color-red-400);
 `;
 
 const LoadingContainer = styled.div`
@@ -167,7 +114,7 @@ const LoadingContainer = styled.div`
 
 const Spinner = styled.div`
   font-size: 1.125rem;
-  color: #666;
+  color: var(--color-text-secondary);
 `;
 
 const GroupEditPage: React.FC = () => {
@@ -360,7 +307,7 @@ const GroupEditPage: React.FC = () => {
           <Button type="button" variant="secondary" onClick={handleCancel}>
             Cancelar
           </Button>
-          <Button type="submit" disabled={saving}>
+          <Button type="submit" variant="primary" disabled={saving}>
             {saving ? 'Salvando...' : 'Salvar Alterações'}
           </Button>
         </ButtonGroup>

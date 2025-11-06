@@ -543,6 +543,13 @@ export const CommentMeta = styled.div`
   color: var(--color-text-light);
 `
 
+export const CommentActions = styled.div`
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+`
+
 export const FadeOverlay = styled.div`
   position: absolute;
   bottom: 0;

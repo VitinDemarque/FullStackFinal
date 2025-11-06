@@ -3,12 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom'
 import AuthenticatedLayout from '@/components/Layout/AuthenticatedLayout'
 import { forumTopicService } from '@/services/forumTopic.service'
 import { forumCommentService } from '@/services/forumComment.service'
+import { forunsService } from '@/services/forum.services'
+import { useAuth } from '@/contexts/AuthContext'
 import * as S from '@/styles/pages/Foruns/styles'
 import type { ForumComment, ForumTopic } from '@/types/forum'
 
 export default function TopicoPage() {
   const { id, topicId } = useParams<{ id: string; topicId: string }>()
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   const [topico, setTopico] = useState<ForumTopic | null>(null)
   const [comentarios, setComentarios] = useState<ForumComment[]>([])
@@ -18,6 +21,8 @@ export default function TopicoPage() {
   const [enviando, setEnviando] = useState(false)
   const [mostrarTodos, setMostrarTodos] = useState(false)
   const formSectionRef = useRef<HTMLDivElement | null>(null)
+  const [forumOwnerId, setForumOwnerId] = useState<string | null>(null)
+  const [excluindoId, setExcluindoId] = useState<string | null>(null)
 
   useEffect(() => {
     const carregar = async () => {
@@ -29,6 +34,11 @@ export default function TopicoPage() {
         setLoading(true)
         const t = await forumTopicService.obterPorId(topicId)
         setTopico(t)
+        // Buscar dono do fórum para validar permissão de exclusão
+        try {
+          const forum = await forunsService.getById(t.forumId)
+          setForumOwnerId(forum?.donoUsuarioId ?? null)
+        } catch {}
         const list = await forumCommentService.listarPorTopico(topicId)
         setComentarios(list)
       } catch (err: any) {
@@ -62,6 +72,24 @@ export default function TopicoPage() {
     formSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
+  const handleExcluirComentario = async (commentId: string) => {
+    if (!commentId) return
+    const confirmar = window.confirm('Excluir este comentário?')
+    if (!confirmar) return
+    try {
+      setExcluindoId(commentId)
+      await forumCommentService.excluir(commentId)
+      if (topicId) {
+        const list = await forumCommentService.listarPorTopico(topicId)
+        setComentarios(list)
+      }
+    } catch (err: any) {
+      setErro(err?.message || 'Não foi possível excluir o comentário.')
+    } finally {
+      setExcluindoId(null)
+    }
+  }
+
   return (
     <AuthenticatedLayout>
       <S.Container>
@@ -85,14 +113,32 @@ export default function TopicoPage() {
                 <>
                   <S.CommentsListWrapper>
                     <S.CommentsList>
-                      {comentariosVisiveis.map((c) => (
-                        <S.CommentItem key={c._id}>
-                          <S.CommentContent>{c.conteudo}</S.CommentContent>
-                          <S.CommentMeta>
-                            {new Date(c.criadoEm || '').toLocaleString()}
-                          </S.CommentMeta>
-                        </S.CommentItem>
-                      ))}
+                      {comentariosVisiveis.map((c) => {
+                        const meuId = user?._id || user?.id
+                        const isAutor = !!meuId && String(c.autorUsuarioId) === String(meuId)
+                        const isDonoForum = !!meuId && !!forumOwnerId && String(forumOwnerId) === String(meuId)
+                        const isAdmin = user?.role === 'ADMIN'
+                        const podeExcluir = isAutor || isDonoForum || isAdmin
+                        return (
+                          <S.CommentItem key={c._id}>
+                            <S.CommentContent>{c.conteudo}</S.CommentContent>
+                            <S.CommentMeta>
+                              {new Date(c.criadoEm || '').toLocaleString()}
+                            </S.CommentMeta>
+                            {podeExcluir && (
+                              <S.CommentActions>
+                                <S.Button
+                                  variant="danger"
+                                  disabled={excluindoId === c._id}
+                                  onClick={() => handleExcluirComentario(c._id)}
+                                >
+                                  {excluindoId === c._id ? 'Excluindo...' : 'Excluir'}
+                                </S.Button>
+                              </S.CommentActions>
+                            )}
+                          </S.CommentItem>
+                        )
+                      })}
                     </S.CommentsList>
                     {!mostrarTodos && restantes > 0 && <S.FadeOverlay />}
                   </S.CommentsListWrapper>

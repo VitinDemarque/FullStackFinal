@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { Group } from "../../types/group.types";
 import { Exercise } from "../../types";
+import { ThemedButton } from "../../styles/themed-components";
 import { groupService } from "../../services/group.service";
 import { exercisesService } from "../../services/exercises.service";
 import styled from "styled-components";
@@ -138,15 +139,9 @@ const FilterSelect = styled.select`
   }
 `;
 
-const ClearFiltersButton = styled.button`
-  background: var(--color-gray-100);
-  color: var(--color-text-secondary);
-  border: 1px solid var(--color-border);
+const ClearFiltersButton = styled(ThemedButton)`
   padding: 10px 16px;
-  border-radius: 6px;
   font-size: 0.875rem;
-  cursor: pointer;
-  transition: none;
 `;
 
 const ExercisesGrid = styled.div`
@@ -522,7 +517,7 @@ const GroupExercisesPage: React.FC = () => {
 
             <FilterGroup>
               <FilterLabel>&nbsp;</FilterLabel>
-              <ClearFiltersButton onClick={clearFilters}>
+              <ClearFiltersButton variant="secondary" onClick={clearFilters}>
                 Limpar Filtros
               </ClearFiltersButton>
             </FilterGroup>
