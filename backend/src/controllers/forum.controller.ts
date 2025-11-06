@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import { AuthenticatedRequest } from '../middlewares/auth'
 import * as ForumService from '../services/forum.service'
 import { NotFoundError, BadRequestError } from '../utils/httpErrors'
+import { isDono } from '../utils/forumAuth'
 
 // Buscar fóruns públicos
 export async function listarPublicos(req: Request, res: Response, next: NextFunction) {
@@ -182,6 +183,24 @@ export async function adicionarModerador(req: AuthenticatedRequest, res: Respons
 
     if (!userId) {
       return res.status(400).json({ mensagem: 'O campo "userId" é obrigatorio.' })
+    }
+
+    const forum = await ForumService.obterPorId(id)
+
+    if (!isDono(forum, req.user.user_id)) {
+      return res.status(403).json({
+        mensagem: 'Apenas o dono do fórum pode adicionar moderadores.',
+      })
+    }
+
+    const ehMembro = forum.membros?.some(
+      (m) => String(m.usuarioId) === userId
+    )
+
+    if (!ehMembro) {
+      return res.status(400).json({
+        mensagem: 'O usuário precisa ser membro do fórum antes de ser promovido a moderador.',
+      })
     }
 
     const atualizado = await ForumService.adicionarModerador(id, req.user.user_id, userId)
