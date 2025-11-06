@@ -1,11 +1,12 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Link } from 'react-router-dom'
 import AuthenticatedLayout from '@/components/Layout/AuthenticatedLayout'
 import { forunsService } from '@/services/forum.services'
 import { useAuth } from '@/contexts/AuthContext'
 import ModalCriarForum from '@/components/Forum/ModalCriarForum'
 import type { Forum } from '@/types/forum'
+import * as S from '@/styles/pages/Foruns/styles'
+import { FaSearch } from 'react-icons/fa'
 
 export default function ForunsPage() {
   const { user } = useAuth()
@@ -52,44 +53,61 @@ export default function ForunsPage() {
 
   return (
     <AuthenticatedLayout>
-      <div className="p-6 bg-gray-100 min-h-screen text-gray-900">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">Fóruns Públicos</h1>
+      <S.Container>
+        <S.Header>
+          <S.Title>Fóruns Públicos</S.Title>
+          <S.NewForumButton onClick={() => setMostrarModalCriar(true)}>
+            ➕ Novo Fórum
+          </S.NewForumButton>
+        </S.Header>
 
-          <button
-            onClick={() => setMostrarModalCriar(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition"
-          >
-            Novo Fórum
-          </button>
-        </div>
+        <S.SearchBar>
+          <FaSearch />
+          <input
+            placeholder="Buscar por título, assunto ou descrição"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+          />
+        </S.SearchBar>
 
-        {erro && (
-          <p className="text-red-600 bg-red-100 border border-red-300 px-4 py-2 rounded mb-4">
-            {erro}
-          </p>
-        )}
+        {erro && <S.Error>{erro}</S.Error>}
 
         {loading ? (
-          <p className="text-gray-700">Carregando...</p>
-        ) : foruns.length === 0 ? (
-          <p className="text-gray-700">Nenhum fórum encontrado.</p>
+          <S.Loading>Carregando...</S.Loading>
+        ) : forunsFiltrados.length === 0 ? (
+          <S.NoResults>
+            <p>Nenhum fórum encontrado.</p>
+          </S.NoResults>
         ) : (
-          <ul className="space-y-4">
-            {foruns.map((forum) => (
-              <li
+          <S.ForumList>
+            {forunsFiltrados.map((forum) => (
+              <S.ForumCard
                 key={forum._id}
-                onClick={() => navigate(`/foruns/${forum._id}`)} // 👈 redireciona
-                className="p-5 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+                onClick={() => navigate(`/foruns/${forum._id}`)}
               >
-                <h2 className="text-xl font-semibold text-gray-900">{forum.nome}</h2>
-                <p className="text-gray-700 mt-1">{forum.descricao}</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  Assunto: {forum.assunto || 'Geral'}
-                </p>
-              </li>
+                <S.CardHeader>
+                  <S.CardTitle>{forum.nome}</S.CardTitle>
+                  <S.BadgeContainer>
+                    <S.Badge variant="public">🌐 Público</S.Badge>
+                    {forum.assunto && (
+                      <S.Badge>{forum.assunto}</S.Badge>
+                    )}
+                  </S.BadgeContainer>
+                </S.CardHeader>
+
+                <S.CardDescription>
+                  {forum.descricao || 'Sem descrição'}
+                </S.CardDescription>
+
+                <S.CardMeta>
+                  <S.MetaItem>🧩 Tópicos: {forum.topicos?.length ?? 0}</S.MetaItem>
+                  <S.MetaItem>
+                    👑 Dono: {forum.donoUsuarioId ? `Usuário ${forum.donoUsuarioId}` : 'N/A'}
+                  </S.MetaItem>
+                </S.CardMeta>
+              </S.ForumCard>
             ))}
-          </ul>
+          </S.ForumList>
         )}
 
         <ModalCriarForum
@@ -97,7 +115,7 @@ export default function ForunsPage() {
           onFechar={() => setMostrarModalCriar(false)}
           onCriado={carregarForuns}
         />
-      </div>
+      </S.Container>
     </AuthenticatedLayout>
   )
 }

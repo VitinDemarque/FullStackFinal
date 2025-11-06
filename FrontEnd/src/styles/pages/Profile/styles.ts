@@ -27,7 +27,7 @@ const slideDown = keyframes`
 
 export const ProfilePage = styled.div`
   min-height: 100vh;
-  background: linear-gradient(180deg, #e0f2fe 0%, #ffffff 50%, #fef3c7 100%);
+  background: var(--color-background);
   padding: 2rem;
   display: flex;
   flex-direction: column;
@@ -62,18 +62,19 @@ export const EditButton = styled.button`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: white;
-  border: 2px solid ${theme.colors.gray[200]};
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
   padding: 0.75rem 1.5rem;
   border-radius: ${theme.borderRadius.sm};
   font-weight: ${theme.fontWeights.semibold};
-  color: ${theme.colors.gray[700]};
+  color: var(--color-text-primary);
   cursor: pointer;
   transition: ${theme.transitions.base};
 
   &:hover {
-    border-color: ${theme.colors.blue[400]};
-    color: ${theme.colors.blue[400]};
+    background: var(--color-surface-hover);
+    border-color: var(--color-blue-400);
+    color: var(--color-blue-400);
     transform: translateY(-2px);
   }
 
@@ -102,12 +103,12 @@ export const AvatarContainer = styled.div`
 export const Avatar = styled.div`
   width: 150px;
   height: 150px;
-  background: #000000;
+  background: var(--color-surface);
   border-radius: ${theme.borderRadius.full};
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--color-text-primary);
   font-size: 4rem;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   overflow: hidden;
@@ -132,10 +133,10 @@ export const AvatarEditButton = styled.button`
   right: 5px;
   width: 40px;
   height: 40px;
-  background: ${theme.gradients.blue};
-  border: 3px solid white;
+  background: var(--gradient-blue);
+  border: 3px solid var(--color-text-primary);
   border-radius: ${theme.borderRadius.full};
-  color: white;
+  color: var(--color-text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -146,7 +147,7 @@ export const AvatarEditButton = styled.button`
 
   &:hover {
     transform: scale(1.1);
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    box-shadow: var(--shadow-sm);
   }
 
   @media (max-width: ${theme.breakpoints.tablet}) {
@@ -209,17 +210,17 @@ export const UploadButton = styled.button`
 
 export const RemoveButton = styled.button`
   padding: 0.75rem 1.5rem;
-  border: 2px solid ${theme.colors.red[500]};
+  border: 2px solid var(--color-red-500);
   border-radius: ${theme.borderRadius.sm};
   font-weight: ${theme.fontWeights.semibold};
   cursor: pointer;
   transition: ${theme.transitions.base};
   font-size: 0.9375rem;
-  background: white;
-  color: ${theme.colors.red[500]};
+  background: var(--color-surface);
+  color: var(--color-red-500);
 
   &:hover {
-    background: ${theme.colors.red[500]};
+    background: var(--color-red-500);
     color: white;
     transform: translateY(-2px);
   }
@@ -236,7 +237,7 @@ export const RemoveButton = styled.button`
 export const ProfileName = styled.h1`
   font-size: ${theme.fontSizes['4xl']};
   font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.gray[800]};
+  color: var(--color-text-primary);
   margin-bottom: 1rem;
 
   @media (max-width: ${theme.breakpoints.tablet}) {
@@ -279,7 +280,7 @@ export const StatItem = styled.div`
 
 export const StatLabel = styled.p`
   font-size: ${theme.fontSizes.sm};
-  color: ${theme.colors.gray[500]};
+  color: var(--color-text-secondary);
   margin-bottom: 0.5rem;
   font-weight: ${theme.fontWeights.medium};
 `
@@ -287,7 +288,7 @@ export const StatLabel = styled.p`
 export const StatValue = styled.p`
   font-size: ${theme.fontSizes['2xl']};
   font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.gray[800]};
+  color: var(--color-text-primary);
   margin: 0;
 `
 
@@ -303,7 +304,7 @@ export const XpProgressContainer = styled.div`
 export const XpProgressBar = styled.div`
   width: 100%;
   height: 8px;
-  background: ${theme.colors.gray[200]};
+  background: var(--color-border);
   border-radius: ${theme.borderRadius.full};
   overflow: hidden;
 `
@@ -315,7 +316,7 @@ interface XpProgressFillProps {
 export const XpProgressFill = styled.div<XpProgressFillProps>`
   height: 100%;
   width: ${(props) => props.progress}%;
-  background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
+  background: var(--gradient-blue);
   border-radius: ${theme.borderRadius.full};
   transition: width 0.5s ease;
 `
@@ -336,14 +337,14 @@ export const AchievementsSection = styled.section`
 export const SectionTitle = styled.h2`
   font-size: ${theme.fontSizes['2xl']};
   font-weight: ${theme.fontWeights.bold};
-  color: ${theme.colors.gray[800]};
+  color: var(--color-text-primary);
   margin-bottom: 0.5rem;
   letter-spacing: 1px;
 `
 
 export const SectionSubtitle = styled.p`
   font-size: ${theme.fontSizes.sm};
-  color: ${theme.colors.gray[500]};
+  color: var(--color-text-secondary);
   margin-bottom: 2rem;
 `
 
@@ -487,18 +488,18 @@ export const BadgeBase = styled.div<{ isEarned: boolean }>`
 export const LoadingBadges = styled.div`
   text-align: center;
   padding: 3rem;
-  color: ${theme.colors.gray[500]};
+  color: var(--color-text-secondary);
   font-size: ${theme.fontSizes.lg};
 `
 
 export const NoBadgesMessage = styled.div`
   text-align: center;
   padding: 3rem 2rem;
-  color: ${theme.colors.gray[500]};
+  color: var(--color-text-secondary);
 
   svg {
     font-size: 3rem;
-    color: ${theme.colors.gray[300]};
+    color: var(--color-gray-300);
     margin-bottom: 1rem;
   }
 

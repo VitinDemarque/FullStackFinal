@@ -12,7 +12,7 @@ export const Title = styled.h1`
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 1rem;
-  color: ${({ theme }) => theme.colors.textPrimary};
+  color: var(--color-text-primary);
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -27,7 +27,7 @@ export const Title = styled.h1`
 `;
 
 export const Description = styled.p`
-  color: ${({ theme }) => theme.colors.textLight};
+  color: var(--color-text-secondary);
   font-size: 1rem;
   line-height: 1.6;
   max-width: 600px;
@@ -38,10 +38,11 @@ export const Description = styled.p`
 `;
 
 export const Card = styled.div`
-  background: ${({ theme }) => theme.colors.white};
+  background: var(--color-surface);
   border-radius: ${({ theme }) => theme.borderRadius.xl};
   padding: 3rem;
-  box-shadow: ${({ theme }) => theme.shadows.md};
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border);
   margin-top: 2rem;
   text-align: center;
   max-width: 800px;

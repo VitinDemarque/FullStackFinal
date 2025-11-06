@@ -143,19 +143,27 @@ export const LoginButton = styled(Link)`
 `;
 
 export const SignupButton = styled(Link)`
-  color: ${({ theme }) => theme.colors.white};
+  color: ${({ theme }) => theme.colors.accentBlue};
   text-decoration: none;
   font-weight: 600;
   font-size: 0.9375rem;
   padding: 0.625rem 1.5rem;
   border-radius: ${({ theme }) => theme.borderRadius.md};
-  background: ${({ theme }) => theme.gradients.blue};
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.accentBlue};
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+    background: ${({ theme }) => theme.colors.white};
+    color: ${({ theme }) => theme.colors.accentBlue};
+  }
+
+  &:focus-visible {
+    outline: 3px solid ${({ theme }) => theme.colors.accentBlue};
+    outline-offset: 2px;
   }
 `;
 
@@ -242,19 +250,27 @@ export const MobileLoginButton = styled(Link)`
 `;
 
 export const MobileSignupButton = styled(Link)`
-  color: ${({ theme }) => theme.colors.white};
+  color: ${({ theme }) => theme.colors.accentBlue};
   text-decoration: none;
   font-weight: 600;
   font-size: 0.9375rem;
   padding: 0.75rem 1.25rem;
   border-radius: ${({ theme }) => theme.borderRadius.md};
   text-align: center;
-  background: ${({ theme }) => theme.gradients.blue};
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.accentBlue};
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
 
   &:hover {
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+    background: ${({ theme }) => theme.colors.white};
+    color: ${({ theme }) => theme.colors.accentBlue};
+  }
+
+  &:focus-visible {
+    outline: 3px solid ${({ theme }) => theme.colors.accentBlue};
+    outline-offset: 2px;
   }
 `;
 

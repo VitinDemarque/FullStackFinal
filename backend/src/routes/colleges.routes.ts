@@ -12,7 +12,8 @@ const router = Router();
 router.get('/', CollegesController.list);
 router.get('/:id', CollegesController.getById);
 
-router.post('/', auth({ roles: ['ADMIN'] }), CollegesController.create);
+// Permitir que qualquer usuário autenticado crie faculdades
+router.post('/', auth(), CollegesController.create);
 router.patch('/:id', auth({ roles: ['ADMIN'] }), CollegesController.update);
 router.delete('/:id', auth({ roles: ['ADMIN'] }), CollegesController.remove);
 

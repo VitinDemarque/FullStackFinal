@@ -20,13 +20,13 @@ export const Title = styled.h1`
   font-size: 3rem;
   font-weight: 700;
   margin-bottom: 1rem;
-  color: ${({ theme }) => theme.colors.gray[900]};
+  color: var(--color-text-primary);
   display: flex;
   align-items: center;
   gap: 0.5rem;
 
   .brackets {
-    color: ${({ theme }) => theme.colors.yellow[400]};
+    color: var(--color-yellow-400);
   }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
@@ -39,7 +39,7 @@ export const Title = styled.h1`
 `;
 
 export const Subtitle = styled.p`
-  color: ${({ theme }) => theme.colors.gray[600]};
+  color: var(--color-text-secondary);
   font-size: 1.125rem;
   line-height: 1.6;
   max-width: 600px;
@@ -51,25 +51,26 @@ export const Subtitle = styled.p`
 `;
 
 export const CreateButton = styled.button`
-  background: ${({ theme }) => theme.colors.white};
-  border: 2px solid ${({ theme }) => theme.colors.blue[300]};
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   padding: 1rem 2rem;
   font-size: 1rem;
   font-weight: 600;
-  color: ${({ theme }) => theme.colors.blue[600]};
+  color: var(--color-text-primary);
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.5rem;
   transition: ${({ theme }) => theme.transitions.base};
-  box-shadow: ${({ theme }) => theme.shadows.sm};
+  box-shadow: var(--shadow-sm);
 
   &:hover {
-    background: ${({ theme }) => theme.colors.blue[50]};
-    border-color: ${({ theme }) => theme.colors.blue[400]};
+    background: var(--color-surface-hover);
+    border-color: var(--color-blue-400);
+    color: var(--color-blue-400);
     transform: translateY(-2px);
-    box-shadow: ${({ theme }) => theme.shadows.md};
+    box-shadow: var(--shadow-md);
   }
 
   .icon {
@@ -104,7 +105,7 @@ export const ExercisesSection = styled.div`
 export const SectionTitle = styled.h2`
   font-size: 1.5rem;
   font-weight: 600;
-  color: ${({ theme }) => theme.colors.gray[900]};
+  color: var(--color-text-primary);
   margin-bottom: 1.5rem;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
@@ -113,12 +114,12 @@ export const SectionTitle = styled.h2`
 `;
 
 export const ExerciseCard = styled.div`
-  background: ${({ theme }) => theme.colors.white};
+  background: var(--color-surface);
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   padding: 1.5rem;
   margin-bottom: 1rem;
-  box-shadow: ${({ theme }) => theme.shadows.sm};
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
   transition: ${({ theme }) => theme.transitions.base};
   position: relative;
 
@@ -138,13 +139,13 @@ export const CardHeader = styled.div`
 export const CardIcon = styled.div`
   width: 48px;
   height: 48px;
-  background: ${({ theme }) => theme.colors.blue[100]};
+  background: var(--color-blue-100);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
-  color: ${({ theme }) => theme.colors.blue[600]};
+  color: var(--color-blue-600);
   flex-shrink: 0;
 `;
 
@@ -155,13 +156,13 @@ export const CardContent = styled.div`
 export const CardTitle = styled.h3`
   font-size: 1.125rem;
   font-weight: 600;
-  color: ${({ theme }) => theme.colors.gray[900]};
+  color: var(--color-text-primary);
   margin-bottom: 0.5rem;
   line-height: 1.4;
 `;
 
 export const CardDescription = styled.p`
-  color: ${({ theme }) => theme.colors.gray[600]};
+  color: var(--color-text-secondary);
   font-size: 0.95rem;
   line-height: 1.5;
 `;
@@ -172,14 +173,14 @@ export const CardStats = styled.div`
   justify-content: space-between;
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  border-top: 1px solid var(--color-border);
 `;
 
 export const StatsLeft = styled.div`
   display: flex;
   align-items: center;
   gap: 1rem;
-  color: ${({ theme }) => theme.colors.gray[500]};
+  color: var(--color-text-secondary);
   font-size: 0.875rem;
 `;
 
@@ -187,17 +188,17 @@ export const VoteCount = styled.div`
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  color: ${({ theme }) => theme.colors.gray[600]};
+  color: var(--color-text-secondary);
   font-weight: 500;
 `;
 
 export const VoteIcon = styled.span`
-  color: ${({ theme }) => theme.colors.green[500]};
+  color: var(--color-green-500);
   font-size: 1rem;
 `;
 
 export const CommentsCount = styled.div`
-  color: ${({ theme }) => theme.colors.gray[500]};
+  color: var(--color-text-secondary);
 `;
 
 export const EditButton = styled.button`

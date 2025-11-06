@@ -20,13 +20,18 @@ export const Title = styled.h1`
   font-size: 3rem;
   font-weight: 700;
   margin-bottom: 1rem;
-  color: ${({ theme }) => theme.colors.gray[900]};
+  color: var(--color-text-primary);
   display: flex;
   align-items: center;
   gap: 0.5rem;
 
+  /* Força alto contraste no modo escuro */
+  .dark & {
+    color: white;
+  }
+
   .brackets {
-    color: ${({ theme }) => theme.colors.yellow[400]};
+    color: var(--color-yellow-400);
   }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
@@ -39,7 +44,7 @@ export const Title = styled.h1`
 `;
 
 export const Subtitle = styled.p`
-  color: ${({ theme }) => theme.colors.gray[600]};
+  color: var(--color-text-secondary);
   font-size: 1.125rem;
   line-height: 1.6;
   max-width: 600px;
@@ -77,7 +82,7 @@ export const ChallengesSection = styled.div`
 export const SectionTitle = styled.h2`
   font-size: 1.5rem;
   font-weight: 600;
-  color: ${({ theme }) => theme.colors.gray[900]};
+  color: var(--color-text-primary);
   margin-bottom: 1.5rem;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
@@ -86,18 +91,18 @@ export const SectionTitle = styled.h2`
 `;
 
 export const ChallengeCard = styled.div`
-  background: ${({ theme }) => theme.colors.white};
+  background: var(--color-surface);
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   padding: 1.5rem;
   margin-bottom: 1rem;
-  box-shadow: ${({ theme }) => theme.shadows.sm};
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
   transition: ${({ theme }) => theme.transitions.base};
   position: relative;
   cursor: pointer;
 
   &:hover {
-    box-shadow: ${({ theme }) => theme.shadows.md};
+    box-shadow: var(--shadow-md);
     transform: translateY(-2px);
   }
 `;
@@ -129,20 +134,20 @@ export const CardContent = styled.div`
 export const CardTitle = styled.h3`
   font-size: 1.125rem;
   font-weight: 600;
-  color: ${({ theme }) => theme.colors.gray[900]};
+  color: var(--color-text-primary);
   margin-bottom: 0.5rem;
   line-height: 1.4;
 `;
 
 export const CardDescription = styled.p`
-  color: ${({ theme }) => theme.colors.gray[600]};
+  color: var(--color-text-secondary);
   font-size: 0.95rem;
   line-height: 1.5;
   margin-bottom: 0.5rem;
 `;
 
 export const AuthorInfo = styled.div`
-  color: ${({ theme }) => theme.colors.gray[500]};
+  color: var(--color-text-secondary);
   font-size: 0.875rem;
   margin-bottom: 0.5rem;
 `;
@@ -153,14 +158,14 @@ export const CardFooter = styled.div`
   justify-content: space-between;
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  border-top: 1px solid var(--color-border);
 `;
 
 export const Stats = styled.div`
   display: flex;
   align-items: center;
   gap: 1rem;
-  color: ${({ theme }) => theme.colors.gray[500]};
+  color: var(--color-text-secondary);
   font-size: 0.875rem;
 `;
 
@@ -195,8 +200,8 @@ export const XpBadge = styled.span`
   gap: 0.25rem;
   padding: 0.25rem 0.75rem;
   border-radius: ${({ theme }) => theme.borderRadius.md};
-  background: ${({ theme }) => theme.colors.blue[100]};
-  color: ${({ theme }) => theme.colors.blue[600]};
+  background: var(--color-blue-100);
+  color: var(--color-blue-600);
   font-size: 0.75rem;
   font-weight: 600;
 `;

@@ -20,7 +20,7 @@ const ModalOverlay = styled.div`
 `
 
 const ModalContent = styled.div`
-  background: ${({ theme }) => theme.colors.white};
+  background: var(--color-surface);
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   box-shadow: ${({ theme }) => theme.shadows['2xl']};
   width: 100%;
@@ -29,6 +29,7 @@ const ModalContent = styled.div`
   overflow-y: auto;
   padding: 2rem;
   position: relative;
+  color: var(--color-text-primary);
 
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     padding: 1.5rem;
@@ -46,7 +47,7 @@ const ModalHeader = styled.div`
 const ModalTitle = styled.h2`
   font-size: ${({ theme }) => theme.fontSizes['2xl']};
   font-weight: ${({ theme }) => theme.fontWeights.bold};
-  color: ${({ theme }) => theme.colors.textPrimary};
+  color: var(--color-text-primary);
   margin: 0;
 `
 
@@ -54,7 +55,7 @@ const CloseButton = styled.button`
   background: transparent;
   border: none;
   font-size: ${({ theme }) => theme.fontSizes['2xl']};
-  color: ${({ theme }) => theme.colors.textLight};
+  color: var(--color-text-light);
   cursor: pointer;
   padding: 0;
   width: 32px;
@@ -66,8 +67,8 @@ const CloseButton = styled.button`
   transition: all 0.2s;
 
   &:hover {
-    background: ${({ theme }) => theme.colors.gray[100]};
-    color: ${({ theme }) => theme.colors.textPrimary};
+    background: var(--color-surface-hover);
+    color: var(--color-text-primary);
   }
 `
 
@@ -86,64 +87,69 @@ const FormGroup = styled.div`
 const Label = styled.label`
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.medium};
-  color: ${({ theme }) => theme.colors.textPrimary};
+  color: var(--color-text-secondary);
 `
 
 const Input = styled.input`
   padding: 0.75rem;
-  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: ${({ theme }) => theme.borderRadius.md};
   font-size: ${({ theme }) => theme.fontSizes.base};
-  color: ${({ theme }) => theme.colors.textPrimary};
-  transition: all 0.3s;
+  color: var(--color-text-primary);
+  transition: all 0.3s ease;
 
   &:focus {
     outline: none;
-    border-color: ${({ theme }) => theme.colors.primary};
-    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary}20;
+    border-color: var(--color-blue-400);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    background: var(--color-surface-hover);
   }
 
   &::placeholder {
-    color: ${({ theme }) => theme.colors.textLight};
+    color: var(--color-text-light);
   }
 `
 
 const Textarea = styled.textarea`
   padding: 0.75rem;
-  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: ${({ theme }) => theme.borderRadius.md};
   font-size: ${({ theme }) => theme.fontSizes.base};
-  color: ${({ theme }) => theme.colors.textPrimary};
+  color: var(--color-text-primary);
   font-family: inherit;
   resize: vertical;
   min-height: 100px;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
 
   &:focus {
     outline: none;
-    border-color: ${({ theme }) => theme.colors.primary};
-    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary}20;
+    border-color: var(--color-blue-400);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    background: var(--color-surface-hover);
   }
 
   &::placeholder {
-    color: ${({ theme }) => theme.colors.textLight};
+    color: var(--color-text-light);
   }
 `
 
 const Select = styled.select`
   padding: 0.75rem;
-  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border: 1px solid var(--color-border);
   border-radius: ${({ theme }) => theme.borderRadius.md};
   font-size: ${({ theme }) => theme.fontSizes.base};
-  color: ${({ theme }) => theme.colors.textPrimary};
-  background: ${({ theme }) => theme.colors.white};
+  color: var(--color-text-primary);
+  background: var(--color-surface);
   cursor: pointer;
   transition: all 0.3s;
 
   &:focus {
     outline: none;
-    border-color: ${({ theme }) => theme.colors.primary};
-    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary}20;
+    border-color: var(--color-blue-400);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    background: var(--color-surface-hover);
   }
 `
 
@@ -177,9 +183,9 @@ const Button = styled.button<{ variant?: 'primary' | 'secondary' | 'danger' }>`
   border-radius: ${({ theme }) => theme.borderRadius.md};
   font-size: ${({ theme }) => theme.fontSizes.base};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
-  border: none;
+  border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
   flex: 1;
   min-width: 120px;
 
@@ -191,32 +197,35 @@ const Button = styled.button<{ variant?: 'primary' | 'secondary' | 'danger' }>`
   ${props => {
     if (props.variant === 'primary') {
       return `
-        background: ${props.theme.gradients.primary};
-        color: white;
-        box-shadow: ${props.theme.shadows.md};
+        background: var(--color-surface);
+        color: var(--color-text-primary);
+        border-color: var(--color-border);
+        box-shadow: var(--shadow-sm);
 
         &:hover:not(:disabled) {
-          transform: translateY(-2px);
-          box-shadow: ${props.theme.shadows.lg};
+          background: var(--color-surface-hover);
+          box-shadow: var(--shadow-md);
         }
       `
     }
     if (props.variant === 'danger') {
       return `
-        background: ${props.theme.colors.gray[200]};
-        color: ${props.theme.colors.textPrimary};
+        background: var(--color-surface);
+        color: var(--color-text-primary);
+        border-color: var(--color-border);
 
         &:hover:not(:disabled) {
-          background: ${props.theme.colors.gray[300]};
+          background: var(--color-surface-hover);
         }
       `
     }
     return `
-      background: ${props.theme.colors.gray[200]};
-      color: ${props.theme.colors.textPrimary};
+      background: var(--color-surface);
+      color: var(--color-text-primary);
+      border-color: var(--color-border);
 
       &:hover:not(:disabled) {
-        background: ${props.theme.colors.gray[300]};
+        background: var(--color-surface-hover);
       }
     `
   }}

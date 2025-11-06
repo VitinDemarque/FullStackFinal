@@ -10,6 +10,7 @@ const Container = styled.div`
   max-width: 600px;
   margin: 0 auto;
   padding: 20px;
+  color: var(--color-text-primary);
 `;
 
 const Header = styled.div`
@@ -17,20 +18,21 @@ const Header = styled.div`
 `;
 
 const Title = styled.h1`
-  color: #333;
+  color: var(--color-text-primary);
   margin: 0 0 8px 0;
 `;
 
 const Subtitle = styled.p`
-  color: #666;
+  color: var(--color-text-secondary);
   margin: 0;
 `;
 
 const Form = styled.form`
-  background: white;
+  background: var(--color-surface);
   border-radius: 12px;
   padding: 30px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border);
 `;
 
 const FormGroup = styled.div`
@@ -40,37 +42,53 @@ const FormGroup = styled.div`
 const Label = styled.label`
   display: block;
   margin-bottom: 8px;
-  font-weight: 500;
-  color: #333;
+  font-weight: 600;
+  color: var(--color-text-primary);
 `;
 
 const Input = styled.input`
   width: 100%;
   padding: 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   font-size: 1rem;
-  transition: border-color 0.2s;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  transition: all 0.3s ease;
+
+  &::placeholder {
+    color: var(--color-text-light);
+  }
 
   &:focus {
     outline: none;
-    border-color: #007bff;
+    border-color: var(--color-blue-400);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    background: var(--color-surface-hover);
   }
 `;
 
 const TextArea = styled.textarea`
   width: 100%;
   padding: 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   font-size: 1rem;
   min-height: 100px;
   resize: vertical;
-  transition: border-color 0.2s;
+  transition: all 0.3s ease;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+
+  &::placeholder {
+    color: var(--color-text-light);
+  }
 
   &:focus {
     outline: none;
-    border-color: #007bff;
+    border-color: var(--color-blue-400);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    background: var(--color-surface-hover);
   }
 `;
 
@@ -90,6 +108,7 @@ const RadioLabel = styled.label`
   align-items: center;
   gap: 8px;
   cursor: pointer;
+  color: var(--color-text-primary);
 `;
 
 const RadioInput = styled.input`
@@ -105,41 +124,51 @@ const ButtonGroup = styled.div`
 
 const Button = styled.button<{ variant?: 'secondary' }>`
   padding: 12px 24px;
-  border: none;
   border-radius: 6px;
   font-size: 1rem;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
 
   ${props => props.variant === 'secondary' ? `
-    background: #6c757d;
-    color: white;
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
 
     &:hover {
-      background: #545b62;
+      background: var(--color-surface-hover);
+      border-color: var(--color-border);
+      box-shadow: var(--shadow-md);
     }
   ` : `
-    background: #007bff;
+    background: var(--color-blue-500);
     color: white;
+    border: 1px solid var(--color-blue-500);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
 
     &:hover {
-      background: #0056b3;
+      background: var(--color-blue-600);
+      border-color: var(--color-blue-600);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+      transform: translateY(-1px);
     }
   `}
 
   &:disabled {
-    background: #ccc;
+    background: var(--color-gray-400);
+    border-color: var(--color-gray-400);
     cursor: not-allowed;
+    box-shadow: none;
   }
 `;
 
 const ErrorMessage = styled.div`
-  background: #f8d7da;
-  color: #721c24;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
   padding: 12px;
   border-radius: 6px;
   margin-bottom: 20px;
-  border: 1px solid #f5c6cb;
+  border: 1px solid var(--color-red-400);
 `;
 
 const GroupCreatePage: React.FC = () => {

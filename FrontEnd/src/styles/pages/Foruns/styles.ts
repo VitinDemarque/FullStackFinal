@@ -4,7 +4,9 @@ import { Link } from 'react-router-dom'
 export const Container = styled.div`
   padding: 2rem;
   min-height: 100vh;
-  background: ${({ theme }) => theme.colors.background};
+  background: var(--color-background);
+  max-width: 100%;
+  overflow-x: hidden;
   
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     padding: 1rem;
@@ -28,8 +30,24 @@ export const Header = styled.div`
 export const Title = styled.h1`
   font-size: ${({ theme }) => theme.fontSizes['4xl']};
   font-weight: ${({ theme }) => theme.fontWeights.bold};
-  color: ${({ theme }) => theme.colors.textPrimary};
+  color: var(--color-text-primary);
   margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+
+  &::before {
+    content: '{';
+    color: var(--color-yellow-400);
+    margin-right: 0.25rem;
+  }
+
+  &::after {
+    content: '}';
+    color: var(--color-yellow-400);
+    margin-left: 0.25rem;
+  }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     font-size: ${({ theme }) => theme.fontSizes['2xl']};
@@ -37,11 +55,11 @@ export const Title = styled.h1`
 `
 
 export const NewForumButton = styled.button`
-  background: ${({ theme }) => theme.gradients.primary};
-  color: white;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
   padding: 0.75rem 1.5rem;
   border-radius: ${({ theme }) => theme.borderRadius.md};
-  border: none;
+  border: 1px solid var(--color-border);
   font-size: ${({ theme }) => theme.fontSizes.base};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
   cursor: pointer;
@@ -49,11 +67,16 @@ export const NewForumButton = styled.button`
   align-items: center;
   gap: 0.5rem;
   transition: all 0.3s ease;
-  box-shadow: ${({ theme }) => theme.shadows.md};
+  box-shadow: var(--shadow-sm);
+
+  svg {
+    color: var(--color-text-primary);
+  }
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: ${({ theme }) => theme.shadows.lg};
+    background: var(--color-surface-hover);
+    border-color: var(--color-blue-400);
+    box-shadow: var(--shadow-md);
   }
 
   &:active {
@@ -64,23 +87,17 @@ export const NewForumButton = styled.button`
 export const ForumList = styled.div`
   display: grid;
   gap: 1.5rem;
-  grid-template-columns: 1fr;
-
-  @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (min-width: ${({ theme }) => theme.breakpoints.laptop}) {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  align-items: stretch;
 `
 
 export const ForumCard = styled.div`
-  background: ${({ theme }) => theme.colors.white};
+  background: var(--color-surface);
+  color: var(--color-text-primary);
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   padding: 1.5rem;
-  box-shadow: ${({ theme }) => theme.shadows.sm};
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
   transition: all 0.3s ease;
   cursor: pointer;
   display: flex;
@@ -89,8 +106,8 @@ export const ForumCard = styled.div`
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: ${({ theme }) => theme.shadows.xl};
-    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: var(--shadow-xl);
+    border-color: var(--color-primary);
   }
 `
 
@@ -105,7 +122,7 @@ export const CardHeader = styled.div`
 export const CardTitle = styled.h2`
   font-size: ${({ theme }) => theme.fontSizes.xl};
   font-weight: ${({ theme }) => theme.fontWeights.bold};
-  color: ${({ theme }) => theme.colors.textPrimary};
+  color: var(--color-text-primary);
   margin: 0;
   flex: 1;
   line-height: 1.4;
@@ -115,6 +132,7 @@ export const BadgeContainer = styled.div`
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+  max-width: 100%;
 `
 
 export const Badge = styled.span<{ variant?: 'public' | 'private' }>`
@@ -122,24 +140,28 @@ export const Badge = styled.span<{ variant?: 'public' | 'private' }>`
   border-radius: ${({ theme }) => theme.borderRadius.sm};
   font-size: ${({ theme }) => theme.fontSizes.xs};
   font-weight: ${({ theme }) => theme.fontWeights.medium};
-  white-space: nowrap;
+  display: inline-block;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
 
   ${props => {
     if (props.variant === 'private') {
       return `
-        background: ${props.theme.colors.warning.bg};
-        color: ${props.theme.colors.warning.text};
+        background: var(--color-warning-bg);
+        color: var(--color-warning-text);
       `
     }
     return `
-      background: ${props.theme.colors.blue[100]};
-      color: ${props.theme.colors.blue[600]};
+      background: var(--color-blue-100);
+      color: var(--color-blue-600);
     `
   }}
 `
 
 export const CardDescription = styled.p`
-  color: ${({ theme }) => theme.colors.textSecondary};
+  color: var(--color-text-secondary);
   margin: 0 0 1rem 0;
   line-height: 1.6;
   font-size: ${({ theme }) => theme.fontSizes.base};
@@ -155,7 +177,7 @@ export const CardMeta = styled.div`
   gap: 0.5rem;
   margin-top: auto;
   padding-top: 1rem;
-  border-top: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  border-top: 1px solid var(--color-border);
 `
 
 export const MetaItem = styled.div`
@@ -163,37 +185,37 @@ export const MetaItem = styled.div`
   align-items: center;
   gap: 0.5rem;
   font-size: ${({ theme }) => theme.fontSizes.sm};
-  color: ${({ theme }) => theme.colors.textLight};
+  color: var(--color-text-light);
 `
 
 export const ForumMeta = styled.div`
   display: flex;
   justify-content: space-between;
   font-size: ${({ theme }) => theme.fontSizes.sm};
-  color: ${({ theme }) => theme.colors.textLight};
+  color: var(--color-text-light);
   margin-top: 1rem;
 `
 
 export const Loading = styled.div`
   text-align: center;
   padding: 3rem;
-  color: ${({ theme }) => theme.colors.textSecondary};
+  color: var(--color-text-secondary);
   font-size: ${({ theme }) => theme.fontSizes.lg};
 `
 
 export const Error = styled.div`
-  background: ${({ theme }) => theme.colors.danger.bg};
-  color: ${({ theme }) => theme.colors.danger.text};
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
   padding: 1rem;
   border-radius: ${({ theme }) => theme.borderRadius.md};
   margin-bottom: 1.5rem;
-  border: 1px solid ${({ theme }) => theme.colors.red[400]};
+  border: 1px solid var(--color-red-400);
 `
 
 export const NoResults = styled.div`
   text-align: center;
   padding: 3rem;
-  color: ${({ theme }) => theme.colors.textSecondary};
+  color: var(--color-text-secondary);
   
   p {
     font-size: ${({ theme }) => theme.fontSizes.lg};
@@ -204,33 +226,33 @@ export const NoResults = styled.div`
 export const SearchBar = styled.div`
   display: flex;
   align-items: center;
-  background: ${({ theme }) => theme.colors.white};
+  background: var(--color-surface);
   padding: 0.75rem 1rem;
   border-radius: ${({ theme }) => theme.borderRadius.md};
-  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border: 1px solid var(--color-border);
   margin-bottom: 2rem;
   transition: all 0.3s ease;
 
   &:focus-within {
-    border-color: ${({ theme }) => theme.colors.primary};
-    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary}20;
+    border-color: var(--color-blue-400);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
   }
 
   input {
     border: none;
     background: transparent;
-    color: ${({ theme }) => theme.colors.textPrimary};
+    color: var(--color-text-primary);
     outline: none;
     flex: 1;
     font-size: ${({ theme }) => theme.fontSizes.base};
 
     &::placeholder {
-      color: ${({ theme }) => theme.colors.textLight};
+      color: var(--color-text-light);
     }
   }
 
   svg {
-    color: ${({ theme }) => theme.colors.textLight};
+    color: var(--color-text-light);
     margin-right: 0.5rem;
   }
 `
@@ -239,36 +261,37 @@ export const BackButton = styled(Link)`
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: ${({ theme }) => theme.colors.textSecondary};
+  color: var(--color-text-secondary);
   text-decoration: none;
   padding: 0.5rem 1rem;
   border-radius: ${({ theme }) => theme.borderRadius.md};
-  background: ${({ theme }) => theme.colors.white};
-  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   margin-bottom: 1.5rem;
   transition: all 0.3s ease;
   font-size: ${({ theme }) => theme.fontSizes.base};
 
   &:hover {
-    background: ${({ theme }) => theme.colors.gray[100]};
-    border-color: ${({ theme }) => theme.colors.gray[400]};
-    color: ${({ theme }) => theme.colors.textPrimary};
+    background: var(--color-surface-hover);
+    border-color: var(--color-border);
+    color: var(--color-text-primary);
   }
 `
 
 export const DetailContainer = styled.div`
-  background: ${({ theme }) => theme.colors.white};
+  background: var(--color-surface);
+  color: var(--color-text-primary);
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   padding: 2rem;
-  box-shadow: ${({ theme }) => theme.shadows.md};
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border);
   margin-bottom: 1.5rem;
 `
 
 export const DetailTitle = styled.h1`
   font-size: ${({ theme }) => theme.fontSizes['3xl']};
   font-weight: ${({ theme }) => theme.fontWeights.bold};
-  color: ${({ theme }) => theme.colors.textPrimary};
+  color: var(--color-text-primary);
   margin: 0 0 1rem 0;
 `
 
@@ -287,12 +310,12 @@ export const DetailSection = styled.div`
 export const DetailSectionTitle = styled.h2`
   font-size: ${({ theme }) => theme.fontSizes.xl};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
-  color: ${({ theme }) => theme.colors.textPrimary};
+  color: var(--color-text-primary);
   margin: 0 0 0.75rem 0;
 `
 
 export const DetailText = styled.p`
-  color: ${({ theme }) => theme.colors.textSecondary};
+  color: var(--color-text-secondary);
   line-height: 1.6;
   margin: 0.5rem 0;
   font-size: ${({ theme }) => theme.fontSizes.base};
@@ -300,7 +323,7 @@ export const DetailText = styled.p`
 
 export const DetailLabel = styled.span`
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
-  color: ${({ theme }) => theme.colors.textPrimary};
+  color: var(--color-text-primary);
 `
 
 export const ModeratorList = styled.ul`
@@ -314,8 +337,8 @@ export const ModeratorList = styled.ul`
 
 export const ModeratorItem = styled.li`
   padding: 0.75rem 1rem;
-  background: ${({ theme }) => theme.colors.gray[50]};
+  background: var(--color-surface-hover);
   border-radius: ${({ theme }) => theme.borderRadius.sm};
-  color: ${({ theme }) => theme.colors.textSecondary};
+  color: var(--color-text-secondary);
   font-size: ${({ theme }) => theme.fontSizes.base};
 `

@@ -3,6 +3,8 @@ import { NotFoundError } from '../utils/httpErrors';
 
 // Models + tipos
 import User, { IUser } from '../models/User.model';
+import { comparePassword, hashPassword } from '../utils/bcrypt';
+import { UnauthorizedError } from '../utils/httpErrors';
 import Exercise, { IExercise } from '../models/Exercise.model';
 import UserBadge, { IUserBadge } from '../models/UserBadge.model';
 import UserTitle, { IUserTitle } from '../models/UserTitle.model';
@@ -22,6 +24,18 @@ export async function updateById(id: string, payload: Partial<IUser>) {
     const doc = await User.findByIdAndUpdate(id, updates, { new: true, runValidators: true }).lean<IUser | null>();
     if (!doc) throw new NotFoundError('User not found');
     return sanitize(doc);
+}
+
+export async function changePassword(id: string, currentPassword: string, newPassword: string) {
+    const user = await User.findById(id).lean<IUser | null>();
+    if (!user) throw new NotFoundError('User not found');
+
+    const ok = await comparePassword(currentPassword, user.passwordHash);
+    if (!ok) throw new UnauthorizedError('Invalid current password');
+
+    const newHash = await hashPassword(newPassword);
+    await User.findByIdAndUpdate(id, { passwordHash: newHash, updatedAt: new Date() }, { new: false });
+    return true;
 }
 
 export interface PublicProfileInput {

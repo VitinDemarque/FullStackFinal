@@ -7,6 +7,7 @@ const router = Router();
 // Perfil do usuário
 router.get('/me', auth(), UsersController.getMe);
 router.patch('/me', auth(), UsersController.updateMe);
+router.post('/me/password', auth(), UsersController.changeMyPassword);
 
 // Recursos por ID (admin ou dono)
 router.get('/:id', auth(), UsersController.getById);

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@contexts/AuthContext'
 import { useAsync } from '@hooks/useAsync'
 import { userService } from '@services/user.service'
@@ -19,6 +20,7 @@ interface Badge {
 
 export default function ProfilePage() {
   const { user, updateUser } = useAuth()
+  const navigate = useNavigate()
   const { data: scoreboard, loading, execute } = useAsync(
     () => userService.getScoreboard(user!.id),
     false
@@ -161,7 +163,7 @@ export default function ProfilePage() {
     <AuthenticatedLayout>
       <S.ProfilePage>
         <S.ProfileHero>
-          <S.EditButton onClick={() => setShowImageUpload(!showImageUpload)}>
+          <S.EditButton onClick={() => navigate('/profile/editar')}>
             <FaEdit /> Editar Perfil
           </S.EditButton>
 

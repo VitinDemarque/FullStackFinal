@@ -14,6 +14,7 @@ import ForunsPage from "@pages/Foruns/ForunsPage";
 import ForumDetalhesPage from "@pages/Foruns/ForumDetalhesPage";
 import TopicoPage from "@pages/Foruns/TopicoPage";
 import ProfilePage from "@pages/Profile/ProfilePage";
+import ProfileEditPage from '@pages/Profile/ProfileEditPage'
 import SettingsPage from "@pages/Settings/SettingsPage";
 import NotFoundPage from "@pages/NotFound/NotFoundPage";
 import PrivateRoute from "@components/PrivateRoute";
@@ -22,6 +23,8 @@ import GroupCreatePage from "./pages/Groups/GroupCreatePage";
 import GroupDetailsPage from "./pages/Groups/GroupDetailsPage";
 import GroupEditPage from "./pages/Groups/GroupEditPage";
 import GroupMembersPage from "./pages/Groups/GroupMembersPage";
+import ThemeTest from '@components/ThemeTest';
+import CollegeCreatePage from '@pages/Colleges/CollegeCreatePage'
 
 function App() {
   return (
@@ -106,6 +109,22 @@ function App() {
               }
             />
             <Route
+              path="/profile/editar"
+              element={
+                <PrivateRoute>
+                  <ProfileEditPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/faculdades/criar"
+              element={
+                <PrivateRoute>
+                  <CollegeCreatePage />
+                </PrivateRoute>
+              }
+            />
+            <Route
               path="/configuracoes"
               element={
                 <PrivateRoute>
@@ -153,6 +172,7 @@ function App() {
                 </PrivateRoute>
               }
             />
+            <Route path="/teste-tema" element={<ThemeTest />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Router>
