@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import AuthenticatedLayout from '@/components/Layout/AuthenticatedLayout'
 import { forunsService } from '@/services/forum.services'
@@ -24,6 +24,9 @@ export default function ForumDetalhesPage() {
   const [tituloTopico, setTituloTopico] = useState("");
   const [conteudoTopico, setConteudoTopico] = useState("");
 
+  const createSectionRef = useRef<HTMLDivElement | null>(null);
+  const titleInputRef = useRef<HTMLInputElement | null>(null);
+
   useEffect(() => {
     const carregarDados = async () => {
       if (!id) {
@@ -45,11 +48,12 @@ export default function ForumDetalhesPage() {
           setDono(donoUser);
         }
 
-        // Verifica se o usuário já participa
+        // Verifica se o usuário já participa (considerando _id ou id)
+        const myId = String(me._id || me.id || '');
         const ehParticipante =
-          data.donoUsuarioId === me.id ||
-          data.moderadores?.some((m) => m.usuarioId === me.id) ||
-          data.membros?.some((m) => m.usuarioId === me.id);
+          String(data.donoUsuarioId || '') === myId ||
+          data.moderadores?.some((m) => String(m.usuarioId) === myId) ||
+          data.membros?.some((m) => String(m.usuarioId) === myId);
 
         setParticipando(!!ehParticipante);
 
@@ -57,7 +61,7 @@ export default function ForumDetalhesPage() {
         const lista = await forumTopicService.listarPorForum(id);
         setTopicos(lista);
       } catch (err: any) {
-        setErro(err.message || "Erro ao carregar fórum.");
+        setErro(err?.message || err?.mensagem || "Erro ao carregar fórum.");
       } finally {
         setLoading(false);
       }
@@ -74,8 +78,36 @@ export default function ForumDetalhesPage() {
       setParticipando(true);
       const atualizado = await forunsService.getById(id);
       setForum(atualizado);
+      // Após entrar, recarrega tópicos e limpa qualquer erro exibido
+      try {
+        const lista = await forumTopicService.listarPorForum(id);
+        setTopicos(lista);
+      } catch {}
+      setErro(null);
+      // Após entrar no fórum, abre (foca) a seção de criação de tópico
+      setTimeout(() => {
+        createSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        titleInputRef.current?.focus();
+      }, 250);
     } catch (err: any) {
-      setErro(err.message || "Não foi possível participar deste fórum.");
+      const msg = err?.message || err?.mensagem || "Não foi possível participar deste fórum.";
+      if (typeof msg === 'string' && msg.toLowerCase().includes('já participa')) {
+        // Usuário já participa: ajusta estado e atualiza fórum sem exibir erro
+        setParticipando(true);
+        try {
+          const atualizado = await forunsService.getById(id);
+          setForum(atualizado);
+          const lista = await forumTopicService.listarPorForum(id);
+          setTopicos(lista);
+        } catch {}
+        setErro(null);
+        setTimeout(() => {
+          createSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          titleInputRef.current?.focus();
+        }, 250);
+      } else {
+        setErro(msg);
+      }
     } finally {
       setProcessando(false);
     }
@@ -83,24 +115,31 @@ export default function ForumDetalhesPage() {
 
   const handleCriarTopico = async () => {
     if (!id) return;
+    if (!tituloTopico.trim() || !conteudoTopico.trim()) return;
+
     try {
       setCriandoTopico(true);
-      const criado = await forumTopicService.criar(id, {
-        titulo: tituloTopico,
-        conteudo: conteudoTopico,
+      const novo = await forumTopicService.criar(id, {
+        titulo: tituloTopico.trim(),
+        conteudo: conteudoTopico.trim(),
         palavrasChave: [],
       });
+      // Adiciona o novo tópico à lista local
+      setTopicos((prev) => [novo, ...prev]);
+      // Limpa campos e mantém foco para criar outro se desejar
       setTituloTopico("");
       setConteudoTopico("");
-      // Recarregar lista
-      const lista = await forumTopicService.listarPorForum(id);
-      setTopicos(lista);
+      setTimeout(() => {
+        titleInputRef.current?.focus();
+      }, 100);
     } catch (err: any) {
-      setErro(err.message || "Não foi possível criar o tópico.");
+      setErro(err?.message || err?.mensagem || 'Erro ao criar tópico.');
     } finally {
       setCriandoTopico(false);
     }
   };
+
+  
 
     return (
         <AuthenticatedLayout>
@@ -108,7 +147,7 @@ export default function ForumDetalhesPage() {
                 <S.BackButton to="/foruns">← Voltar</S.BackButton>
 
                 {loading && <S.Loading>Carregando fórum...</S.Loading>}
-                {erro && <S.Error>An error occurred<br />{erro}</S.Error>}
+                {erro && <S.Error>{erro}</S.Error>}
 
                 {forum && (
                     <S.DetailContainer>
@@ -163,12 +202,13 @@ export default function ForumDetalhesPage() {
                                     )}
                                 </S.DetailSection>
 
-                                <S.DetailSection>
+                                <S.DetailSection ref={createSectionRef}>
                                     <S.DetailSectionTitle>Criar novo tópico</S.DetailSectionTitle>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                         <S.Input
                                             type="text"
                                             value={tituloTopico}
+                                            ref={titleInputRef}
                                             onChange={(e) => setTituloTopico(e.target.value)}
                                             placeholder="Título do tópico"
                                         />

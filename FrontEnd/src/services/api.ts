@@ -27,10 +27,20 @@ api.interceptors.response.use(
   (response) => response,
   (error: AxiosError<ApiError>) => {
     if (error.response) {
+      const data: any = error.response.data ?? {}
+      const message =
+        data?.error?.message ||
+        data?.message ||
+        data?.mensagem ||
+        (error as any)?.message ||
+        'An error occurred'
+
+      const details = data?.error?.details ?? data?.details
+
       const apiError: ApiError = {
-        message: error.response.data?.message || 'An error occurred',
+        message,
         statusCode: error.response.status,
-        details: error.response.data?.details,
+        details,
       }
 
       if (error.response.status === 401) {
