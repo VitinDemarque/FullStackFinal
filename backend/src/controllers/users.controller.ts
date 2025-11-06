@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { Types } from 'mongoose';
 import { AuthenticatedRequest } from '../middlewares/auth';
 import * as UsersService from '../services/users.service';
 import * as StatsService from '../services/stats.service';
@@ -54,6 +55,9 @@ export async function deleteMe(req: AuthenticatedRequest, res: Response, next: N
 export async function getById(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestError('Invalid user ID format');
+    }
     const user = await UsersService.getById(id);
     return res.json(user);
   } catch (err) {
@@ -75,6 +79,9 @@ export async function updateById(req: Request, res: Response, next: NextFunction
 export async function getPublicProfile(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestError('Invalid user ID format');
+    }
     const page = parsePagination(req.query, { page: 1, limit: 20 }, 100);
     const { skip, limit } = toMongoPagination(page);
 
@@ -93,6 +100,9 @@ export async function getPublicProfile(req: Request, res: Response, next: NextFu
 export async function getProfileScoreboard(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestError('Invalid user ID format');
+    }
     const scoreboard = await StatsService.getUserScoreboard(id);
     return res.json(scoreboard);
   } catch (err) {
@@ -103,6 +113,9 @@ export async function getProfileScoreboard(req: Request, res: Response, next: Ne
 export async function getUserBadges(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestError('Invalid user ID format');
+    }
     const badges = await BadgesService.getUserBadges(id);
     return res.json(badges);
   } catch (err) {

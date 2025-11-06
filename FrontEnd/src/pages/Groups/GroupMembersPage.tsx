@@ -6,6 +6,8 @@ import { userService } from "../../services/user.service";
 import { Group } from "../../types/group.types";
 import styled from "styled-components";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
+import { useGroupNotification } from "../../hooks/useGroupNotification";
+import GroupNotification from "../../components/Groups/GroupNotification";
 
 const Container = styled.div`
   max-width: 800px;
@@ -200,6 +202,7 @@ const GroupMembersPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [memberNames, setMemberNames] = useState<Record<string, string>>({});
+  const { notifications, removeNotification, showError, showSuccess } = useGroupNotification();
 
   const loadGroup = async () => {
     if (!id) return;
@@ -270,10 +273,10 @@ const GroupMembersPage: React.FC = () => {
     setActionLoading(targetUserId);
     try {
       await groupService.setMemberRole(id, targetUserId, "MODERATOR");
-      alert("Usuário promovido a moderador!");
+      showSuccess("Usuário promovido!", "O usuário foi promovido a moderador com sucesso.");
       loadGroup();
     } catch (error: any) {
-      alert(error.message || "Erro ao promover usuário");
+      showError("Erro ao promover usuário", error.message || "Não foi possível promover o usuário. Tente novamente.");
     } finally {
       setActionLoading(null);
     }
@@ -285,10 +288,10 @@ const GroupMembersPage: React.FC = () => {
     setActionLoading(targetUserId);
     try {
       await groupService.setMemberRole(id, targetUserId, "MEMBER");
-      alert("Usuário destituído de moderador!");
+      showSuccess("Usuário destituído", "O usuário foi destituído de moderador.");
       loadGroup();
     } catch (error: any) {
-      alert(error.message || "Erro ao destituir usuário");
+      showError("Erro ao destituir usuário", error.message || "Não foi possível destituir o usuário. Tente novamente.");
     } finally {
       setActionLoading(null);
     }
@@ -306,10 +309,10 @@ const GroupMembersPage: React.FC = () => {
     setActionLoading(targetUserId);
     try {
       await groupService.removeMember(id, targetUserId);
-      alert("Membro removido do grupo!");
+      showSuccess("Membro removido", "O membro foi removido do grupo com sucesso.");
       loadGroup();
     } catch (error: any) {
-      alert(error.message || "Erro ao remover membro");
+      showError("Erro ao remover membro", error.message || "Não foi possível remover o membro. Tente novamente.");
     } finally {
       setActionLoading(null);
     }
@@ -350,6 +353,16 @@ const GroupMembersPage: React.FC = () => {
   return (
     <AuthenticatedLayout>
       <Container>
+        {notifications.map((notification) => (
+          <GroupNotification
+            key={notification.id}
+            variant={notification.variant}
+            title={notification.title}
+            message={notification.message}
+            onClose={() => removeNotification(notification.id)}
+          />
+        ))}
+        
         <BackButton onClick={() => navigate(`/grupos/${id}`)}>
           ← Voltar para o Grupo
         </BackButton>
@@ -357,7 +370,7 @@ const GroupMembersPage: React.FC = () => {
         <Header>
           <Title>Gerenciar Membros</Title>
           <Subtitle>
-            {group.name} - {group.members?.length || 0} membros
+            {group.name} - {group.memberCount ?? group.members?.length ?? 0} membros
           </Subtitle>
         </Header>
 

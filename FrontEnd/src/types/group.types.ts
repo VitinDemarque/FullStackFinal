@@ -12,6 +12,7 @@ export interface Group {
   createdAt: Date;
   updatedAt: Date;
   members?: GroupMember[];
+  memberCount?: number; // Contagem total de membros (incluindo o dono)
 }
 
 export interface GroupMember {

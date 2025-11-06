@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { Types } from 'mongoose';
 import { AuthenticatedRequest } from '../middlewares/auth';
 import * as GroupsService from '../services/groups.service';
 import { parsePagination, toMongoPagination } from '../utils/pagination';
@@ -17,7 +18,11 @@ export async function listPublic(req: Request, res: Response, next: NextFunction
 
 export async function getById(req: Request, res: Response, next: NextFunction) {
   try {
-    const group = await GroupsService.getById(req.params.id);
+    const { id } = req.params;
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestError('Invalid group ID format');
+    }
+    const group = await GroupsService.getById(id);
     return res.json(group);
   } catch (err) {
     return next(err);
@@ -39,6 +44,9 @@ export async function update(req: AuthenticatedRequest, res: Response, next: Nex
   try {
     if (!req.user?.user_id) throw new BadRequestError('Missing user id');
     const { id } = req.params;
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestError('Invalid group ID format');
+    }
     const payload = req.body ?? {};
     const updated = await GroupsService.update(req.user.user_id, id, payload);
     return res.json(updated);
@@ -50,7 +58,11 @@ export async function update(req: AuthenticatedRequest, res: Response, next: Nex
 export async function remove(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     if (!req.user?.user_id) throw new BadRequestError('Missing user id');
-    await GroupsService.remove(req.user.user_id, req.params.id);
+    const { id } = req.params;
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestError('Invalid group ID format');
+    }
+    await GroupsService.remove(req.user.user_id, id);
     return res.status(204).send();
   } catch (err) {
     return next(err);
@@ -60,7 +72,11 @@ export async function remove(req: AuthenticatedRequest, res: Response, next: Nex
 export async function join(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     if (!req.user?.user_id) throw new BadRequestError('Missing user id');
-    const result = await GroupsService.join(req.user.user_id, req.params.id);
+    const { id } = req.params;
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestError('Invalid group ID format');
+    }
+    const result = await GroupsService.join(req.user.user_id, id);
     return res.json(result);
   } catch (err) {
     return next(err);
@@ -70,7 +86,11 @@ export async function join(req: AuthenticatedRequest, res: Response, next: NextF
 export async function leave(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     if (!req.user?.user_id) throw new BadRequestError('Missing user id');
-    const result = await GroupsService.leave(req.user.user_id, req.params.id);
+    const { id } = req.params;
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestError('Invalid group ID format');
+    }
+    const result = await GroupsService.leave(req.user.user_id, id);
     return res.json(result);
   } catch (err) {
     return next(err);
@@ -81,6 +101,12 @@ export async function addMember(req: AuthenticatedRequest, res: Response, next: 
   try {
     if (!req.user?.user_id) throw new BadRequestError('Missing user id');
     const { id, userId } = req.params;
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestError('Invalid group ID format');
+    }
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new BadRequestError('Invalid user ID format');
+    }
     const result = await GroupsService.addMember(req.user.user_id, id, userId);
     return res.json(result);
   } catch (err) {
@@ -92,6 +118,12 @@ export async function removeMember(req: AuthenticatedRequest, res: Response, nex
   try {
     if (!req.user?.user_id) throw new BadRequestError('Missing user id');
     const { id, userId } = req.params;
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestError('Invalid group ID format');
+    }
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new BadRequestError('Invalid user ID format');
+    }
     const result = await GroupsService.removeMember(req.user.user_id, id, userId);
     return res.json(result);
   } catch (err) {
@@ -103,6 +135,12 @@ export async function setMemberRole(req: AuthenticatedRequest, res: Response, ne
   try {
     if (!req.user?.user_id) throw new BadRequestError('Missing user id');
     const { id, userId } = req.params;
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestError('Invalid group ID format');
+    }
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new BadRequestError('Invalid user ID format');
+    }
     const { role } = req.body ?? {};
     const result = await GroupsService.setMemberRole(req.user.user_id, id, userId, role);
     return res.json(result);
@@ -113,12 +151,13 @@ export async function setMemberRole(req: AuthenticatedRequest, res: Response, ne
 
 export async function listExercises(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
-      console.log('🔍 [DEBUG] listExercises called with groupId:', req.params.id);
-      console.log('🔍 [DEBUG] User ID:', req.user?.user_id);
-      
       if (!req.user?.user_id) throw new BadRequestError('Missing user id');
       
       const { id: groupId } = req.params;
+      if (!Types.ObjectId.isValid(groupId)) {
+        throw new BadRequestError('Invalid group ID format');
+      }
+      
       const page = parsePagination(req.query);
       const { skip, limit } = toMongoPagination(page);
 
@@ -128,10 +167,8 @@ export async function listExercises(req: AuthenticatedRequest, res: Response, ne
           { skip, limit }
       );
       
-      console.log('🔍 [DEBUG] listExercises result:', result);
       return res.json(result);
   } catch (err) {
-      console.error('❌ [DEBUG] listExercises error:', err);
       return next(err);
   }
 }

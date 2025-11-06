@@ -194,7 +194,7 @@ interface GroupCardProps {
         
         <CardFooter>
           <GroupMeta>
-            <MetaText>👥 {group.members?.length || 0} membros</MetaText>
+            <MetaText>👥 {group.memberCount ?? group.members?.length ?? 0} membros</MetaText>
             <MetaText>
               Criado em: {new Date(group.createdAt).toLocaleDateString('pt-BR')}
             </MetaText>

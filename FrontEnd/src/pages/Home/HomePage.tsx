@@ -7,7 +7,9 @@ import styled from "styled-components";
 
 const PageContainer = styled.div`
   min-height: 100vh;
-  background: ${({ theme }) => theme.colors.white};
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 `;
 
 export default function HomePage() {

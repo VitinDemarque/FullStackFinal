@@ -4,8 +4,13 @@ import styled from "styled-components";
 
 const CarouselSection = styled.section`
   padding: 6rem 2rem;
-  background: linear-gradient(135deg, #f6f8fb 0%, #ffffff 100%);
+  background: linear-gradient(135deg, var(--color-background) 0%, var(--color-surface) 100%);
   overflow: hidden;
+  transition: background 0.3s ease;
+
+  .dark & {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  }
 `;
 
 const Container = styled.div`
@@ -16,9 +21,10 @@ const Container = styled.div`
 const SectionTitle = styled.h2`
   font-size: 2.5rem;
   font-weight: 700;
-  color: #2d3748;
+  color: var(--color-text-primary);
   text-align: center;
   margin-bottom: 1rem;
+  transition: color 0.3s ease;
 
   @media (max-width: 768px) {
     font-size: 2rem;
@@ -27,12 +33,13 @@ const SectionTitle = styled.h2`
 
 const SectionDescription = styled.p`
   font-size: 1.2rem;
-  color: #718096;
+  color: var(--color-text-secondary);
   text-align: center;
   margin-bottom: 4rem;
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
+  transition: color 0.3s ease;
 
   @media (max-width: 768px) {
     font-size: 1rem;
@@ -62,8 +69,9 @@ const Slide = styled.div`
   align-items: center;
   justify-content: space-between;
   padding: 4rem;
-  background: white;
+  background: var(--color-surface);
   gap: 4rem;
+  transition: background 0.3s ease;
 
   @media (max-width: 968px) {
     flex-direction: column;
@@ -80,11 +88,12 @@ const SlideContent = styled.div`
 const SlideTitle = styled.h3`
   font-size: 2rem;
   font-weight: 700;
-  color: #2d3748;
+  color: var(--color-text-primary);
   margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
   gap: 1rem;
+  transition: color 0.3s ease;
 
   @media (max-width: 768px) {
     font-size: 1.5rem;
@@ -128,8 +137,9 @@ const SlideIcon = styled.div<{ $color: string }>`
 const SlideDescription = styled.p`
   font-size: 1.1rem;
   line-height: 1.8;
-  color: #4a5568;
+  color: var(--color-text-secondary);
   margin-bottom: 2rem;
+  transition: color 0.3s ease;
 `;
 
 const SlideFeatures = styled.ul`
@@ -144,7 +154,8 @@ const FeatureItem = styled.li`
   gap: 0.75rem;
   margin-bottom: 1rem;
   font-size: 1rem;
-  color: #718096;
+  color: var(--color-text-light);
+  transition: color 0.3s ease;
 
   &::before {
     content: "";
@@ -257,8 +268,8 @@ const NavigationButton = styled.button`
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: white;
-  border: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   width: 50px;
   height: 50px;
   border-radius: 50%;
@@ -266,13 +277,14 @@ const NavigationButton = styled.button`
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-md);
   transition: all 0.3s ease;
   z-index: 10;
 
   &:hover {
     transform: translateY(-50%) scale(1.1);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-lg);
+    background: var(--color-surface-hover);
   }
 
   &:disabled {
@@ -282,7 +294,7 @@ const NavigationButton = styled.button`
 
   svg {
     font-size: 1.2rem;
-    color: #667eea;
+    color: var(--color-blue-400);
   }
 
   @media (max-width: 768px) {
@@ -326,7 +338,7 @@ const Dot = styled.button<{ $active: boolean }>`
   background: ${(props) =>
     props.$active
       ? "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-      : "#cbd5e0"};
+      : "var(--color-border)"};
   cursor: pointer;
   transition: all 0.3s ease;
 
@@ -334,7 +346,7 @@ const Dot = styled.button<{ $active: boolean }>`
     background: ${(props) =>
       props.$active
         ? "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-        : "#a0aec0"};
+        : "var(--color-text-light)"};
   }
 `;
 

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { Group } from "../../types/group.types";
 import { groupService } from "../../services/group.service";
 import GroupCard from "../../components/Groups/GroupCard";
 import styled from "styled-components";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
+import { useGroupNotification } from "../../hooks/useGroupNotification";
+import GroupNotification from "../../components/Groups/GroupNotification";
 
 const Container = styled.div`
   max-width: 100%;
@@ -125,13 +127,15 @@ const GroupListPage: React.FC = () => {
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const { notifications, removeNotification, showError, showSuccess } = useGroupNotification();
 
   const loadGroups = async () => {
     try {
       const response = await groupService.listPublic();
       setGroups(response.items);
     } catch (error: any) {
-      alert(error.message || "Erro ao carregar grupos");
+      showError("Erro ao carregar grupos", error.message || "Não foi possível carregar a lista de grupos. Tente novamente mais tarde.");
     } finally {
       setLoading(false);
     }
@@ -143,16 +147,21 @@ const GroupListPage: React.FC = () => {
 
   const handleJoinGroup = async (groupId: string) => {
     if (!isAuthenticated) {
-      alert("Você precisa estar logado para entrar em um grupo");
+      showError("Acesso negado", "Você precisa estar logado para entrar em um grupo");
       return;
     }
 
     try {
       await groupService.join(groupId);
-      alert("Você entrou no grupo com sucesso!");
-      loadGroups();
+      showSuccess("Sucesso!", "Você entrou no grupo com sucesso!");
+      // Recarrega a lista e depois navega para o grupo
+      await loadGroups();
+      // Navega para a página do grupo após entrar
+      setTimeout(() => {
+        navigate(`/grupos/${groupId}`);
+      }, 500); // Pequeno delay para mostrar a notificação de sucesso
     } catch (error: any) {
-      alert(error.message || "Erro ao entrar no grupo");
+      showError("Erro ao entrar no grupo", error.message || "Não foi possível entrar no grupo. Tente novamente.");
     }
   };
 
@@ -179,6 +188,16 @@ const GroupListPage: React.FC = () => {
   return (
     <AuthenticatedLayout>
       <Container>
+        {notifications.map((notification) => (
+          <GroupNotification
+            key={notification.id}
+            variant={notification.variant}
+            title={notification.title}
+            message={notification.message}
+            onClose={() => removeNotification(notification.id)}
+          />
+        ))}
+        
         <Header>
           <Title>Grupos de Estudo</Title>
           {isAuthenticated && (

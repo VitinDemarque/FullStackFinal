@@ -10,10 +10,7 @@ router.patch('/me', auth(), UsersController.updateMe);
 router.post('/me/password', auth(), UsersController.changeMyPassword);
 router.delete('/me', auth(), UsersController.deleteMe);
 
-// Recursos por ID (admin ou dono)
-router.get('/:id', auth(), UsersController.getById);
-router.patch('/:id', auth(), requireOwnership('id'), UsersController.updateById);
-
+// Rotas específicas por ID (devem vir antes da rota genérica /:id)
 // Exibir perfil público (exercícios públicos, badges, títulos, nível)
 router.get('/:id/profile', UsersController.getPublicProfile);
 
@@ -22,5 +19,9 @@ router.get('/:id/scoreboard', UsersController.getProfileScoreboard);
 
 // Badges do usuário
 router.get('/:id/badges', UsersController.getUserBadges);
+
+// Recursos por ID (admin ou dono) - deve vir por último
+router.get('/:id', auth(), UsersController.getById);
+router.patch('/:id', auth(), requireOwnership('id'), UsersController.updateById);
 
 export default router;

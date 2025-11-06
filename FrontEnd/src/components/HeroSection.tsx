@@ -29,6 +29,21 @@ export default function HeroSection() {
       <S.ShapeTopLeft />
       <S.ShapeBottomRight />
 
+      {/* Linhas decorativas brancas - apenas no modo dark */}
+      <S.DecorativeLines>
+        <S.SpiralLine1 />
+        <S.SpiralLine2 />
+        <S.DecorativeLine1 />
+        <S.DecorativeLine2 />
+        <S.DecorativeLine3 />
+        <S.DecorativeLine4 />
+        <S.DecorativeX1 />
+        <S.DecorativeX2 />
+        <S.DecorativeX3 />
+        <S.DecorativeX4 />
+        <S.DecorativeX5 />
+      </S.DecorativeLines>
+
       <S.HeroContent>
         <S.LeftContent>
           <S.Title>
