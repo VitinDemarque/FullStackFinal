@@ -72,6 +72,10 @@ const CreateButton = styled(Link)`
   box-shadow: var(--shadow-sm);
   text-align: center;
 
+  .dark & {
+    color: white;
+  }
+
   &:hover {
     background: var(--color-surface-hover);
     border-color: var(--color-blue-400);

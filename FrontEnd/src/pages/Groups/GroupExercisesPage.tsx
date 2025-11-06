@@ -45,12 +45,6 @@ const BackButton = styled(Link)`
   margin-bottom: 1.5rem;
   transition: all 0.3s ease;
   font-size: 0.875rem;
-
-  &:hover {
-    background: var(--color-surface-hover);
-    border-color: var(--color-border);
-    color: var(--color-text-primary);
-  }
 `;
 
 const Title = styled.h1`
@@ -85,15 +79,10 @@ const CreateExerciseButton = styled.button`
   border-radius: 6px;
   font-size: 1rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: none;
   display: flex;
   align-items: center;
   gap: 8px;
-
-  &:hover {
-    background: var(--color-blue-600);
-    transform: translateY(-1px);
-  }
 
   &:disabled {
     background: var(--color-gray-400);
@@ -156,12 +145,7 @@ const ClearFiltersButton = styled.button`
   border-radius: 6px;
   font-size: 0.875rem;
   cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: var(--color-gray-200);
-    color: var(--color-text-primary);
-  }
+  transition: none;
 `;
 
 const ExercisesGrid = styled.div`
@@ -307,11 +291,12 @@ const GroupExercisesPage: React.FC = () => {
         ...exerciseData,
         groupId: id
       };
-      
-      await exercisesService.create(exerciseWithGroup);
-      alert('Desafio criado com sucesso!');
+      const created = await exercisesService.create(exerciseWithGroup);
+      // Publica automaticamente para aparecer na lista do grupo
+      await exercisesService.publish(created.id);
+      alert('Desafio criado e publicado com sucesso!');
       setShowCreateExerciseModal(false);
-      loadGroupExercises();
+      await loadGroupExercises();
     } catch (error: any) {
       alert(error.message || 'Erro ao criar Desafio');
     } finally {
@@ -519,13 +504,6 @@ const GroupExercisesPage: React.FC = () => {
                 : "Tente ajustar os filtros para ver mais Desafios."
               }
             </EmptyStateText>
-            {canCreateExercises && exercises.length === 0 && (
-              <CreateExerciseButton 
-                onClick={() => setShowCreateExerciseModal(true)}
-              >
-                ➕ Criar Primeiro Desafio
-              </CreateExerciseButton>
-            )}
           </EmptyState>
         )}
 

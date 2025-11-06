@@ -202,17 +202,17 @@ input:focus, textarea:focus, select:focus {
 /* Links */
 a {
   color: var(--color-blue-500);
-  transition: color 0.2s ease;
+  transition: none;
 }
 
 a:hover {
-  color: var(--color-blue-600);
+  color: currentColor !important;
 }
 
 .dark a {
-  color: var(--color-blue-400);
+  color: white !important;
 }
 
 .dark a:hover {
-  color: var(--color-blue-500);
+  color: currentColor !important;
 }

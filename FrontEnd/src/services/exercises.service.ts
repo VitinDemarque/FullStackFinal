@@ -50,6 +50,10 @@ export const exercisesService = {
     return apiRequest<void>('DELETE', `/exercises/${id}`)
   },
 
+  async publish(id: string): Promise<Exercise> {
+    return apiRequest<Exercise>('POST', `/exercises/${id}/publish`)
+  },
+
   async getMine(filters?: ExerciseFilters): Promise<PaginatedResponse<Exercise>> {
     return apiRequest<PaginatedResponse<Exercise>>('GET', '/exercises/mine', undefined, {
       params: filters,
