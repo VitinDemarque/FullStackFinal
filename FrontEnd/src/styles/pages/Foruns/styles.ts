@@ -342,3 +342,161 @@ export const ModeratorItem = styled.li`
   color: var(--color-text-secondary);
   font-size: ${({ theme }) => theme.fontSizes.base};
 `
+
+// ============================================
+// DETAIL PAGE – UI COMPONENTS
+// ============================================
+
+export const ActionsRow = styled.div`
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin: 1rem 0 0 0;
+`
+
+export const Button = styled.button.withConfig({
+  shouldForwardProp: (prop) => prop !== 'variant'
+})<{ variant?: 'primary' | 'secondary' | 'success' | 'danger' }>`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  font-size: ${({ theme }) => theme.fontSizes.base};
+  cursor: pointer;
+  transition: ${({ theme }) => theme.transitions.base};
+  box-shadow: var(--shadow-sm);
+  border: 1px solid transparent;
+
+  ${(props) => {
+    switch (props.variant) {
+      case 'secondary':
+        return `
+          background: var(--color-surface);
+          color: var(--color-text-primary);
+          border-color: var(--color-border);
+          &:hover { background: var(--color-surface-hover); border-color: var(--color-blue-400); color: var(--color-blue-400); }
+        `
+      case 'success':
+        return `
+          background: var(--gradient-green);
+          color: #fff;
+          border: none;
+          &:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        `
+      case 'danger':
+        return `
+          background: var(--color-red-500);
+          color: #fff;
+          border: none;
+          &:hover { background: var(--color-red-600); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        `
+      default:
+        return `
+          background: var(--gradient-blue);
+          color: #fff;
+          border: none;
+          &:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        `
+    }
+  }}
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: var(--shadow-sm);
+  }
+`
+
+export const Input = styled.input`
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: ${({ theme }) => theme.fontSizes.base};
+  transition: ${({ theme }) => theme.transitions.base};
+
+  &:focus {
+    border-color: var(--color-blue-400);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    outline: none;
+  }
+`
+
+export const Textarea = styled.textarea`
+  width: 100%;
+  padding: 0.75rem 0.85rem;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: ${({ theme }) => theme.fontSizes.base};
+  transition: ${({ theme }) => theme.transitions.base};
+  min-height: 140px;
+  resize: vertical;
+
+  &:focus {
+    border-color: var(--color-blue-400);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    outline: none;
+  }
+`
+
+export const TopicList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+`
+
+export const TopicCard = styled.li`
+  padding: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+
+  &:hover {
+    background: var(--color-surface-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+`
+
+export const TopicHeader = styled.div`
+  flex: 1;
+`
+
+export const TopicTitle = styled.h3`
+  margin: 0 0 0.25rem 0;
+  font-size: ${({ theme }) => theme.fontSizes.lg};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  color: var(--color-text-primary);
+`
+
+export const TopicContent = styled.p`
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+`
+
+export const TopicActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`

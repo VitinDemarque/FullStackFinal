@@ -126,6 +126,11 @@ export const ExerciseCard = styled.div`
   &:hover {
     box-shadow: ${({ theme }) => theme.shadows.md};
     transform: translateY(-2px);
+    z-index: 5;
+  }
+
+  &:focus-within {
+    z-index: 5;
   }
 `;
 

@@ -40,6 +40,16 @@ export async function changeMyPassword(req: AuthenticatedRequest, res: Response,
   }
 }
 
+export async function deleteMe(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new NotFoundError('User not in token');
+    await UsersService.removeById(req.user.user_id);
+    return res.status(204).send();
+  } catch (err) {
+    return next(err);
+  }
+}
+
 export async function getById(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;

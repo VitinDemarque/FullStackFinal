@@ -38,6 +38,21 @@ export async function changePassword(id: string, currentPassword: string, newPas
     return true;
 }
 
+export async function removeById(id: string) {
+    // Remove o usuário e dados derivados básicos (badges, titles, stats)
+    // Idempotente: se já não existir, não lança erro
+    const user = await User.findById(id).lean<IUser | null>();
+    if (!user) return; // nada a fazer
+
+    await Promise.all([
+        UserBadge.deleteMany({ userId: new Types.ObjectId(id) }),
+        UserTitle.deleteMany({ userId: new Types.ObjectId(id) }),
+        UserStat.deleteMany({ userId: new Types.ObjectId(id) })
+    ]);
+
+    await User.findByIdAndDelete(id);
+}
+
 export interface PublicProfileInput {
     userId: string;
     skip: number;

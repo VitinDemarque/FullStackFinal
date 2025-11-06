@@ -1,16 +1,25 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import AuthenticatedLayout from '@components/Layout/AuthenticatedLayout'
 import { useTheme } from '@contexts/ThemeContext'
+import { useAuth } from '@contexts/AuthContext'
 import { ToggleSwitch } from '../../components/ToggleSwitch'
 import { useUserSettings } from '../../hooks/useUserSettings'
 import { UserSettings } from '../../types/index'
 import { useNotification } from '../../components/Notification'
+import ConfirmationModal from '@components/ConfirmationModal'
+import { apiRequest } from '@services/api'
 import * as S from './styles'
 
 export default function SettingsPage() {
   const { theme, toggleTheme } = useTheme()
   const { settings, isLoading, updateSettings, saveSettings } = useUserSettings()
   const { addNotification, NotificationContainer } = useNotification()
+  const navigate = useNavigate()
+  const { logout } = useAuth()
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false)
+  const [deleting, setDeleting] = React.useState(false)
 
   const handleNotificationChange = (key: keyof UserSettings['notifications']) => {
     updateSettings({
@@ -54,6 +63,26 @@ export default function SettingsPage() {
       addNotification('Configurações salvas com sucesso!', 'success')
     } else {
       addNotification('Erro ao salvar configurações. Tente novamente.', 'error')
+    }
+  }
+
+  const handleGoChangePassword = () => {
+    navigate('/profile/editar')
+  }
+
+  const handleDeleteAccountConfirm = async () => {
+    try {
+      setDeleting(true)
+      // Tenta excluir a conta do usuário (poderá depender do backend)
+      await apiRequest<void>('DELETE', '/users/me')
+      addNotification('Conta excluída com sucesso.', 'success')
+    } catch (err) {
+      // Fallback: encerra a sessão caso o endpoint não esteja disponível
+      addNotification('Não foi possível excluir via API. Encerrando sessão.', 'warning')
+    } finally {
+      logout()
+      navigate('/login', { replace: true })
+      setDeleting(false)
     }
   }
 
@@ -336,7 +365,7 @@ export default function SettingsPage() {
                     Atualize sua senha de acesso
                   </S.SettingDescription>
                 </S.SettingInfo>
-                <S.ActionButton>Alterar</S.ActionButton>
+                <S.ActionButton onClick={handleGoChangePassword}>Alterar</S.ActionButton>
               </S.SettingItem>
 
               <S.SettingItem>
@@ -356,7 +385,7 @@ export default function SettingsPage() {
                     Remover permanentemente sua conta
                   </S.SettingDescription>
                 </S.SettingInfo>
-                <S.DangerButton>Excluir</S.DangerButton>
+                <S.DangerButton onClick={() => setShowDeleteConfirm(true)} disabled={deleting}>Excluir</S.DangerButton>
               </S.SettingItem>
             </S.CardContent>
           </S.SettingsCard>
@@ -388,6 +417,16 @@ export default function SettingsPage() {
           💾 Salvar Configurações
         </S.SaveButton>
       </S.Container>
+      <ConfirmationModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDeleteAccountConfirm}
+        title="Excluir Conta"
+        message="Tem certeza que deseja excluir sua conta? Esta ação é permanente e não pode ser desfeita."
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        type="danger"
+      />
     </AuthenticatedLayout>
   )
 }

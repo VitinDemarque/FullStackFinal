@@ -100,11 +100,7 @@ function App() {
             />
             <Route
               path="/faculdades/criar"
-              element={
-                <PrivateRoute>
-                  <CollegeCreatePage />
-                </PrivateRoute>
-              }
+              element={<CollegeCreatePage />}
             />
             <Route
               path="/configuracoes"

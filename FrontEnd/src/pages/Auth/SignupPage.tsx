@@ -1,5 +1,8 @@
 import { useState, FormEvent, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import styled from "styled-components";
+import { FaPlus } from "react-icons/fa";
+import CreateCollegeModal from "@/components/CreateCollegeModal";
 import { useAuth } from "@contexts/AuthContext";
 import { FaArrowLeft } from "react-icons/fa";
 import Notification from "@components/Notification";
@@ -9,7 +12,40 @@ import { collegesService } from "@services/index";
 import type { College } from "../../types";
 import * as S from "@/styles/pages/Auth/styles";
 
+const CollegeActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  & > :first-child {
+    flex: 1;
+  }
+`;
+
+const CreateCollegeButton = styled.button`
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  padding: 0.5rem 0.75rem;
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  border: 1px solid var(--color-border);
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-surface-hover);
+    border-color: var(--color-blue-400);
+    box-shadow: var(--shadow-md);
+  }
+`;
+
 export default function SignupPage() {
+  const [isCreateCollegeOpen, setIsCreateCollegeOpen] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -154,7 +190,7 @@ export default function SignupPage() {
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleChange}
-                  placeholder=""
+                  placeholder="Digite seu sobrenome"
                   required
                 />
               </S.FormGroup>
@@ -162,25 +198,36 @@ export default function SignupPage() {
 
             <S.FormGroup>
               <S.FormLabel>Faculdade</S.FormLabel>
-              <S.FormSelect
-                name="college"
-                value={formData.college}
-                onChange={handleChange}
-                required
-                disabled={loadingColleges}
-              >
-                <option value="">
-                  {loadingColleges
-                    ? "Carregando faculdades..."
-                    : "Selecione sua Faculdade"}
-                </option>
-                {colleges.map((college) => (
-                  <option key={college.id} value={college.id}>
-                    {college.name}{" "}
-                    {college.acronym ? `(${college.acronym})` : ""}
+              <CollegeActions>
+                <S.FormSelect
+                  name="college"
+                  value={formData.college}
+                  onChange={handleChange}
+                  required
+                  disabled={loadingColleges}
+                >
+                  <option value="">
+                    {loadingColleges
+                      ? "Carregando faculdades..."
+                      : "Selecione sua Faculdade"}
                   </option>
-                ))}
-              </S.FormSelect>
+                  {colleges.map((college) => (
+                    <option key={college.id} value={college.id}>
+                      {college.name}{" "}
+                      {college.acronym ? `(${college.acronym})` : ""}
+                    </option>
+                  ))}
+                </S.FormSelect>
+
+                <CreateCollegeButton
+                  type="button"
+                  aria-label="Criar faculdade"
+                  title="Criar faculdade"
+                  onClick={() => setIsCreateCollegeOpen(true)}
+                >
+                  <FaPlus />
+                </CreateCollegeButton>
+              </CollegeActions>
             </S.FormGroup>
 
             <S.FormGroup>
@@ -220,6 +267,15 @@ export default function SignupPage() {
           </S.AuthLink>
         </S.AuthCard>
       </S.AuthContainer>
+
+      <CreateCollegeModal
+        isOpen={isCreateCollegeOpen}
+        onClose={() => setIsCreateCollegeOpen(false)}
+        onCreated={(college) => {
+          setColleges((prev) => [college, ...prev]);
+          setFormData((prev) => ({ ...prev, college: college.id }));
+        }}
+      />
     </>
   );
 }

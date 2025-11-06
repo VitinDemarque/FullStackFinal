@@ -6,6 +6,7 @@ import { userService } from '@/services/user.service'
 import { forumTopicService } from '@/services/forumTopic.service'
 import type { Forum, ForumTopic } from '@/types/forum'
 import type { User } from '@/types/index'
+import * as S from '@/styles/pages/Foruns/styles'
 
 export default function ForumDetalhesPage() {
     const { id } = useParams<{ id: string }>()
@@ -105,102 +106,95 @@ export default function ForumDetalhesPage() {
 
     return (
         <AuthenticatedLayout>
-            <div className="p-6 bg-gray-100 min-h-screen text-gray-900">
-                <button
-                    onClick={() => navigate(-1)}
-                    className="mb-4 bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2 rounded transition"
-                >
-                    ← Voltar
-                </button>
+            <S.Container>
+                <S.BackButton to="/foruns">← Voltar</S.BackButton>
 
-                {loading && <p>Carregando fórum...</p>}
-                {erro && <p className="text-red-600">{erro}</p>}
+                {loading && <S.Loading>Carregando fórum...</S.Loading>}
+                {erro && <S.Error>An error occurred<br />{erro}</S.Error>}
 
                 {forum && (
-                    <div className="bg-white rounded-lg shadow-md p-6">
-                        <h1 className="text-3xl font-bold mb-2">{forum.nome}</h1>
-                        <p className="text-gray-700 mb-4">
-                            {forum.descricao || 'Sem descrição'}
-                        </p>
+                    <S.DetailContainer>
+                        <S.DetailTitle>{forum.nome}</S.DetailTitle>
 
-                        <p className="text-sm text-gray-600 mb-2">
-                            <strong>Dono:</strong> {dono?.name || 'Desconhecido'}
-                        </p>
+                        <S.DetailSection>
+                            <S.DetailText>
+                                {forum.descricao || 'Sem descrição'}
+                            </S.DetailText>
+                            <S.ForumMeta>
+                                <span>
+                                    <S.DetailLabel>Dono:</S.DetailLabel> {dono?.name || 'Desconhecido'}
+                                </span>
+                                <span>
+                                    <S.DetailLabel>Privacidade:</S.DetailLabel> {forum.statusPrivacidade === 'PRIVADO' ? 'Privado' : 'Público'}
+                                </span>
+                            </S.ForumMeta>
+                            {!participando && (
+                                <S.ActionsRow>
+                                    <S.Button onClick={handleParticipar} disabled={processando} variant="primary">
+                                        {processando ? 'Ingressando...' : 'Participar deste fórum'}
+                                    </S.Button>
+                                </S.ActionsRow>
+                            )}
+                        </S.DetailSection>
 
-                        <p className="text-sm text-gray-600 mb-4">
-                            <strong>Privacidade:</strong>{' '}
-                            {forum.statusPrivacidade === 'PRIVADO' ? 'Privado' : 'Público'}
-                        </p>
-
-                        {participando ? (
-                            <div className="space-y-4">
-                                <div className="border-t pt-4">
-                                    <h2 className="text-xl font-semibold mb-2">Tópicos</h2>
+                        {participando && (
+                            <>
+                                <S.DetailSection>
+                                    <S.DetailSectionTitle>Tópicos</S.DetailSectionTitle>
                                     {topicos.length === 0 ? (
-                                        <p className="text-gray-600">Nenhum tópico ainda.</p>
+                                        <S.DetailText>Nenhum tópico ainda.</S.DetailText>
                                     ) : (
-                                        <ul className="space-y-3">
+                                        <S.TopicList>
                                             {topicos.map((t) => (
-                                                <li key={t._id} className="p-4 bg-gray-50 rounded border hover:bg-gray-100 transition">
-                                                    <div className="flex items-center justify-between">
-                                                        <div>
-                                                            <p className="font-medium text-gray-900">{t.titulo}</p>
-                                                            <p className="text-sm text-gray-600 line-clamp-2">{t.conteudo}</p>
-                                                        </div>
-                                                        <button
+                                                <S.TopicCard key={t._id}>
+                                                    <S.TopicHeader>
+                                                        <S.TopicTitle>{t.titulo}</S.TopicTitle>
+                                                        <S.TopicContent>{t.conteudo}</S.TopicContent>
+                                                    </S.TopicHeader>
+                                                    <S.TopicActions>
+                                                        <S.Button
+                                                            variant="secondary"
                                                             onClick={() => navigate(`/foruns/${forum._id}/topicos/${t._id}`)}
-                                                            className="ml-4 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded"
                                                         >
                                                             Abrir
-                                                        </button>
-                                                    </div>
-                                                </li>
+                                                        </S.Button>
+                                                    </S.TopicActions>
+                                                </S.TopicCard>
                                             ))}
-                                        </ul>
+                                        </S.TopicList>
                                     )}
-                                </div>
+                                </S.DetailSection>
 
-                                <div className="border-t pt-4">
-                                    <h3 className="text-lg font-semibold mb-2">Criar novo tópico</h3>
-                                    <div className="space-y-2">
-                                        <input
+                                <S.DetailSection>
+                                    <S.DetailSectionTitle>Criar novo tópico</S.DetailSectionTitle>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                        <S.Input
                                             type="text"
                                             value={tituloTopico}
                                             onChange={(e) => setTituloTopico(e.target.value)}
-                                            placeholder="Título"
-                                            className="w-full border rounded px-3 py-2"
+                                            placeholder="Título do tópico"
                                         />
-                                        <textarea
+                                        <S.Textarea
                                             value={conteudoTopico}
                                             onChange={(e) => setConteudoTopico(e.target.value)}
-                                            placeholder="Conteúdo"
-                                            className="w-full border rounded px-3 py-2 h-28"
+                                            placeholder="Conteúdo do tópico"
                                         />
-                                        <button
-                                            onClick={handleCriarTopico}
-                                            disabled={criandoTopico || !tituloTopico || !conteudoTopico}
-                                            className={`${criandoTopico ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'} text-white px-4 py-2 rounded`}
-                                        >
-                                            {criandoTopico ? 'Criando...' : 'Criar tópico'}
-                                        </button>
+                                        <S.ActionsRow>
+                                            <S.Button
+                                                onClick={handleCriarTopico}
+                                                disabled={criandoTopico || !tituloTopico || !conteudoTopico}
+                                                variant="success"
+                                            >
+                                                {criandoTopico ? 'Criando...' : 'Criar tópico'}
+                                            </S.Button>
+                                        </S.ActionsRow>
                                     </div>
-                                </div>
-                            </div>
-                        ) : (
-                            <button
-                                onClick={handleParticipar}
-                                disabled={processando}
-                                className={`${processando
-                                        ? 'bg-gray-400 cursor-not-allowed'
-                                        : 'bg-blue-600 hover:bg-blue-700'
-                                    } text-white px-4 py-2 rounded-lg shadow transition`}
-                            >
-                                {processando ? 'Ingressando...' : 'Participar deste fórum'}
-                            </button>
+                                </S.DetailSection>
+                            </>
                         )}
-                    </div>
+                    </S.DetailContainer>
                 )}
-            </div>
+            </S.Container>
         </AuthenticatedLayout>
     )
 }
