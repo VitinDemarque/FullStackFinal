@@ -27,7 +27,7 @@ export async function listarAleatoriosPublicos(qtd = 5) {
   return foruns
 }
 
-// Pesquisar fóruns por nome, assunto ou palavras-chave
+// Pesquisar fóruns por nome, assunto ou palavras-chave e titulo dos topicos
 export async function pesquisar(termo: string, query: any) {
   const paginacao = parsePagination(query, { page: 1, limit: 10 }, 50);
   const { skip, limit } = toMongoPagination(paginacao);

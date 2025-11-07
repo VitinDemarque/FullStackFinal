@@ -2,6 +2,7 @@
 
 import * as forumService from '@/services/forum.service';
 import Forum, { IForum } from '@/models/Forum.model';
+import ForumTopic from '@/models/ForumTopic.model'
 import { NotFoundError, BadRequestError } from '@/utils/httpErrors';
 import { Types } from 'mongoose';
 
@@ -14,6 +15,10 @@ jest.mock('@/models/Forum.model', () => ({
     findByIdAndUpdate: jest.fn(),
     findByIdAndDelete: jest.fn(),
 }));
+
+jest.mock('@/models/ForumTopic.model', () => ({
+    find: jest.fn(),
+}))
 
 // Mock do Types.ObjectId
 jest.spyOn(Types, 'ObjectId').mockImplementation((id?: any) => {
@@ -54,18 +59,74 @@ describe('forum.service', () => {
     });
 
     describe('pesquisar', () => {
-        it('deve pesquisar fóruns por termo', async () => {
-            const mockForuns = [{ _id: forumId, nome: 'Busca Fórum' }];
-            (Forum.find as jest.Mock).mockReturnValue({
+        it('deve pesquisar fóruns com correspondência em nome, assunto, descrição ou palavras-chave', async () => {
+            const mockForuns = [
+                { _id: 'f1', nome: 'Busca Fórum', assunto: 'Assunto', status: 'ATIVO' },
+                { _id: 'f2', nome: 'Outro Fórum', assunto: 'Teste', status: 'ATIVO' },
+            ];
+            (Forum.find as jest.Mock).mockReturnValueOnce({
                 skip: jest.fn().mockReturnThis(),
                 limit: jest.fn().mockReturnThis(),
                 lean: jest.fn().mockResolvedValue(mockForuns),
             });
 
-            const result = await forumService.pesquisar('Busca', {});
-            expect(result).toEqual(mockForuns);
-        });
-    });
+            // Nenhum tópico encontrado
+            (ForumTopic.find as jest.Mock).mockReturnValueOnce({
+                select: jest.fn().mockReturnThis(),
+                lean: jest.fn().mockResolvedValue([]),
+            });
+
+            const result = await forumService.pesquisar('Busca', {})
+            expect(result.length).toBe(2)
+            expect(result[0]).toHaveProperty('match', 'forum')
+        })
+
+        it('deve combinar resultados de fóruns e tópicos relacionados', async () => {
+            const mockForuns = [
+                { _id: 'f1', nome: 'Fórum com Tópico', assunto: 'Tech', status: 'ATIVO' },
+            ];
+            const mockTopicos = [
+                { forumId: 'f2', titulo: 'Tópico relacionado' },
+                { forumId: 'f1', titulo: 'Outro tópico' },
+            ];
+            const mockForumsComTopicos = [
+                { _id: 'f1', nome: 'Fórum com Tópico', status: 'ATIVO' },
+                { _id: 'f2', nome: 'Fórum via Tópico', status: 'ATIVO' },
+            ];
+
+            // Buscar fóruns que batem com o termo
+            (Forum.find as jest.Mock).mockReturnValueOnce({
+                skip: jest.fn().mockReturnThis(),
+                limit: jest.fn().mockReturnThis(),
+                lean: jest.fn().mockResolvedValue(mockForuns),
+            });
+
+            // Buscar tópicos pelo título
+            (ForumTopic.find as jest.Mock).mockReturnValueOnce({
+                select: jest.fn().mockReturnThis(),
+                lean: jest.fn().mockResolvedValue(mockTopicos),
+            });
+
+            // Buscar fóruns encontrados via tópicos
+            (Forum.find as jest.Mock).mockReturnValueOnce({
+                lean: jest.fn().mockResolvedValue(mockForumsComTopicos),
+            })
+
+            const result = await forumService.pesquisar('Tech', {})
+
+            expect(result).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({ _id: 'f1', match: 'ambos' }),
+                    expect.objectContaining({ _id: 'f2', match: 'topico' }),
+                ])
+            )
+        })
+
+        it('deve retornar lista vazia se termo for vazio', async () => {
+            const result = await forumService.pesquisar('   ', {})
+            expect(result).toEqual([])
+        })
+    })
 
     describe('obterPorId', () => {
         it('deve retornar fórum existente', async () => {
