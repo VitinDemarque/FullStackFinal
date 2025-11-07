@@ -133,7 +133,8 @@ export default function ForunsPage() {
         <S.Header>
           <S.Title>Fóruns Públicos</S.Title>
           <S.NewForumButton onClick={() => setMostrarModalCriar(true)}>
-            ➕ Novo Fórum
+          
+            Novo Publicação
           </S.NewForumButton>
         </S.Header>
 

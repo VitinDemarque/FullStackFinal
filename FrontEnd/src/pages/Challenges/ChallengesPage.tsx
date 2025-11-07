@@ -167,7 +167,7 @@ export default function ChallengesPage() {
             Aqui é onde se encontram todos os Desafios feitos por você
           </S.Subtitle>
           <S.CreateButton onClick={handleCreateExercise}>
-            <span className="icon">📄</span>
+            
             Criar Desafios
           </S.CreateButton>
         </S.HeroSection>

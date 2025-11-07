@@ -748,7 +748,7 @@ const GroupDetailsPage: React.FC = () => {
                     onClick={() => setShowCreateExerciseModal(true)}
                     disabled={actionLoading}
                   >
-                    ➕ Criar Desafio
+                    Criar Desafio
                   </CreateExerciseButton>
                 )}
               </div>

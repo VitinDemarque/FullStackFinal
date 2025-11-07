@@ -162,7 +162,7 @@ export const SectionTitle = styled.h2<{ $isDark?: boolean }>`
   gap: 0.75rem;
   font-size: ${theme.fontSizes['3xl']};
   font-weight: ${theme.fontWeights.bold};
-  color: ${({ $isDark }) => ($isDark ? '#f1f5f9' : theme.colors.gray[900])};
+  color: ${({ $isDark }) => ($isDark ? 'white' : theme.colors.gray[900])};
   margin-bottom: 1.5rem;
   transition: color 0.3s ease;
 

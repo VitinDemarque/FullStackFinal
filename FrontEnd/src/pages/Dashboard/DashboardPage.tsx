@@ -122,7 +122,7 @@ export default function DashboardPage() {
           </S.HeroSection>
 
           <S.Section>
-            <S.SectionTitle>
+            <S.SectionTitle $isDark={isDark}>
               <FaFire />
               Em Andamento
             </S.SectionTitle>
