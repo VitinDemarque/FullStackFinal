@@ -1,5 +1,6 @@
 import { Types } from 'mongoose';
 import Forum, { IForum } from '../models/Forum.model';
+import ForumTopic, { IForumTopic } from '../models/ForumTopic.model'
 import { NotFoundError, BadRequestError } from '../utils/httpErrors';
 import { parsePagination, toMongoPagination } from '../utils/pagination';
 
@@ -31,18 +32,59 @@ export async function pesquisar(termo: string, query: any) {
   const paginacao = parsePagination(query, { page: 1, limit: 10 }, 50);
   const { skip, limit } = toMongoPagination(paginacao);
 
+  if (!termo?.trim()) {
+    return []
+  }
+
+  const regex = new RegExp(termo, 'i')
+
   const foruns = await Forum.find({
     $or: [
-      { nome: new RegExp(termo, 'i') },
-      { assunto: new RegExp(termo, 'i') },
-      { palavrasChave: { $in: [new RegExp(termo, 'i')] } }
-    ]
+      { nome: regex },
+      { assunto: regex },
+      { descricao: regex },
+      { palavrasChave: { $in: [regex] } }
+    ],
+    status: 'ATIVO'
   })
     .skip(skip)
     .limit(limit)
     .lean<IForum[]>();
 
-  return foruns;
+  const mapResultados = new Map<string, { forum: IForum; match: 'forum' | 'topico' | 'ambos' }>()
+
+  for (const forum of foruns) {
+    mapResultados.set(String(forum._id), { forum, match: 'forum' })
+  }
+
+  const topicos = await ForumTopic.find({ titulo: regex })
+    .select('forumId titulo')
+    .lean()
+
+  const forumIdsDosTopicos = [...new Set(topicos.map(t => String(t.forumId)))]
+
+  if (forumIdsDosTopicos.length > 0) {
+    const forumsComTopicos = await Forum.find({
+      _id: { $in: forumIdsDosTopicos.map(id => new Types.ObjectId(id)) },
+      status: 'ATIVO'
+    })
+      .lean<IForum[]>()
+
+    for (const forum of forumsComTopicos) {
+      const id = String(forum._id)
+      if (mapResultados.has(id)) {
+        mapResultados.set(id, { forum, match: 'ambos' })
+      } else {
+        mapResultados.set(id, { forum, match: 'topico' })
+      }
+    }
+  }
+
+  // Retornar resultados em formato amigável
+  return Array.from(mapResultados.values()).map(({ forum, match }) => ({
+    ...forum,
+    match
+  }))
 }
 
 // Obter um fórum pelo ID
