@@ -51,7 +51,7 @@ describe('groups.service', () => {
     jest.clearAllMocks();
   });
 
-  // Testa do listPublic()
+  // Testes do listPublic()
   describe('listPublic', () => {
     it('deve listar grupos públicos com paginação', async () => {
       const mockGroups = [
@@ -81,7 +81,7 @@ describe('groups.service', () => {
     });
   });
 
-  // Testa do getById()
+  // Testes do getById()
   describe('getById', () => {
     it('deve retornar grupo e membros', async () => {
       const mockGroup = { _id: groupId, ownerUserId: userId, name: 'Test Group', visibility: 'PUBLIC' };
@@ -109,7 +109,7 @@ describe('groups.service', () => {
     });
   });
 
-  // Testa do create()
+  // Testes do create()
   describe('create', () => {
     it('deve criar grupo e adicionar o dono como moderador', async () => {
       const mockG = {
@@ -136,7 +136,7 @@ describe('groups.service', () => {
     });
   });
 
-  // Testa do update()
+  // Testes do update()
   describe('update', () => {
     it('deve atualizar grupo se for dono', async () => {
       const mockG: any = {
@@ -146,26 +146,44 @@ describe('groups.service', () => {
         save: jest.fn(),
         toObject: jest.fn().mockReturnValue({ _id: groupId, ownerUserId: userId, name: 'Updated' }),
       };
-      (Group.findById as jest.Mock).mockResolvedValueOnce(mockG);
+
+      (Group.findById as jest.Mock).mockReturnValueOnce(mockG);
+
+      (Group.findById as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValue({ _id: groupId, ownerUserId: userId }),
+      });
 
       const result = await groupsService.update(userId, groupId, { name: 'Updated' });
+
       expect(mockG.save).toHaveBeenCalled();
       expect(result.name).toBe('Updated');
     });
 
     it('deve lançar erro se grupo não existir', async () => {
-      (Group.findById as jest.Mock).mockResolvedValueOnce(null);
+      (Group.findById as jest.Mock).mockReturnValueOnce(null);
+
       await expect(groupsService.update(userId, '404', {})).rejects.toThrow(NotFoundError);
     });
 
     it('deve lançar ForbiddenError se não for dono', async () => {
       const mockG: any = { _id: groupId, ownerUserId: 'outra' };
-      (Group.findById as jest.Mock).mockResolvedValueOnce(mockG);
+
+      (Group.findById as jest.Mock).mockReturnValueOnce(mockG);
+
+      (Group.findById as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValue({ _id: groupId, ownerUserId: 'outra' }),
+      });
+
+      (GroupMember.findOne as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValue(null),
+      });
+
       await expect(groupsService.update(userId, groupId, {})).rejects.toThrow(ForbiddenError);
     });
   });
 
-  // Testa do remove()
+
+  // Testes do remove()
   describe('remove', () => {
     it('deve remover grupo e membros se for dono', async () => {
       const mockG: any = {
@@ -173,7 +191,13 @@ describe('groups.service', () => {
         ownerUserId: userId,
         deleteOne: jest.fn(),
       };
-      (Group.findById as jest.Mock).mockResolvedValueOnce(mockG);
+
+      (Group.findById as jest.Mock).mockReturnValueOnce(mockG);
+
+      (Group.findById as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValue({ _id: groupId, ownerUserId: userId }),
+      });
+
       (GroupMember.deleteMany as jest.Mock).mockResolvedValueOnce({});
 
       await groupsService.remove(userId, groupId);
@@ -183,18 +207,28 @@ describe('groups.service', () => {
     });
 
     it('deve ser idempotente se grupo não existir', async () => {
-      (Group.findById as jest.Mock).mockResolvedValueOnce(null);
+      (Group.findById as jest.Mock).mockReturnValueOnce(null);
       await expect(groupsService.remove(userId, '404')).resolves.not.toThrow();
     });
 
     it('deve lançar ForbiddenError se não for dono', async () => {
-      const mockG: any = { _id: groupId, ownerUserId: 'outra' };
-      (Group.findById as jest.Mock).mockResolvedValueOnce(mockG);
+      const mockG: any = { _id: groupId, ownerUserId: 'outra', deleteOne: jest.fn() };
+
+      (Group.findById as jest.Mock).mockReturnValueOnce(mockG);
+
+      (Group.findById as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValue({ _id: groupId, ownerUserId: 'outra' }),
+      });
+
+      (GroupMember.findOne as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValue(null),
+      });
+
       await expect(groupsService.remove(userId, groupId)).rejects.toThrow(ForbiddenError);
     });
   });
 
-  // Testa do join()
+  // Testes do join()
   describe('join', () => {
     it('deve permitir entrar em grupo público', async () => {
       (Group.findById as jest.Mock).mockReturnValueOnce({
@@ -224,7 +258,7 @@ describe('groups.service', () => {
     });
   });
 
-  // Testa do leave()
+  // Testes do leave()
   describe('leave', () => {
     it('deve sair do grupo', async () => {
       (GroupMember.deleteOne as jest.Mock).mockResolvedValueOnce({});
@@ -234,7 +268,7 @@ describe('groups.service', () => {
     });
   });
 
-  // Testa do addMember(), removeMember(), setMemberRole()
+  // Testes do addMember(), removeMember(), setMemberRole()
   describe('member management', () => {
     const mockGroupPublic = { _id: groupId, ownerUserId: userId, visibility: 'PUBLIC' };
 
