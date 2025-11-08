@@ -243,7 +243,7 @@ const GroupExercisesPage: React.FC = () => {
       console.log('🔍 [GroupExercisesPage] Loading exercises for group:', id);
       
       // SOLUÇÃO: Use o método listExercises que já existe no groupService
-      const response = await groupService.listExercises(id, 0, 100);
+      const response = await groupService.listExercises(id, 1, 100);
       
       console.log('🔍 [GroupExercisesPage] Group exercises from API:', response.items);
       console.log('🔍 [GroupExercisesPage] Total group exercises:', response.items.length);

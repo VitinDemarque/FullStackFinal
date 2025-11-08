@@ -1,5 +1,6 @@
 import { Types } from 'mongoose';
-import { ForbiddenError, NotFoundError } from '../utils/httpErrors';
+import crypto from 'crypto';
+import { ForbiddenError, NotFoundError, BadRequestError } from '../utils/httpErrors';
 
 import Group, { IGroup } from '../models/Group.model';
 import GroupMember, { IGroupMember } from '../models/GroupMember.model';
@@ -32,6 +33,64 @@ export async function listPublic({ skip, limit }: Paging) {
       };
     })
   );
+
+  return { items: itemsWithMembers, total };
+}
+
+export async function listMyGroups(userId: string, { skip, limit }: Paging) {
+  // Buscar todos os grupos que o usuário é membro (via GroupMember)
+  const memberships = await GroupMember.find({
+    userId: new Types.ObjectId(userId)
+  })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .lean<IGroupMember[]>();
+
+  const groupIds = memberships.map(m => m.groupId);
+
+  // Buscar os grupos correspondentes
+  const groups = await Group.find({
+    _id: { $in: groupIds }
+  })
+    .sort({ createdAt: -1 })
+    .lean<IGroup[]>();
+
+  // Criar um mapa para manter a ordem e incluir informações de membership
+  const groupMap = new Map();
+  groups.forEach(group => {
+    const membership = memberships.find(m => String(m.groupId) === String(group._id));
+    groupMap.set(String(group._id), {
+      group,
+      membership
+    });
+  });
+
+  // Ordenar pela ordem dos memberships (mais recente primeiro)
+  const orderedGroups = memberships
+    .map(m => groupMap.get(String(m.groupId)))
+    .filter(Boolean);
+
+  // Para cada grupo, buscar a contagem de membros
+  const itemsWithMembers = await Promise.all(
+    orderedGroups.map(async ({ group, membership }) => {
+      const memberCount = await GroupMember.countDocuments({
+        groupId: group._id
+      });
+      
+      return {
+        ...sanitize(group),
+        memberCount,
+        role: membership.role,
+        joinedAt: membership.joinedAt
+      };
+    })
+  );
+
+  // Contar total de grupos do usuário
+  const total = await GroupMember.countDocuments({
+    userId: new Types.ObjectId(userId)
+  });
 
   return { items: itemsWithMembers, total };
 }
@@ -260,4 +319,65 @@ export async function listExercisesForGroup(
       items: items.map(sanitizeExerciseLite),
       total
   };
+}
+
+export async function generateInviteLink(requestUserId: string, groupId: string) {
+  const g = await Group.findById(groupId).lean<IGroup | null>();
+  if (!g) throw new NotFoundError('Group not found');
+
+  await assertModeratorOrOwner(requestUserId, groupId);
+
+  // Se já houver token ativo, reutiliza
+  if (g.tokenConvite && g.tokenConviteExpiraEm && g.tokenConviteExpiraEm > new Date()) {
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    return { 
+      link: `${frontendUrl}/grupos/${groupId}/entrar?token=${g.tokenConvite}`,
+      expiresAt: g.tokenConviteExpiraEm
+    };
+  }
+
+  // Gera novo token e define validade (7 dias)
+  const token = crypto.randomBytes(16).toString('hex');
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+  await Group.findByIdAndUpdate(groupId, {
+    $set: { tokenConvite: token, tokenConviteExpiraEm: expiresAt }
+  });
+
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const link = `${frontendUrl}/grupos/${groupId}/entrar?token=${token}`;
+  
+  return { link, expiresAt };
+}
+
+export async function joinByToken(userId: string, groupId: string, token: string) {
+  const g = await Group.findById(groupId).lean<IGroup | null>();
+  if (!g) throw new NotFoundError('Group not found');
+
+  if (g.visibility === 'PRIVATE' && (!g.tokenConvite || g.tokenConvite !== token)) {
+    throw new BadRequestError('Invalid token or private group without valid invite');
+  }
+
+  if (g.tokenConviteExpiraEm && g.tokenConviteExpiraEm < new Date()) {
+    throw new BadRequestError('Invite token expired');
+  }
+
+  // Verifica se já é membro
+  const exists = await GroupMember.findOne({
+    groupId: new Types.ObjectId(groupId),
+    userId: new Types.ObjectId(userId)
+  }).lean<IGroupMember | null>();
+
+  if (exists) {
+    throw new BadRequestError('User is already a member of this group');
+  }
+
+  // Adiciona como membro
+  await GroupMember.create({
+    groupId: new Types.ObjectId(groupId),
+    userId: new Types.ObjectId(userId),
+    role: 'MEMBER'
+  });
+
+  return { joined: true };
 }

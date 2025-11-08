@@ -363,6 +363,45 @@ const EmptyExercisesText = styled.p`
   margin: 0 0 24px 0;
 `;
 
+const InviteLinkContainer = styled.div`
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+`;
+
+const InviteLinkLabel = styled.label`
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+`;
+
+const InviteLinkInput = styled.input`
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  font-family: monospace;
+  margin-bottom: 0.5rem;
+  
+  &:focus {
+    outline: none;
+    border-color: var(--color-blue-400);
+  }
+`;
+
+const InviteLinkActions = styled.div`
+  display: flex;
+  gap: 0.5rem;
+`;
+
 const GroupDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -378,6 +417,8 @@ const GroupDetailsPage: React.FC = () => {
   const [showCreateExerciseModal, setShowCreateExerciseModal] = useState(false);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [showEditExerciseModal, setShowEditExerciseModal] = useState(false);
+  const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const [generatingLink, setGeneratingLink] = useState(false);
   const { notifications, removeNotification, showError, showSuccess } = useGroupNotification();
 
   const loadGroup = async () => {
@@ -401,7 +442,7 @@ const GroupDetailsPage: React.FC = () => {
       console.log('🔍 [FRONTEND] Loading group exercises for groupId:', id);
       
       // ⭐ USE O SERVIÇO DE GRUPO QUE DEVE FUNCIONAR
-      const response = await groupService.listExercises(id, 0, 50);
+      const response = await groupService.listExercises(id, 1, 50);
       
       console.log('🔍 [FRONTEND] Group exercises response:', response);
       console.log('🔍 [FRONTEND] Response items:', response.items);
@@ -585,6 +626,32 @@ const GroupDetailsPage: React.FC = () => {
     }
   };
 
+  const handleGenerateInviteLink = async () => {
+    if (!id) return;
+
+    try {
+      setGeneratingLink(true);
+      const result = await groupService.generateInviteLink(id);
+      setInviteLink(result.link);
+      showSuccess('Link gerado!', 'Link de convite gerado com sucesso. Copie e compartilhe!');
+    } catch (error: any) {
+      showError('Erro ao gerar link', error.message || 'Não foi possível gerar o link de convite. Tente novamente.');
+    } finally {
+      setGeneratingLink(false);
+    }
+  };
+
+  const handleCopyInviteLink = async () => {
+    if (!inviteLink) return;
+
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      showSuccess('Link copiado!', 'Link de convite copiado para a área de transferência.');
+    } catch (error: any) {
+      showError('Erro ao copiar', 'Não foi possível copiar o link. Tente novamente.');
+    }
+  };
+
   const getUserRole = (): 'MEMBER' | 'MODERATOR' | 'OWNER' => {
     if (!group || !user) return 'MEMBER';
     
@@ -689,9 +756,23 @@ const GroupDetailsPage: React.FC = () => {
             )}
 
             {(isUserOwner || isUserModerator) && (
-              <LinkButton to={`/grupos/${group.id}/membros`}>
-                👥 Gerenciar Membros
-              </LinkButton>
+              <>
+                <LinkButton to={`/grupos/${group.id}/membros`}>
+                  👥 Gerenciar Membros
+                </LinkButton>
+                {group.visibility === 'PRIVATE' && (
+                  <>
+                    {!inviteLink && (
+                      <Button
+                        onClick={handleGenerateInviteLink}
+                        disabled={generatingLink}
+                      >
+                        {generatingLink ? "Gerando..." : "🔗 Gerar Link de Convite"}
+                      </Button>
+                    )}
+                  </>
+                )}
+              </>
             )}
 
             {isUserOwner && (
@@ -710,6 +791,30 @@ const GroupDetailsPage: React.FC = () => {
             )}
           </ActionsSection>
         </Header>
+
+        {/* Mostrar link de convite se gerado */}
+        {inviteLink && (isUserOwner || isUserModerator) && group.visibility === 'PRIVATE' && (
+          <InviteLinkContainer>
+            <InviteLinkLabel>Link de Convite do Grupo</InviteLinkLabel>
+            <InviteLinkInput
+              type="text"
+              value={inviteLink}
+              readOnly
+              onClick={(e) => (e.target as HTMLInputElement).select()}
+            />
+            <InviteLinkActions>
+              <Button onClick={handleCopyInviteLink}>
+                📋 Copiar Link
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => setInviteLink(null)}
+              >
+                ✖️ Fechar
+              </Button>
+            </InviteLinkActions>
+          </InviteLinkContainer>
+        )}
 
         <Content>
           <Section>

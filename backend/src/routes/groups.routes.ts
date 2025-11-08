@@ -8,6 +8,7 @@ const router = Router();
  * CRUD de grupos
  */
 router.get('/', GroupsController.listPublic);        // listar públicos
+router.get('/my', auth(), GroupsController.listMyGroups); // listar grupos do usuário (públicos e privados)
 router.get('/:id', auth(), GroupsController.getById);
 
 router.post('/', auth(), GroupsController.create);   // cria grupo (owner = req.user.sub)
@@ -29,5 +30,11 @@ router.delete('/:id/members/:userId', auth(), GroupsController.removeMember); //
 router.post('/:id/members/:userId/role', auth(), GroupsController.setMemberRole); // body: { role: 'MEMBER' | 'MODERATOR' }
 
 router.get('/:id/exercises', auth(), GroupsController.listExercises);
+
+/**
+ * Convites
+ */
+router.post('/:id/invite-link', auth(), GroupsController.generateInviteLink); // Gerar link de convite (owner/mod)
+router.post('/:id/join-by-token', auth(), GroupsController.joinByToken); // Entrar via token de convite
 
 export default router;

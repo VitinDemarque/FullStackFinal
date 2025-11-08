@@ -7,8 +7,12 @@ import {
 } from '../types/group.types';
 
 export const groupService = {
-  async listPublic(skip: number = 0, limit: number = 10): Promise<GroupListResponse> {
-    return apiRequest('GET', `/groups?skip=${skip}&limit=${limit}`);
+  async listPublic(page: number = 1, limit: number = 20): Promise<GroupListResponse> {
+    return apiRequest('GET', `/groups?page=${page}&limit=${limit}`);
+  },
+
+  async listMyGroups(page: number = 1, limit: number = 20): Promise<GroupListResponse> {
+    return apiRequest('GET', `/groups/my?page=${page}&limit=${limit}`);
   },
 
   async getById(id: string): Promise<Group> {
@@ -53,9 +57,17 @@ export const groupService = {
 
   async listExercises(
     groupId: string, 
-    skip: number = 0, 
-    limit: number = 10
+    page: number = 1, 
+    limit: number = 20
   ): Promise<ExerciseListResponse> {
-    return apiRequest('GET', `/groups/${groupId}/exercises?skip=${skip}&limit=${limit}`);
+    return apiRequest('GET', `/groups/${groupId}/exercises?page=${page}&limit=${limit}`);
+  },
+
+  async generateInviteLink(groupId: string): Promise<{ link: string; expiresAt: Date }> {
+    return apiRequest('POST', `/groups/${groupId}/invite-link`);
+  },
+
+  async joinByToken(groupId: string, token: string): Promise<{ joined: boolean }> {
+    return apiRequest('POST', `/groups/${groupId}/join-by-token`, { token });
   }
 };

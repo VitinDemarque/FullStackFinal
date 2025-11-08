@@ -13,6 +13,8 @@ export interface Group {
   updatedAt: Date;
   members?: GroupMember[];
   memberCount?: number; // Contagem total de membros (incluindo o dono)
+  role?: GroupMemberRole; // Role do usuário no grupo (quando listado via listMyGroups)
+  joinedAt?: Date; // Data que o usuário entrou no grupo (quando listado via listMyGroups)
 }
 
 export interface GroupMember {

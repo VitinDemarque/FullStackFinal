@@ -16,6 +16,18 @@ export async function listPublic(req: Request, res: Response, next: NextFunction
   }
 }
 
+export async function listMyGroups(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new BadRequestError('Missing user id');
+    const page = parsePagination(req.query);
+    const { skip, limit } = toMongoPagination(page);
+    const result = await GroupsService.listMyGroups(req.user.user_id, { skip, limit });
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+}
+
 export async function getById(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
@@ -170,5 +182,37 @@ export async function listExercises(req: AuthenticatedRequest, res: Response, ne
       return res.json(result);
   } catch (err) {
       return next(err);
+  }
+}
+
+export async function generateInviteLink(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new BadRequestError('Missing user id');
+    const { id } = req.params;
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestError('Invalid group ID format');
+    }
+    const result = await GroupsService.generateInviteLink(req.user.user_id, id);
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export async function joinByToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new BadRequestError('Missing user id');
+    const { id } = req.params;
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestError('Invalid group ID format');
+    }
+    const { token } = req.body ?? {};
+    if (!token) {
+      throw new BadRequestError('Token is required');
+    }
+    const result = await GroupsService.joinByToken(req.user.user_id, id, token);
+    return res.json(result);
+  } catch (err) {
+    return next(err);
   }
 }

@@ -123,16 +123,49 @@ const EmptyStateText = styled.p`
   margin: 0 0 24px 0;
 `;
 
+const TabsContainer = styled.div`
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid var(--color-border);
+  padding-bottom: 0;
+`;
+
+const TabButton = styled.button<{ active: boolean }>`
+  background: none;
+  border: none;
+  padding: 12px 24px;
+  font-size: ${({ theme }) => theme.fontSizes.base};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  color: ${({ active }) => active ? 'var(--color-blue-400)' : 'var(--color-text-secondary)'};
+  cursor: pointer;
+  border-bottom: 3px solid ${({ active }) => active ? 'var(--color-blue-400)' : 'transparent'};
+  transition: all 0.2s ease;
+  position: relative;
+  bottom: -2px;
+
+  &:hover {
+    color: var(--color-blue-400);
+  }
+`;
+
 const GroupListPage: React.FC = () => {
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'public' | 'my'>('public');
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { notifications, removeNotification, showError, showSuccess } = useGroupNotification();
 
   const loadGroups = async () => {
     try {
-      const response = await groupService.listPublic();
+      setLoading(true);
+      let response;
+      if (activeTab === 'my' && isAuthenticated) {
+        response = await groupService.listMyGroups();
+      } else {
+        response = await groupService.listPublic();
+      }
       setGroups(response.items);
     } catch (error: any) {
       showError("Erro ao carregar grupos", error.message || "Não foi possível carregar a lista de grupos. Tente novamente mais tarde.");
@@ -142,8 +175,13 @@ const GroupListPage: React.FC = () => {
   };
 
   useEffect(() => {
+    // Se não estiver autenticado e tentar ver "meus grupos", volta para públicos
+    if (!isAuthenticated && activeTab === 'my') {
+      setActiveTab('public');
+      return;
+    }
     loadGroups();
-  }, []);
+  }, [activeTab, isAuthenticated]);
 
   const handleJoinGroup = async (groupId: string) => {
     if (!isAuthenticated) {
@@ -205,6 +243,23 @@ const GroupListPage: React.FC = () => {
           )}
         </Header>
 
+        {isAuthenticated && (
+          <TabsContainer>
+            <TabButton 
+              active={activeTab === 'public'} 
+              onClick={() => setActiveTab('public')}
+            >
+              Grupos Públicos
+            </TabButton>
+            <TabButton 
+              active={activeTab === 'my'} 
+              onClick={() => setActiveTab('my')}
+            >
+              Meus Grupos
+            </TabButton>
+          </TabsContainer>
+        )}
+
         <GroupsGrid>
           {groups.map((group) => (
             <GroupCard
@@ -220,8 +275,16 @@ const GroupListPage: React.FC = () => {
 
         {groups.length === 0 && !loading && (
           <EmptyState>
-            <EmptyStateTitle>Nenhum grupo público encontrado</EmptyStateTitle>
-            <EmptyStateText>Seja o primeiro a criar um grupo!</EmptyStateText>
+            <EmptyStateTitle>
+              {activeTab === 'my' 
+                ? 'Você ainda não participa de nenhum grupo' 
+                : 'Nenhum grupo público encontrado'}
+            </EmptyStateTitle>
+            <EmptyStateText>
+              {activeTab === 'my' 
+                ? 'Explore os grupos públicos ou crie um novo grupo!' 
+                : 'Seja o primeiro a criar um grupo!'}
+            </EmptyStateText>
             {isAuthenticated && (
               <CreateButton to="/grupos/novo">
                 Criar Primeiro Grupo
