@@ -188,6 +188,43 @@ export const MetaItem = styled.div`
   color: var(--color-text-light);
 `
 
+export const OwnerInfo = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+`
+
+export const OwnerAvatar = styled.img`
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--color-border);
+`
+
+export const OwnerAvatarFallback = styled.div`
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-blue-100);
+  color: var(--color-blue-600);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  border: 1px solid var(--color-border);
+`
+
+export const OwnerNameLink = styled.span`
+  color: var(--color-blue-600);
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  &:hover {
+    color: var(--color-blue-700);
+    text-decoration: underline;
+  }
+`
+
 export const ForumMeta = styled.div`
   display: flex;
   justify-content: space-between;

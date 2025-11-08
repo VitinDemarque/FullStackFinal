@@ -7,6 +7,7 @@ const router = Router();
 // Perfil do usuário
 router.get('/me', auth(), UsersController.getMe);
 router.patch('/me', auth(), UsersController.updateMe);
+router.post('/me/avatar', auth(), UsersController.uploadMyAvatar);
 router.post('/me/password', auth(), UsersController.changeMyPassword);
 router.delete('/me', auth(), UsersController.deleteMe);
 

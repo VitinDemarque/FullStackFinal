@@ -17,6 +17,10 @@ export const userService = {
     return apiRequest<User>('PATCH', '/users/me', data)
   },
 
+  async uploadAvatar(dataUrl: string): Promise<User> {
+    return apiRequest<User>('POST', '/users/me/avatar', { dataUrl })
+  },
+
   async getById(id: string): Promise<User> {
     return apiRequest<User>('GET', `/users/${id}`)
   },

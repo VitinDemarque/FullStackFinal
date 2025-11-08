@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { groupService } from "../../services/group.service";
 import { userService } from "../../services/user.service";
@@ -70,6 +70,28 @@ const MemberInfo = styled.div`
   gap: 12px;
 `;
 
+const MemberAvatar = styled.img`
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--color-border);
+`;
+
+const MemberAvatarFallback = styled.div`
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-blue-100);
+  color: var(--color-blue-600);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 1px solid var(--color-border);
+`;
+
 const MemberDetails = styled.div`
   display: flex;
   flex-direction: column;
@@ -78,6 +100,15 @@ const MemberDetails = styled.div`
 const MemberName = styled.span`
   font-weight: 500;
   color: var(--color-text-primary);
+`;
+
+const MemberNameLink = styled.span`
+  color: var(--color-blue-600);
+  font-weight: 600;
+  &:hover {
+    color: var(--color-blue-700);
+    text-decoration: underline;
+  }
 `;
 
 const MemberMeta = styled.span`
@@ -202,6 +233,7 @@ const GroupMembersPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [memberNames, setMemberNames] = useState<Record<string, string>>({});
+  const [memberAvatars, setMemberAvatars] = useState<Record<string, string | null>>({});
   const { notifications, removeNotification, showError, showSuccess } = useGroupNotification();
 
   const loadGroup = async () => {
@@ -222,7 +254,7 @@ const GroupMembersPage: React.FC = () => {
   }, [id]);
 
   useEffect(() => {
-    const fetchNames = async () => {
+    const fetchMemberData = async () => {
       if (!group) return;
       try {
         const ids = Array.from(
@@ -237,27 +269,30 @@ const GroupMembersPage: React.FC = () => {
           ids.map(async (uid) => {
             try {
               const profile = await userService.getPublicProfile(uid);
-              return [uid, profile.user.name] as const;
+              return [uid, profile.user.name, profile.user.avatarUrl ?? null] as const;
             } catch {
               try {
                 const user = await userService.getById(uid);
-                return [uid, user.name] as const;
+                return [uid, user.name, user.avatarUrl ?? null] as const;
               } catch {
-                return [uid, `Usuário ${uid}`] as const;
+                return [uid, `Usuário ${uid}`, null] as const;
               }
             }
           })
         );
 
-        const map: Record<string, string> = {};
-        pairs.forEach(([uid, name]) => {
-          map[uid] = name;
+        const nameMap: Record<string, string> = {};
+        const avatarMap: Record<string, string | null> = {};
+        pairs.forEach(([uid, name, avatar]) => {
+          nameMap[uid] = name;
+          avatarMap[uid] = avatar;
         });
-        setMemberNames((prev) => ({ ...prev, ...map }));
+        setMemberNames((prev) => ({ ...prev, ...nameMap }));
+        setMemberAvatars((prev) => ({ ...prev, ...avatarMap }));
       } catch {}
     };
 
-    fetchNames();
+    fetchMemberData();
   }, [group]);
 
   const isUserOwner = group?.ownerUserId === user?.id;
@@ -384,9 +419,20 @@ const GroupMembersPage: React.FC = () => {
                 return (
                   <MemberCard key={member.userId}>
                     <MemberInfo>
+                      {memberAvatars[member.userId] ? (
+                        <MemberAvatar src={memberAvatars[member.userId] as string} alt={memberNames[member.userId]} />
+                      ) : (
+                        <MemberAvatarFallback>
+                          {(memberNames[member.userId] || 'U').charAt(0)}
+                        </MemberAvatarFallback>
+                      )}
                       <MemberDetails>
                         <MemberName>
-                          {memberNames[member.userId] || `Usuário ${member.userId}`}
+                          <Link to={`/perfil/${member.userId}`} style={{ textDecoration: 'none' }}>
+                            <MemberNameLink>
+                              {memberNames[member.userId] || `Usuário ${member.userId}`}
+                            </MemberNameLink>
+                          </Link>
                           {isOwner && " 👑"}
                           {isCurrentUser && " (Você)"}
                         </MemberName>

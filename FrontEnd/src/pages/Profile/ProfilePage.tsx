@@ -47,16 +47,13 @@ export default function ProfilePage() {
       execute();
       loadBadges();
 
-      const localAvatar = localStorage.getItem(`avatar_${user.id}`);
-
-      if (localAvatar) {
-        setProfileImage(localAvatar);
-        updateUser({ avatarUrl: localAvatar });
-      } else if (user.avatarUrl) {
+      if (user.avatarUrl) {
         setProfileImage(user.avatarUrl);
+      } else {
+        setProfileImage(null);
       }
     }
-  }, [user?.id]);
+  }, [user?.id, user?.avatarUrl]);
 
   async function loadBadges() {
     try {
@@ -236,23 +233,21 @@ export default function ProfilePage() {
 
     try {
       setUploadingImage(true);
-
       const reader = new FileReader();
-      reader.onloadend = () => {
-        const imageUrl = reader.result as string;
-
-        if (user?.id) {
-          localStorage.setItem(`avatar_${user.id}`, imageUrl);
+      reader.onloadend = async () => {
+        const dataUrl = reader.result as string;
+        try {
+          const updated = await userService.uploadAvatar(dataUrl);
+          setProfileImage(updated.avatarUrl || null);
+          updateUser({ avatarUrl: updated.avatarUrl || null });
+          alert("✅ Foto de perfil atualizada com sucesso!");
+        } catch (err) {
+          alert("❌ Erro ao enviar a imagem ao servidor.");
+        } finally {
+          setShowImageUpload(false);
+          setUploadingImage(false);
         }
-
-        setProfileImage(imageUrl);
-        updateUser({ avatarUrl: imageUrl });
-
-        alert("✅ Foto de perfil atualizada com sucesso!");
-        setShowImageUpload(false);
-        setUploadingImage(false);
       };
-
       reader.readAsDataURL(file);
     } catch (error) {
       alert("❌ Erro ao processar a imagem.");
@@ -260,16 +255,16 @@ export default function ProfilePage() {
     }
   }
 
-  function handleRemoveImage() {
+  async function handleRemoveImage() {
     if (confirm("Tem certeza que deseja remover sua foto de perfil?")) {
-      if (user?.id) {
-        localStorage.removeItem(`avatar_${user.id}`);
+      try {
+        const updated = await userService.updateMe({ avatarUrl: null });
+        setProfileImage(null);
+        updateUser({ avatarUrl: updated.avatarUrl || null });
+        alert("✅ Foto de perfil removida!");
+      } catch (err) {
+        alert("❌ Erro ao remover a foto no servidor.");
       }
-
-      setProfileImage(null);
-      updateUser({ avatarUrl: null });
-
-      alert("✅ Foto de perfil removida!");
     }
   }
 

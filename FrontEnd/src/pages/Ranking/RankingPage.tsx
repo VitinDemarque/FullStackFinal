@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { FaTrophy, FaMedal } from "react-icons/fa";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
 import { leaderboardService } from "@services/leaderboard.service";
@@ -90,8 +91,14 @@ export default function RankingPage() {
                         </S.TableCell>
                         <S.TableCell>
                           <S.UserInfo>
-                            <S.UserAvatar>{entry.name.charAt(0)}</S.UserAvatar>
-                            <S.UserName $isDark={isDark}>{entry.name}</S.UserName>
+                            {entry.avatarUrl ? (
+                              <S.UserAvatarImg src={entry.avatarUrl} alt={entry.name} />
+                            ) : (
+                              <S.UserAvatar>{entry.name.charAt(0)}</S.UserAvatar>
+                            )}
+                            <Link to={`/perfil/${entry.userId}`} style={{ textDecoration: 'none' }}>
+                              <S.UserNameLink $isDark={isDark}>{entry.name}</S.UserNameLink>
+                            </Link>
                           </S.UserInfo>
                         </S.TableCell>
                         <S.TableCell>

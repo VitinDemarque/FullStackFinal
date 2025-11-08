@@ -268,10 +268,39 @@ export const UserAvatar = styled.div`
   }
 `
 
+export const UserAvatarImg = styled.img`
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2);
+
+  @media (max-width: 768px) {
+    width: 36px;
+    height: 36px;
+  }
+`
+
 export const UserName = styled.span<{ $isDark?: boolean }>`
   font-weight: 600;
   color: ${({ $isDark }) => ($isDark ? '#f1f5f9' : theme.colors.gray[900])};
   transition: color 0.3s ease;
+
+  @media (max-width: 768px) {
+    font-size: 0.875rem;
+  }
+`
+
+export const UserNameLink = styled.a<{ $isDark?: boolean }>`
+  font-weight: 600;
+  color: ${({ $isDark }) => ($isDark ? '#93c5fd' : theme.colors.primary)};
+  text-decoration: none;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: ${({ $isDark }) => ($isDark ? '#bfdbfe' : '#2563eb')};
+    text-decoration: underline;
+  }
 
   @media (max-width: 768px) {
     font-size: 0.875rem;

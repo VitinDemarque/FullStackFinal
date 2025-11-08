@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import AuthenticatedLayout from '@/components/Layout/AuthenticatedLayout'
 import { forunsService } from '@/services/forum.services'
 import { forumTopicService } from '@/services/forumTopic.service'
@@ -19,6 +19,7 @@ export default function ForunsPage() {
   const [busca, setBusca] = useState('')
   const [mostrarMeus, setMostrarMeus] = useState(false)
   const [ownerNames, setOwnerNames] = useState<Record<string, string>>({})
+  const [ownerAvatars, setOwnerAvatars] = useState<Record<string, string | null>>({})
   const [topicCounts, setTopicCounts] = useState<Record<string, number>>({})
   const navigate = useNavigate()
 
@@ -38,9 +39,9 @@ export default function ForunsPage() {
     carregarForuns()
   }, [])
 
-  // Busca os nomes dos donos dos fóruns quando a lista muda
+  // Busca dados básicos dos donos dos fóruns quando a lista muda
   useEffect(() => {
-    const fetchOwnerNames = async () => {
+    const fetchOwnerData = async () => {
       try {
         const ids = Array.from(
           new Set(
@@ -57,28 +58,31 @@ export default function ForunsPage() {
             try {
               // Endpoint público não exige autenticação
               const profile = await userService.getPublicProfile(id)
-              return [id, profile.user.name] as const
+              return [id, profile.user.name, profile.user.avatarUrl ?? null] as const
             } catch {
               try {
                 // Fallback autenticado (caso token esteja presente)
                 const u = await userService.getById(id)
-                return [id, u.name] as const
+                return [id, u.name, u.avatarUrl ?? null] as const
               } catch {
-                return [id, `Usuário ${id}`] as const
+                return [id, `Usuário ${id}`, null] as const
               }
             }
           })
         )
 
-        const map: Record<string, string> = {}
-        results.forEach(([id, name]) => {
-          map[id] = name
+        const nameMap: Record<string, string> = {}
+        const avatarMap: Record<string, string | null> = {}
+        results.forEach(([id, name, avatar]) => {
+          nameMap[id] = name
+          avatarMap[id] = avatar
         })
-        setOwnerNames((prev) => ({ ...prev, ...map }))
+        setOwnerNames((prev) => ({ ...prev, ...nameMap }))
+        setOwnerAvatars((prev) => ({ ...prev, ...avatarMap }))
       } catch {}
     }
 
-    fetchOwnerNames()
+    fetchOwnerData()
   }, [foruns])
 
   // Busca a contagem de tópicos para cada fórum
@@ -179,7 +183,29 @@ export default function ForunsPage() {
                 <S.CardMeta>
                   <S.MetaItem>🧩 Tópicos: {topicCounts[forum._id] ?? 0}</S.MetaItem>
                   <S.MetaItem>
-                    👑 Dono: {forum.donoUsuarioId ? (ownerNames[forum.donoUsuarioId] || `Usuário ${forum.donoUsuarioId}`) : 'N/A'}
+                    👑 Dono:
+                    {forum.donoUsuarioId ? (
+                      <S.OwnerInfo>
+                        {ownerAvatars[forum.donoUsuarioId] ? (
+                          <S.OwnerAvatar src={ownerAvatars[forum.donoUsuarioId] as string} alt={ownerNames[forum.donoUsuarioId]} />
+                        ) : (
+                          <S.OwnerAvatarFallback>
+                            {(ownerNames[forum.donoUsuarioId] || 'U').charAt(0)}
+                          </S.OwnerAvatarFallback>
+                        )}
+                        <Link
+                          to={`/perfil/${forum.donoUsuarioId}`}
+                          onClick={(e) => e.stopPropagation()}
+                          style={{ textDecoration: 'none' }}
+                        >
+                          <S.OwnerNameLink>
+                            {ownerNames[forum.donoUsuarioId] || `Usuário ${forum.donoUsuarioId}`}
+                          </S.OwnerNameLink>
+                        </Link>
+                      </S.OwnerInfo>
+                    ) : (
+                      ' N/A'
+                    )}
                   </S.MetaItem>
                 </S.CardMeta>
               </S.ForumCard>

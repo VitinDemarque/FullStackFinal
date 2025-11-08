@@ -255,6 +255,37 @@ const MemberName = styled.span`
   color: var(--color-text-primary);
 `;
 
+const MemberAvatar = styled.img`
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--color-border);
+`;
+
+const MemberAvatarFallback = styled.div`
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-blue-100);
+  color: var(--color-blue-700);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid var(--color-border);
+`;
+
+const MemberNameLink = styled.span`
+  color: var(--color-blue-600);
+  font-weight: 600;
+  &:hover {
+    color: var(--color-blue-700);
+    text-decoration: underline;
+  }
+`;
+
 const MemberRole = styled.span<{ role: string }>`
   padding: 4px 8px;
   border-radius: 4px;
@@ -415,6 +446,7 @@ const GroupDetailsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [memberNames, setMemberNames] = useState<Record<string, string>>({});
+  const [memberAvatars, setMemberAvatars] = useState<Record<string, string | null>>({});
   
   const [showCreateExerciseModal, setShowCreateExerciseModal] = useState(false);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
@@ -480,23 +512,26 @@ const GroupDetailsPage: React.FC = () => {
             ids.map(async (uid) => {
               try {
                 const profile = await userService.getPublicProfile(uid);
-                return [uid, profile.user.name] as const;
+                return [uid, profile.user.name, profile.user.avatarUrl ?? null] as const;
               } catch {
                 try {
                   const user = await userService.getById(uid);
-                  return [uid, user.name] as const;
+                  return [uid, user.name, user.avatarUrl ?? null] as const;
                 } catch {
-                  return [uid, `Usuário ${uid}`] as const;
+                  return [uid, `Usuário ${uid}`, null] as const;
                 }
               }
             })
           );
 
-          const map: Record<string, string> = {};
-          pairs.forEach(([uid, name]) => {
-            map[uid] = name;
+          const nameMap: Record<string, string> = {};
+          const avatarMap: Record<string, string | null> = {};
+          pairs.forEach(([uid, name, avatar]) => {
+            nameMap[uid] = name;
+            avatarMap[uid] = avatar;
           });
-          setMemberNames((prev) => ({ ...prev, ...map }));
+          setMemberNames((prev) => ({ ...prev, ...nameMap }));
+          setMemberAvatars((prev) => ({ ...prev, ...avatarMap }));
         } catch (e) {
           // silencioso: mantém fallback para ID
         }
@@ -815,9 +850,20 @@ const GroupDetailsPage: React.FC = () => {
                 group.members.map((member) => (
                   <MemberItem key={member.userId}>
                     <MemberInfo>
+                      {memberAvatars[member.userId] ? (
+                        <MemberAvatar src={memberAvatars[member.userId] as string} alt={memberNames[member.userId]} />
+                      ) : (
+                        <MemberAvatarFallback>
+                          {(memberNames[member.userId] || 'U').charAt(0)}
+                        </MemberAvatarFallback>
+                      )}
                       <MemberName>
                         {member.userId === group.ownerUserId ? "👑 " : ""}
-                        {memberNames[member.userId] || `Usuário ${member.userId}`}
+                        <Link to={`/perfil/${member.userId}`} style={{ textDecoration: 'none' }}>
+                          <MemberNameLink>
+                            {memberNames[member.userId] || `Usuário ${member.userId}`}
+                          </MemberNameLink>
+                        </Link>
                         {member.userId === user?.id && " (Você)"}
                       </MemberName>
                       <MemberRole role={member.role}>

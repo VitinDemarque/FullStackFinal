@@ -6,6 +6,7 @@ import * as StatsService from '../services/stats.service';
 import * as BadgesService from '../services/badges.service';
 import { BadRequestError, NotFoundError } from '../utils/httpErrors';
 import { parsePagination, toMongoPagination } from '../utils/pagination';
+import { saveDataUrlAvatar } from '../utils/avatar';
 
 export async function getMe(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
@@ -118,6 +119,21 @@ export async function getUserBadges(req: Request, res: Response, next: NextFunct
     }
     const badges = await BadgesService.getUserBadges(id);
     return res.json(badges);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export async function uploadMyAvatar(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new NotFoundError('User not in token');
+    const { dataUrl } = req.body ?? {};
+    if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/')) {
+      throw new BadRequestError('Invalid or missing dataUrl image');
+    }
+    const avatarUrl = saveDataUrlAvatar(req.user.user_id, dataUrl);
+    const updated = await UsersService.updateById(req.user.user_id, { avatarUrl });
+    return res.json(updated);
   } catch (err) {
     return next(err);
   }

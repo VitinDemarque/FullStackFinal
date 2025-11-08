@@ -10,7 +10,7 @@ export interface Paging { skip: number; limit: number; }
  */
 export async function general({ skip, limit }: Paging) {
   const users = await User.find({})
-    .select('_id name handle collegeId xpTotal level')
+    .select('_id name handle collegeId xpTotal level avatarUrl')
     .sort({ xpTotal: -1, level: -1 })
     .skip(skip)
     .limit(limit)
@@ -21,6 +21,7 @@ export async function general({ skip, limit }: Paging) {
     userId: String(user._id),
     name: user.name,
     handle: user.handle,
+    avatarUrl: user.avatarUrl ?? null,
     collegeId: user.collegeId ? String(user.collegeId) : null,
     points: user.xpTotal,
     xpTotal: user.xpTotal
@@ -39,7 +40,7 @@ export async function byLanguage(languageId: string, { skip, limit }: Paging) {
     { $group: { _id: '$userId', points: { $sum: '$xpAwarded' } } },
     { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user' } },
     { $unwind: '$user' },
-    { $project: { _id: 0, userId: '$_id', points: 1, xpTotal: '$user.xpTotal', name: '$user.name', handle: '$user.handle', collegeId: '$user.collegeId' } },
+    { $project: { _id: 0, userId: '$_id', points: 1, xpTotal: '$user.xpTotal', name: '$user.name', handle: '$user.handle', collegeId: '$user.collegeId', avatarUrl: '$user.avatarUrl' } },
     { $sort: { points: -1 } },
     { $skip: skip },
     { $limit: limit }
@@ -51,6 +52,7 @@ export async function byLanguage(languageId: string, { skip, limit }: Paging) {
     userId: String(r.userId),
     name: r.name,
     handle: r.handle,
+    avatarUrl: r.avatarUrl ?? null,
     collegeId: r.collegeId ? String(r.collegeId) : null,
     points: r.points,
     xpTotal: r.xpTotal
@@ -66,7 +68,7 @@ export async function bySeason(seasonId: string, { skip, limit }: Paging) {
     { $group: { _id: '$userId', points: { $sum: '$xpAwarded' } } },
     { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user' } },
     { $unwind: '$user' },
-    { $project: { _id: 0, userId: '$_id', points: 1, xpTotal: '$user.xpTotal', name: '$user.name', handle: '$user.handle', collegeId: '$user.collegeId' } },
+    { $project: { _id: 0, userId: '$_id', points: 1, xpTotal: '$user.xpTotal', name: '$user.name', handle: '$user.handle', collegeId: '$user.collegeId', avatarUrl: '$user.avatarUrl' } },
     { $sort: { points: -1 } },
     { $skip: skip },
     { $limit: limit }
@@ -78,6 +80,7 @@ export async function bySeason(seasonId: string, { skip, limit }: Paging) {
     userId: String(r.userId),
     name: r.name,
     handle: r.handle,
+    avatarUrl: r.avatarUrl ?? null,
     collegeId: r.collegeId ? String(r.collegeId) : null,
     points: r.points,
     xpTotal: r.xpTotal
@@ -96,7 +99,7 @@ export async function byCollege(collegeId: string, { skip, limit }: Paging) {
     { $group: { _id: '$userId', points: { $sum: '$xpAwarded' } } },
     { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user2' } },
     { $unwind: '$user2' },
-    { $project: { _id: 0, userId: '$_id', points: 1, xpTotal: '$user2.xpTotal', name: '$user2.name', handle: '$user2.handle', collegeId: '$user2.collegeId' } },
+    { $project: { _id: 0, userId: '$_id', points: 1, xpTotal: '$user2.xpTotal', name: '$user2.name', handle: '$user2.handle', collegeId: '$user2.collegeId', avatarUrl: '$user2.avatarUrl' } },
     { $sort: { points: -1 } },
     { $skip: skip },
     { $limit: limit }
@@ -108,6 +111,7 @@ export async function byCollege(collegeId: string, { skip, limit }: Paging) {
     userId: String(r.userId),
     name: r.name,
     handle: r.handle,
+    avatarUrl: r.avatarUrl ?? null,
     collegeId: r.collegeId ? String(r.collegeId) : null,
     points: r.points,
     xpTotal: r.xpTotal

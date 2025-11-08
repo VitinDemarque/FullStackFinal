@@ -12,6 +12,7 @@ import ForunsPage from "@pages/Foruns/ForunsPage";
 import ForumDetalhesPage from "@pages/Foruns/ForumDetalhesPage";
 import TopicoPage from "@pages/Foruns/TopicoPage";
 import ProfilePage from "@pages/Profile/ProfilePage";
+import PublicProfilePage from "@pages/Profile/PublicProfilePage";
 import ProfileEditPage from "@pages/Profile/ProfileEditPage";
 import SettingsPage from "@pages/Settings/SettingsPage";
 import NotFoundPage from "@pages/NotFound/NotFoundPage";
@@ -98,6 +99,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <ProfileEditPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/perfil/:id"
+              element={
+                <PrivateRoute>
+                  <PublicProfilePage />
                 </PrivateRoute>
               }
             />

@@ -5,6 +5,7 @@ export interface LeaderboardEntry {
     userId: string
     name: string
     handle: string
+    avatarUrl?: string | null
     collegeId: string | null
     points: number
     xpTotal: number
