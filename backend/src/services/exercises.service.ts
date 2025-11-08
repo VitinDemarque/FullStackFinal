@@ -79,6 +79,20 @@ export async function list(input: Partial<ListExercisesInput>) {
   };
 }
 
+export async function listByAuthor(authorId: string, skip = 0, limit = 20) {
+  const where: FilterQuery<any> = { authorUserId: new Types.ObjectId(authorId) };
+
+  const [items, total] = await Promise.all([
+    Exercise.find(where).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+    Exercise.countDocuments(where)
+  ]);
+
+  return {
+    items: items.map(sanitize),
+    total
+  };
+}
+
 export async function getById(id: string, requestUserId?: string) {
   const ex = (await Exercise.findById(id).lean()) as any;
   if (!ex) throw new NotFoundError('Exercise not found');

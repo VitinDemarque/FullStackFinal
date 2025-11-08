@@ -6,13 +6,14 @@ export const Container = styled.div`
 `;
 
 export const MenuButton = styled.button`
-  background: none;
-  border: none;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(17, 24, 39, 0.2);
   padding: 0.5rem;
   border-radius: ${({ theme }) => theme.borderRadius.md};
   cursor: pointer;
   font-size: 1.25rem;
-  color: ${({ theme }) => theme.colors.gray[500]};
+  color: #111827; /* mesma cor do texto do rótulo INATIVO */
+  box-shadow: 0 8px 24px rgba(17, 24, 39, 0.15);
   transition: ${({ theme }) => theme.transitions.base};
   display: flex;
   align-items: center;
@@ -21,8 +22,9 @@ export const MenuButton = styled.button`
   height: 2rem;
 
   &:hover {
-    background: ${({ theme }) => theme.colors.gray[100]};
-    color: ${({ theme }) => theme.colors.gray[700]};
+    background: rgba(255, 255, 255, 0.95);
+    color: #0f172a;
+    transform: translateY(-1px);
   }
 `;
 

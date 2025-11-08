@@ -112,7 +112,7 @@ export async function listMine(req: AuthenticatedRequest, res: Response, next: N
     if (!req.user?.user_id) throw new BadRequestError('Missing user id');
     const page = parsePagination(req.query);
     const { skip, limit } = toMongoPagination(page);
-    const result = await ExercisesService.list({ authorId: req.user.user_id, skip, limit });
+    const result = await ExercisesService.listByAuthor(req.user.user_id, skip, limit);
     return res.json(result);
   } catch (err) {
     return next(err);

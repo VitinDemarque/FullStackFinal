@@ -1,6 +1,6 @@
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 
-export const ExerciseCard = styled.div`
+export const ExerciseCard = styled.div<{ $inactive?: boolean }>`
   background: ${({ theme }) => theme.colors.white};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   padding: 1.5rem;
@@ -19,6 +19,14 @@ export const ExerciseCard = styled.div`
   &:focus-within {
     z-index: 5;
   }
+
+  ${({ $inactive }) =>
+    $inactive &&
+    css`
+      /* leve dessaturação para indicar estado inativo */
+      filter: saturate(0.85);
+      opacity: 0.95;
+    `}
 `;
 
 export const CardHeader = styled.div`
@@ -113,4 +121,32 @@ export const EditButton = styled.button`
 export const ActionsContainer = styled.div`
   display: flex;
   align-items: center;
+  position: relative;
+  z-index: 2;
+`;
+
+export const InactiveOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+  background: rgba(2, 6, 23, 0.25); /* leve escurecimento */
+  border-radius: inherit;
+  pointer-events: none; /* não bloquear ações do card */
+  z-index: 1;
+`;
+
+export const InactiveLabel = styled.div`
+  font-weight: 800;
+  letter-spacing: 0.2rem;
+  text-transform: uppercase;
+  color: #111827;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(17, 24, 39, 0.2);
+  box-shadow: 0 8px 24px rgba(17, 24, 39, 0.15);
+  padding: 0.5rem 1.25rem;
+  border-radius: 999px;
+  font-size: 0.95rem;
 `;

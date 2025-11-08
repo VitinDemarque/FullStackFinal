@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import submissionsService from '../services/submissions.service';
 import ExerciseActionsMenu from '@components/ExerciseActionsMenu';
 import * as S from '@/styles/components/ExerciseCard/styles';
 
@@ -31,7 +32,7 @@ export default function ExerciseCard({
   const isActive = status === 'PUBLISHED';
 
   return (
-    <S.ExerciseCard>
+    <S.ExerciseCard $inactive={!isActive}>
       <S.CardHeader>
         <S.CardIcon>
           {icon}
@@ -48,7 +49,7 @@ export default function ExerciseCard({
             <S.VoteIcon>↑</S.VoteIcon>
             {votes}
           </S.VoteCount>
-          <S.CommentsCount>{comments} comentários</S.CommentsCount>
+          <S.CommentsCount>{comments} respostas</S.CommentsCount>
         </S.StatsLeft>
 
         <div>
@@ -66,6 +67,12 @@ export default function ExerciseCard({
           />
         </S.ActionsContainer>
       </S.CardStats>
+
+      {!isActive && (
+        <S.InactiveOverlay>
+          <S.InactiveLabel>INATIVO</S.InactiveLabel>
+        </S.InactiveOverlay>
+      )}
     </S.ExerciseCard>
   );
 }

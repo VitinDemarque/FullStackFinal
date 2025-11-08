@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@components/Layout/AuthenticatedLayout';
+import submissionsService from '../../services/submissions.service';
 import ExerciseCard from '@components/ExerciseCard';
 import CreateExerciseModal, { CreateExerciseData } from '@components/CreateExerciseModal';
 import EditExerciseModal from '@components/EditExerciseModal';
@@ -11,6 +12,7 @@ import * as S from '@/styles/pages/Challenges/styles';
 
 export default function ChallengesPage() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [responsesCount, setResponsesCount] = useState<Record<string, number>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -153,6 +155,29 @@ export default function ChallengesPage() {
     return `${diffDays}d`;
   };
 
+  useEffect(() => {
+    let canceled = false;
+    (async () => {
+      if (!exercises?.length) { setResponsesCount({}); return; }
+      try {
+        const entries = await Promise.all(
+          exercises.map(async (ex) => [ex.id, await submissionsService.countByExercise(ex.id)])
+        );
+        if (!canceled) {
+          const map = Object.fromEntries(entries) as Record<string, number>;
+          setResponsesCount(map);
+          // Also inject the count into each exercise so components using `comments` reflect real responses
+          try {
+            // If exercises are immutable or from server, we clone and set
+            // @ts-ignore - dynamic shape
+            setExercises((prev) => prev.map((ex) => ({ ...ex, comments: map[ex.id] ?? 0 })));
+          } catch (_) {}
+        }
+      } catch (_) {}
+    })();
+    return () => { canceled = true; };
+  }, [exercises]);
+
   return (
     <AuthenticatedLayout>
       <S.Container>
@@ -191,8 +216,8 @@ export default function ChallengesPage() {
                 title={exercise.title}
                 description={exercise.description || 'Sem descrição'}
                 icon={getExerciseIcon(exercise)}
-                votes={Math.floor(Math.random() * 100)} // Mock data - implementar sistema de votos
-                comments={Math.floor(Math.random() * 50)} // Mock data - implementar sistema de comentários
+                votes={responsesCount[exercise.id] ?? 0}
+                comments={responsesCount[exercise.id] ?? 0}
                 lastModified={formatTimeAgo(exercise.updatedAt)}
                 status={exercise.status}
                 onEdit={() => handleEditExercise(exercise.id)}
