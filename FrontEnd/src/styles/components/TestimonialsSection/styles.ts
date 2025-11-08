@@ -2,9 +2,14 @@ import styled from 'styled-components';
 
 export const TestimonialsSectionContainer = styled.section`
   position: relative;
-  background: linear-gradient(135deg, #f9fafb 0%, #eff6ff 50%, #dbeafe 100%);
+  background: linear-gradient(135deg, var(--color-background) 0%, var(--color-background) 50%, var(--color-background) 100%);
   padding: 5rem 2rem;
   overflow: hidden;
+  transition: background 0.3s ease;
+
+  .dark & {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+  }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     padding: 3rem 1.5rem;
@@ -21,6 +26,12 @@ export const ShapeBottomRight = styled.div`
   opacity: 0.3;
   transform: translate(8rem, 8rem);
   border-radius: 100% 0 0 0;
+  transition: background 0.3s ease, opacity 0.3s ease;
+
+  .dark & {
+    background: var(--color-blue-500);
+    opacity: 0.15;
+  }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     width: 16rem;
@@ -41,7 +52,8 @@ export const Title = styled.h2`
   font-weight: 700;
   text-align: center;
   margin-bottom: 1rem;
-  color: ${({ theme }) => theme.colors.gray900};
+  color: var(--color-text-primary);
+  transition: color 0.3s ease;
 
   @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
     font-size: 3rem;
@@ -54,12 +66,13 @@ export const Title = styled.h2`
 
 export const Description = styled.p`
   text-align: center;
-  color: ${({ theme }) => theme.colors.gray700};
+  color: var(--color-text-secondary);
   font-size: 1.125rem;
   margin-bottom: 3rem;
   max-width: 42rem;
   margin-left: auto;
   margin-right: auto;
+  transition: color 0.3s ease;
 `;
 
 export const TestimonialsGrid = styled.div`
@@ -73,15 +86,17 @@ export const TestimonialsGrid = styled.div`
 `;
 
 export const TestimonialCard = styled.div`
-  background: ${({ theme }) => theme.colors.white};
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: ${({ theme }) => theme.borderRadius.xl};
   padding: 1.5rem;
-  box-shadow: ${({ theme }) => theme.shadows.lg};
+  box-shadow: var(--shadow-lg);
   transition: all 0.3s ease;
 
   &:hover {
-    box-shadow: ${({ theme }) => theme.shadows.xl};
+    box-shadow: var(--shadow-xl);
     transform: translateY(-4px);
+    border-color: var(--color-blue-400);
   }
 `;
 
@@ -104,8 +119,9 @@ export const Avatar = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 4px solid ${({ theme }) => theme.colors.white};
-  box-shadow: ${({ theme }) => theme.shadows.md};
+  border: 4px solid var(--color-surface);
+  box-shadow: var(--shadow-md);
+  transition: border-color 0.3s ease;
 
   svg {
     color: ${({ theme }) => theme.colors.white};
@@ -120,12 +136,14 @@ export const TestimonialInfo = styled.div`
 export const TestimonialName = styled.h3`
   font-weight: 700;
   font-size: 1.125rem;
-  color: ${({ theme }) => theme.colors.gray900};
+  color: var(--color-text-primary);
+  transition: color 0.3s ease;
 `;
 
 export const TestimonialRole = styled.p`
   font-size: 0.875rem;
-  color: ${({ theme }) => theme.colors.textLight};
+  color: var(--color-text-light);
+  transition: color 0.3s ease;
 `;
 
 export const Stars = styled.div`
@@ -140,9 +158,10 @@ export const Stars = styled.div`
 `;
 
 export const TestimonialText = styled.p`
-  color: ${({ theme }) => theme.colors.gray700};
+  color: var(--color-text-secondary);
   line-height: 1.75;
   font-style: italic;
+  transition: color 0.3s ease;
 `;
 
 export const CTAContainer = styled.div`
@@ -151,9 +170,10 @@ export const CTAContainer = styled.div`
 `;
 
 export const CTAText = styled.p`
-  color: ${({ theme }) => theme.colors.gray700};
+  color: var(--color-text-secondary);
   font-size: 1.125rem;
   margin-bottom: 1rem;
+  transition: color 0.3s ease;
 `;
 
 export const CTAButton = styled.a`

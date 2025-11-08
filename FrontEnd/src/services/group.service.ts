@@ -28,7 +28,7 @@ export const groupService = {
   },
 
   async update(groupId: string, data: Partial<Group>): Promise<Group> {
-    return apiRequest('PUT', `/groups/${groupId}`, data);
+    return apiRequest('PATCH', `/groups/${groupId}`, data);
   },
 
   async delete(groupId: string): Promise<void> {

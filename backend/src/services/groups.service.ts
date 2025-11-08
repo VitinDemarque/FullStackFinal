@@ -19,7 +19,21 @@ export async function listPublic({ skip, limit }: Paging) {
     Group.countDocuments({ visibility: 'PUBLIC' })
   ]);
 
-  return { items: items.map(sanitize), total };
+  // Para cada grupo, buscar a contagem de membros
+  const itemsWithMembers = await Promise.all(
+    items.map(async (group) => {
+      const memberCount = await GroupMember.countDocuments({
+        groupId: group._id
+      });
+      
+      return {
+        ...sanitize(group),
+        memberCount
+      };
+    })
+  );
+
+  return { items: itemsWithMembers, total };
 }
 
 export async function getById(id: string) {

@@ -13,8 +13,9 @@ const slideDown = keyframes`
 `;
 
 export const Nav = styled.nav`
-  background: ${({ theme }) => theme.colors.white};
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -75,7 +76,7 @@ export const NavMenu = styled.div`
 `;
 
 export const NavLink = styled(Link)`
-  color: ${({ theme }) => theme.colors.textSecondary};
+  color: var(--color-text-secondary);
   text-decoration: none;
   font-weight: 500;
   font-size: 0.9375rem;
@@ -95,7 +96,7 @@ export const NavLink = styled(Link)`
   }
 
   &:hover {
-    color: ${({ theme }) => theme.colors.accentBlue};
+    color: var(--color-blue-400);
 
     &::after {
       width: 100%;
@@ -121,7 +122,7 @@ export const LoginButton = styled(Link)`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: ${({ theme }) => theme.colors.textSecondary};
+  color: var(--color-text-secondary);
   text-decoration: none;
   font-weight: 500;
   font-size: 0.9375rem;
@@ -129,40 +130,41 @@ export const LoginButton = styled(Link)`
   border-radius: ${({ theme }) => theme.borderRadius.md};
   transition: all 0.2s ease;
   background: transparent;
-  border: 1px solid ${({ theme }) => theme.colors.gray200};
+  border: 1px solid var(--color-border);
 
   svg {
     font-size: 1rem;
   }
 
   &:hover {
-    background: ${({ theme }) => theme.colors.gray50};
-    border-color: ${({ theme }) => theme.colors.accentBlue};
-    color: ${({ theme }) => theme.colors.accentBlue};
+    background: var(--color-surface-hover);
+    border-color: var(--color-blue-400);
+    color: var(--color-blue-400);
   }
 `;
 
 export const SignupButton = styled(Link)`
-  color: ${({ theme }) => theme.colors.accentBlue};
+  color: var(--color-blue-400);
   text-decoration: none;
   font-weight: 600;
   font-size: 0.9375rem;
   padding: 0.625rem 1.5rem;
   border-radius: ${({ theme }) => theme.borderRadius.md};
-  background: ${({ theme }) => theme.colors.white};
-  border: 1px solid ${({ theme }) => theme.colors.accentBlue};
+  background: var(--color-surface);
+  border: 1px solid var(--color-blue-400);
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+  box-shadow: var(--shadow-md);
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
-    background: ${({ theme }) => theme.colors.white};
-    color: ${({ theme }) => theme.colors.accentBlue};
+    box-shadow: var(--shadow-lg);
+    background: var(--color-surface);
+    color: var(--color-blue-500);
+    border-color: var(--color-blue-500);
   }
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.accentBlue};
+    outline: 3px solid var(--color-blue-400);
     outline-offset: 2px;
   }
 `;
@@ -173,14 +175,14 @@ export const MobileMenuButton = styled.button`
   justify-content: center;
   background: transparent;
   border: none;
-  color: ${({ theme }) => theme.colors.textSecondary};
+  color: var(--color-text-secondary);
   font-size: 1.5rem;
   cursor: pointer;
   padding: 0.5rem;
   transition: color 0.2s ease;
 
   &:hover {
-    color: ${({ theme }) => theme.colors.accentBlue};
+    color: var(--color-blue-400);
   }
 
   @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
@@ -189,10 +191,11 @@ export const MobileMenuButton = styled.button`
 `;
 
 export const MobileMenu = styled.div`
-  border-top: 1px solid ${({ theme }) => theme.colors.gray200};
-  background: ${({ theme }) => theme.colors.white};
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
   padding: 1.5rem 2rem;
   animation: ${slideDown} 0.3s ease;
+  transition: background 0.3s ease, border-color 0.3s ease;
 
   @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
     display: none;
@@ -207,7 +210,7 @@ export const MobileMenuLinks = styled.div`
 `;
 
 export const MobileNavLink = styled(Link)`
-  color: ${({ theme }) => theme.colors.textSecondary};
+  color: var(--color-text-secondary);
   text-decoration: none;
   font-weight: 500;
   font-size: 1rem;
@@ -217,8 +220,8 @@ export const MobileNavLink = styled(Link)`
   display: block;
 
   &:hover {
-    background: ${({ theme }) => theme.colors.gray100};
-    color: ${({ theme }) => theme.colors.accentBlue};
+    background: var(--color-surface-hover);
+    color: var(--color-blue-400);
   }
 `;
 
@@ -227,11 +230,12 @@ export const MobileMenuActions = styled.div`
   flex-direction: column;
   gap: 0.75rem;
   padding-top: 1rem;
-  border-top: 1px solid ${({ theme }) => theme.colors.gray200};
+  border-top: 1px solid var(--color-border);
+  transition: border-color 0.3s ease;
 `;
 
 export const MobileLoginButton = styled(Link)`
-  color: ${({ theme }) => theme.colors.textSecondary};
+  color: var(--color-text-secondary);
   text-decoration: none;
   font-weight: 500;
   font-size: 0.9375rem;
@@ -239,37 +243,38 @@ export const MobileLoginButton = styled(Link)`
   border-radius: ${({ theme }) => theme.borderRadius.md};
   text-align: center;
   background: transparent;
-  border: 1px solid ${({ theme }) => theme.colors.gray300};
+  border: 1px solid var(--color-border);
   transition: all 0.2s ease;
 
   &:hover {
-    background: ${({ theme }) => theme.colors.gray50};
-    border-color: ${({ theme }) => theme.colors.accentBlue};
-    color: ${({ theme }) => theme.colors.accentBlue};
+    background: var(--color-surface-hover);
+    border-color: var(--color-blue-400);
+    color: var(--color-blue-400);
   }
 `;
 
 export const MobileSignupButton = styled(Link)`
-  color: ${({ theme }) => theme.colors.accentBlue};
+  color: var(--color-blue-400);
   text-decoration: none;
   font-weight: 600;
   font-size: 0.9375rem;
   padding: 0.75rem 1.25rem;
   border-radius: ${({ theme }) => theme.borderRadius.md};
   text-align: center;
-  background: ${({ theme }) => theme.colors.white};
-  border: 1px solid ${({ theme }) => theme.colors.accentBlue};
+  background: var(--color-surface);
+  border: 1px solid var(--color-blue-400);
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+  box-shadow: var(--shadow-md);
 
   &:hover {
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
-    background: ${({ theme }) => theme.colors.white};
-    color: ${({ theme }) => theme.colors.accentBlue};
+    box-shadow: var(--shadow-lg);
+    background: var(--color-surface);
+    color: var(--color-blue-500);
+    border-color: var(--color-blue-500);
   }
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.accentBlue};
+    outline: 3px solid var(--color-blue-400);
     outline-offset: 2px;
   }
 `;

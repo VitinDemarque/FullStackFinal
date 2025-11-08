@@ -11,6 +11,8 @@ import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
 import ExerciseCard from "@components/ExerciseCard";
 import CreateGroupExerciseModal from "../../components/Groups/CreateGroupExerciseModal";
 import EditGroupExerciseModal, { UpdateGroupExerciseData } from "../../components/Groups/EditGroupExerciseModal";
+import { useGroupNotification } from "../../hooks/useGroupNotification";
+import GroupNotification from "../../components/Groups/GroupNotification";
 
 const Container = styled.div`
   max-width: 1200px;
@@ -218,6 +220,7 @@ const GroupExercisesPage: React.FC = () => {
   const [showCreateExerciseModal, setShowCreateExerciseModal] = useState(false);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [showEditExerciseModal, setShowEditExerciseModal] = useState(false);
+  const { notifications, removeNotification, showError, showSuccess } = useGroupNotification();
 
   const loadGroup = async () => {
     if (!id) return;
@@ -318,11 +321,11 @@ const GroupExercisesPage: React.FC = () => {
       const created = await exercisesService.create(exerciseWithGroup);
       // Publica automaticamente para aparecer na lista do grupo
       await exercisesService.publish(created.id);
-      alert('Desafio criado e publicado com sucesso!');
+      showSuccess('Desafio criado!', 'Desafio criado e publicado com sucesso!');
       setShowCreateExerciseModal(false);
       await loadGroupExercises();
     } catch (error: any) {
-      alert(error.message || 'Erro ao criar Desafio');
+      showError('Erro ao criar Desafio', error.message || 'Não foi possível criar o desafio. Tente novamente.');
     } finally {
       setActionLoading(false);
     }
@@ -352,12 +355,12 @@ const GroupExercisesPage: React.FC = () => {
       setActionLoading(true);
       
       await exercisesService.update(editingExercise.id, exerciseData);
-      alert('Desafio atualizado com sucesso!');
+      showSuccess('Desafio atualizado!', 'O desafio foi atualizado com sucesso.');
       setShowEditExerciseModal(false);
       setEditingExercise(null);
       loadGroupExercises(); // Recarrega a lista
     } catch (error: any) {
-      alert(error.message || 'Erro ao atualizar Desafio');
+      showError('Erro ao atualizar Desafio', error.message || 'Não foi possível atualizar o desafio. Tente novamente.');
     } finally {
       setActionLoading(false);
     }
@@ -368,10 +371,10 @@ const GroupExercisesPage: React.FC = () => {
 
     try {
       await exercisesService.delete(exerciseId);
-      alert('Exercício excluído com sucesso!');
+      showSuccess('Desafio excluído!', 'O desafio foi excluído com sucesso.');
       loadGroupExercises();
     } catch (error: any) {
-      alert(error.message || 'Erro ao excluir Desafio');
+      showError('Erro ao excluir Desafio', error.message || 'Não foi possível excluir o desafio. Tente novamente.');
     }
   };
 
@@ -444,6 +447,16 @@ const GroupExercisesPage: React.FC = () => {
   return (
     <AuthenticatedLayout>
       <Container>
+        {notifications.map((notification) => (
+          <GroupNotification
+            key={notification.id}
+            variant={notification.variant}
+            title={notification.title}
+            message={notification.message}
+            onClose={() => removeNotification(notification.id)}
+          />
+        ))}
+        
         <BackButton to={`/grupos/${id}`}>← Voltar para o Grupo</BackButton>
         
         <Header>

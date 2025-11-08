@@ -2,9 +2,16 @@ import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 
 export const FooterContainer = styled.footer`
-  background: ${({ theme }) => theme.colors.gray900};
-  color: ${({ theme }) => theme.colors.gray300};
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
   padding: 3rem 2rem;
+  border-top: 1px solid var(--color-border);
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+
+  .dark & {
+    background: #0f172a;
+    border-top-color: #1e293b;
+  }
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     padding: 2rem 1.5rem;
@@ -23,8 +30,9 @@ export const LogoSection = styled.div`
 export const LogoTitle = styled.h3`
   font-size: 2rem;
   font-weight: 700;
-  color: ${({ theme }) => theme.colors.white};
+  color: var(--color-text-primary);
   margin-bottom: 0.75rem;
+  transition: color 0.3s ease;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     font-size: 1.75rem;
@@ -32,12 +40,14 @@ export const LogoTitle = styled.h3`
 `;
 
 export const LogoBracket = styled.span`
-  color: ${({ theme }) => theme.colors.accentBlue};
+  color: var(--color-blue-400);
+  transition: color 0.3s ease;
 `;
 
 export const LogoDescription = styled.p`
-  color: ${({ theme }) => theme.colors.gray400};
+  color: var(--color-text-light);
   max-width: 28rem;
+  transition: color 0.3s ease;
 `;
 
 export const LinksGrid = styled.div`
@@ -59,8 +69,9 @@ export const LinkColumn = styled.div``;
 
 export const ColumnTitle = styled.h4`
   font-weight: 700;
-  color: ${({ theme }) => theme.colors.white};
+  color: var(--color-text-primary);
   margin-bottom: 0.75rem;
+  transition: color 0.3s ease;
 `;
 
 export const LinkList = styled.ul`
@@ -76,25 +87,27 @@ export const LinkList = styled.ul`
 export const LinkItem = styled.li``;
 
 export const FooterLink = styled(Link)`
-  color: ${({ theme }) => theme.colors.gray300};
+  color: var(--color-text-secondary);
   text-decoration: none;
   transition: color 0.2s ease;
 
   &:hover {
-    color: ${({ theme }) => theme.colors.accentBlue};
+    color: var(--color-blue-400);
   }
 `;
 
 export const EmailText = styled.span`
-  color: ${({ theme }) => theme.colors.gray400};
+  color: var(--color-text-light);
   padding-top: 0.5rem;
   display: block;
   font-size: 0.875rem;
+  transition: color 0.3s ease;
 `;
 
 export const Divider = styled.div`
-  border-top: 1px solid ${({ theme }) => theme.colors.gray800};
+  border-top: 1px solid var(--color-border);
   padding-top: 2rem;
+  transition: border-color 0.3s ease;
 `;
 
 export const SocialMediaContainer = styled.div`
@@ -109,18 +122,19 @@ interface SocialLinkProps {
 }
 
 export const SocialLink = styled.a<SocialLinkProps>`
-  color: ${({ theme }) => theme.colors.gray400};
+  color: var(--color-text-light);
   font-size: 1.5rem;
   transition: color 0.2s ease;
 
   &:hover {
-    color: ${({ $hoverColor, theme }) => $hoverColor || theme.colors.white};
+    color: ${({ $hoverColor }) => $hoverColor || 'var(--color-blue-400)'};
   }
 `;
 
 export const Copyright = styled.p`
   text-align: center;
   font-size: 0.875rem;
-  color: ${({ theme }) => theme.colors.gray500};
+  color: var(--color-text-light);
+  transition: color 0.3s ease;
 `;
 

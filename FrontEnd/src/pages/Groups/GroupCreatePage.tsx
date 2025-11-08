@@ -5,6 +5,8 @@ import { groupService } from '../../services/group.service';
 import { CreateGroupData, GroupVisibility } from '../../types/group.types';
 import styled from 'styled-components';
 import AuthenticatedLayout from '@components/Layout/AuthenticatedLayout';
+import { useGroupNotification } from '../../hooks/useGroupNotification';
+import GroupNotification from '../../components/Groups/GroupNotification';
 
 const Container = styled.div`
   max-width: 600px;
@@ -176,6 +178,7 @@ const GroupCreatePage: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
+  const { notifications, removeNotification, showError, showSuccess } = useGroupNotification();
 
   const [formData, setFormData] = useState<CreateGroupData>({
     name: '',
@@ -187,7 +190,7 @@ const GroupCreatePage: React.FC = () => {
     e.preventDefault();
     
     if (!isAuthenticated) {
-      alert('Você precisa estar logado para criar um grupo');
+      showError('Acesso negado', 'Você precisa estar logado para criar um grupo');
       return;
     }
 
@@ -201,10 +204,11 @@ const GroupCreatePage: React.FC = () => {
 
     try {
       const newGroup = await groupService.create(formData);
-      alert('Grupo criado com sucesso!');
+      showSuccess('Grupo criado!', 'O grupo foi criado com sucesso.');
       navigate(`/grupos/${newGroup.id}`);
     } catch (error: any) {
       setError(error.message || 'Erro ao criar grupo');
+      showError('Erro ao criar grupo', error.message || 'Não foi possível criar o grupo. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -242,6 +246,16 @@ const GroupCreatePage: React.FC = () => {
   return (
     <AuthenticatedLayout>
     <Container>
+      {notifications.map((notification) => (
+        <GroupNotification
+          key={notification.id}
+          variant={notification.variant}
+          title={notification.title}
+          message={notification.message}
+          onClose={() => removeNotification(notification.id)}
+        />
+      ))}
+      
       <Header>
         <Title>Criar Novo Grupo</Title>
         <Subtitle>Convide pessoas para estudar juntas</Subtitle>

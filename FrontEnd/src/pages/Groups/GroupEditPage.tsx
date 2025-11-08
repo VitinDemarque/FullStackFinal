@@ -6,6 +6,8 @@ import { Group, GroupVisibility } from '../../types/group.types';
 import styled from 'styled-components';
 import { ThemedButton, ThemedInput, ThemedTextarea, ThemedCard } from '../../styles/themed-components';
 import AuthenticatedLayout from '@components/Layout/AuthenticatedLayout';
+import { useGroupNotification } from '../../hooks/useGroupNotification';
+import GroupNotification from '../../components/Groups/GroupNotification';
 
 const Container = styled.div`
   max-width: 720px;
@@ -126,6 +128,7 @@ const GroupEditPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>('');
+  const { notifications, removeNotification, showError, showSuccess } = useGroupNotification();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -176,10 +179,11 @@ const GroupEditPage: React.FC = () => {
 
     try {
       const updatedGroup = await groupService.update(id, formData);
-      alert('Grupo atualizado com sucesso!');
+      showSuccess('Grupo atualizado!', 'As alterações foram salvas com sucesso.');
       navigate(`/grupos/${updatedGroup.id}`);
     } catch (error: any) {
       setError(error.message || 'Erro ao atualizar grupo');
+      showError('Erro ao atualizar grupo', error.message || 'Não foi possível atualizar o grupo. Tente novamente.');
     } finally {
       setSaving(false);
     }
@@ -241,6 +245,16 @@ const GroupEditPage: React.FC = () => {
   return (
     <AuthenticatedLayout>
     <Container>
+      {notifications.map((notification) => (
+        <GroupNotification
+          key={notification.id}
+          variant={notification.variant}
+          title={notification.title}
+          message={notification.message}
+          onClose={() => removeNotification(notification.id)}
+        />
+      ))}
+      
       <Header>
         <Title>Editar Grupo</Title>
         <Subtitle>Atualize as informações do grupo</Subtitle>
