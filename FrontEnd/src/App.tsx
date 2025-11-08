@@ -130,11 +130,12 @@ function App() {
                 </PrivateRoute>
               }
             />
+            {/* Rotas específicas devem vir ANTES da rota genérica /grupos/:id */}
             <Route
-              path="/grupos/:id"
+              path="/grupos/:id/entrar"
               element={
                 <PrivateRoute>
-                  <GroupDetailsPage />
+                  <GroupJoinByTokenPage />
                 </PrivateRoute>
               }
             />
@@ -154,7 +155,6 @@ function App() {
                 </PrivateRoute>
               }
             />
-            {/* NOVAS ROTAS ADICIONADAS */}
             <Route
               path="/grupos/:id/exercicios"
               element={
@@ -171,11 +171,12 @@ function App() {
                 </PrivateRoute>
               }
             />
+            {/* Rota genérica deve vir por último */}
             <Route
-              path="/grupos/:id/entrar"
+              path="/grupos/:id"
               element={
                 <PrivateRoute>
-                  <GroupJoinByTokenPage />
+                  <GroupDetailsPage />
                 </PrivateRoute>
               }
             />

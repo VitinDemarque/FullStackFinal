@@ -329,7 +329,7 @@ export async function generateInviteLink(requestUserId: string, groupId: string)
 
   // Se já houver token ativo, reutiliza
   if (g.tokenConvite && g.tokenConviteExpiraEm && g.tokenConviteExpiraEm > new Date()) {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     return { 
       link: `${frontendUrl}/grupos/${groupId}/entrar?token=${g.tokenConvite}`,
       expiresAt: g.tokenConviteExpiraEm
@@ -344,7 +344,7 @@ export async function generateInviteLink(requestUserId: string, groupId: string)
     $set: { tokenConvite: token, tokenConviteExpiraEm: expiresAt }
   });
 
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
   const link = `${frontendUrl}/grupos/${groupId}/entrar?token=${token}`;
   
   return { link, expiresAt };
