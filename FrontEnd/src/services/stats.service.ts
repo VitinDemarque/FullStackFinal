@@ -3,6 +3,7 @@ import { apiRequest } from './api'
 export interface DashboardStats {
   languages: number
   challenges: number
+  forumsCreated: number
   totalXp: number
   level: number
   weekProgress: number
@@ -25,6 +26,7 @@ export const statsService = {
       return {
         languages: response.languagesUsed || 0,
         challenges: response.publishedChallenges || 0,
+        forumsCreated: response.forumsCreated || 0,
         totalXp: response.totalXp || 0,
         level: response.level || 1,
         weekProgress: response.weekProgress || 0,
@@ -33,6 +35,7 @@ export const statsService = {
       return {
         languages: 0,
         challenges: 0,
+        forumsCreated: 0,
         totalXp: 0,
         level: 1,
         weekProgress: 0,

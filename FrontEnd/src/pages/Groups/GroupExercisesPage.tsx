@@ -240,32 +240,23 @@ const GroupExercisesPage: React.FC = () => {
   
     try {
       setExercisesLoading(true);
-      console.log('🔍 [GroupExercisesPage] Loading exercises for group:', id);
       
-      // SOLUÇÃO: Use o método listExercises que já existe no groupService
       const response = await groupService.listExercises(id, 1, 100);
-      
-      console.log('🔍 [GroupExercisesPage] Group exercises from API:', response.items);
-      console.log('🔍 [GroupExercisesPage] Total group exercises:', response.items.length);
       
       const groupExercises = response.items.map((exercise: any) => ({
         ...exercise,
         languageId: exercise.languageId || null
       }));
       
-      console.log('🔍 [GroupExercisesPage] Processed group exercises:', groupExercises);
-      
       setExercises(groupExercises);
     } catch (error: any) {
       console.error('Erro ao carregar exercícios do grupo:', error);
-      // Fallback: tenta buscar de outra forma se o endpoint não existir
       await loadGroupExercisesFallback();
     } finally {
       setExercisesLoading(false);
     }
   };
   
-  // Fallback caso o endpoint específico não exista
   const loadGroupExercisesFallback = async () => {
     try {
       const response = await exercisesService.getAll({
@@ -273,13 +264,10 @@ const GroupExercisesPage: React.FC = () => {
         limit: 100
       });
       
-      // Filtro mais robusto com tipagem correta
       const groupExercises = response.items.filter((exercise: any) => {
-        console.log(`🔍 Exercise ${exercise.id}: groupId=${exercise.groupId}, targetGroupId=${id}`);
         return exercise.groupId === id;
       });
       
-      console.log('🔍 [Fallback] Filtered exercises:', groupExercises);
       setExercises(groupExercises);
     } catch (error) {
       console.error('Erro no fallback:', error);
@@ -332,19 +320,11 @@ const GroupExercisesPage: React.FC = () => {
   };
 
   const handleEditExercise = (exerciseId: string) => {
-    console.log('🔍 [DEBUG] handleEditExercise called with id:', exerciseId);
-    console.log('🔍 [DEBUG] Current exercises:', exercises);
-    
     const exerciseToEdit = exercises.find(ex => ex.id === exerciseId);
-    console.log('🔍 [DEBUG] Found exercise:', exerciseToEdit);
     
     if (exerciseToEdit) {
       setEditingExercise(exerciseToEdit);
       setShowEditExerciseModal(true);
-      console.log('🔍 [DEBUG] Modal states updated - editingExercise:', exerciseToEdit);
-      console.log('🔍 [DEBUG] Modal states updated - showEditExerciseModal: true');
-    } else {
-      console.log('🔍 [DEBUG] Exercise not found in exercises array');
     }
   };
 

@@ -24,7 +24,9 @@ const slideOut = keyframes`
   }
 `;
 
-const NotificationContainer = styled.div<{ variant: 'success' | 'error' | 'info' | 'warning'; isVisible: boolean }>`
+const NotificationContainer = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['variant', 'isVisible'].includes(prop),
+})<{ variant: 'success' | 'error' | 'info' | 'warning'; isVisible: boolean }>`
   position: fixed;
   top: 20px;
   right: 20px;
@@ -71,7 +73,9 @@ const NotificationContainer = styled.div<{ variant: 'success' | 'error' | 'info'
   }
 `;
 
-const IconContainer = styled.div<{ variant: 'success' | 'error' | 'info' | 'warning' }>`
+const IconContainer = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'variant',
+})<{ variant: 'success' | 'error' | 'info' | 'warning' }>`
   flex-shrink: 0;
   font-size: 1.5rem;
   color: ${props => {
@@ -94,7 +98,9 @@ const Content = styled.div`
   min-width: 0;
 `;
 
-const Title = styled.h4<{ variant: 'success' | 'error' | 'info' | 'warning' }>`
+const Title = styled.h4.withConfig({
+  shouldForwardProp: (prop) => prop !== 'variant',
+})<{ variant: 'success' | 'error' | 'info' | 'warning' }>`
   margin: 0 0 4px 0;
   font-size: 1rem;
   font-weight: 600;
@@ -112,7 +118,9 @@ const Title = styled.h4<{ variant: 'success' | 'error' | 'info' | 'warning' }>`
   }};
 `;
 
-const Message = styled.p<{ variant: 'success' | 'error' | 'info' | 'warning' }>`
+const Message = styled.p.withConfig({
+  shouldForwardProp: (prop) => prop !== 'variant',
+})<{ variant: 'success' | 'error' | 'info' | 'warning' }>`
   margin: 0;
   font-size: 0.875rem;
   line-height: 1.5;
@@ -130,7 +138,9 @@ const Message = styled.p<{ variant: 'success' | 'error' | 'info' | 'warning' }>`
   }};
 `;
 
-const CloseButton = styled.button<{ variant: 'success' | 'error' | 'info' | 'warning' }>`
+const CloseButton = styled.button.withConfig({
+  shouldForwardProp: (prop) => prop !== 'variant',
+})<{ variant: 'success' | 'error' | 'info' | 'warning' }>`
   background: none;
   border: none;
   cursor: pointer;

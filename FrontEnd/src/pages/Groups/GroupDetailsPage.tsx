@@ -82,7 +82,9 @@ const ActionsSection = styled.div`
   align-items: flex-start;
 `;
 
-const Button = styled.button<{ variant?: "secondary" | "danger" }>`
+const Button = styled.button.withConfig({
+  shouldForwardProp: (prop) => prop !== 'variant',
+})<{ variant?: "secondary" | "danger" }>`
   padding: 0.75rem 1.25rem;
   border-radius: 6px;
   font-size: 0.875rem;
@@ -439,26 +441,17 @@ const GroupDetailsPage: React.FC = () => {
   
     try {
       setExercisesLoading(true);
-      console.log('🔍 [FRONTEND] Loading group exercises for groupId:', id);
       
-      // ⭐ USE O SERVIÇO DE GRUPO QUE DEVE FUNCIONAR
       const response = await groupService.listExercises(id, 1, 50);
-      
-      console.log('🔍 [FRONTEND] Group exercises response:', response);
-      console.log('🔍 [FRONTEND] Response items:', response.items);
-      console.log('🔍 [FRONTEND] Response total:', response.total);
       
       const groupExercises = response.items.map((exercise: any) => ({
         ...exercise,
         languageId: exercise.languageId || null
       }));
       
-      console.log('🔍 [FRONTEND] Processed group exercises:', groupExercises);
       setExercises(groupExercises);
       
     } catch (error: any) {
-      console.error('❌ [FRONTEND] Erro ao carregar exercícios:', error);
-      console.error('❌ [FRONTEND] Error message:', error.message);
     } finally {
       setExercisesLoading(false);
     }
@@ -587,8 +580,6 @@ const GroupDetailsPage: React.FC = () => {
   };
 
   const handleEditExercise = (exerciseId: string) => {
-    console.log('🔍 [GroupDetailsPage] Edit clicked for exercise:', exerciseId);
-    
     const exerciseToEdit = exercises.find(ex => ex.id === exerciseId);
     if (exerciseToEdit) {
       setEditingExercise(exerciseToEdit);

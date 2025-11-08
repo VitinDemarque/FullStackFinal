@@ -3,6 +3,7 @@ import ExerciseStat, { IExerciseStat } from '../models/ExerciseStat.model';
 import UserStat, { IUserStat } from '../models/UserStat.model';
 import Submission from '../models/Submission.model'; // (mantido se usar em futuras agregações)
 import Exercise, { IExercise } from '../models/Exercise.model';
+import Forum from '../models/forum.model';
 
 export interface ListExerciseStatsInput {
   exerciseId?: string;
@@ -64,12 +65,19 @@ export async function getUserStats(userId: string) {
     status: 'PUBLISHED'
   });
 
+  // Contar fóruns criados pelo usuário
+  const forumsCreated = await Forum.countDocuments({
+    donoUsuarioId: new Types.ObjectId(userId),
+    status: { $ne: 'EXCLUIDO' }
+  });
+
   return {
     userId,
     exercisesCreatedCount: stats?.exercisesCreatedCount ?? 0,
     exercisesSolvedCount: stats?.exercisesSolvedCount ?? 0,
     languagesUsed: languagesUsed.length,
     publishedChallenges,
+    forumsCreated,
     lastUpdatedAt: stats?.lastUpdatedAt ?? null
   };
 }

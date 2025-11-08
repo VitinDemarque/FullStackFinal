@@ -229,7 +229,7 @@ const LineNumbers = styled.div<{ $isDark: boolean }>`
   top: 0;
   padding: 1rem 0;
   background: ${({ $isDark }) => ($isDark ? "#1e293b" : "#252526")};
-  color: ${({ $isDark }) => ($isDark ? "#64748b" : "#858585")};
+  color: ${({ $isDark }) => ($isDark ? "#94a3b8" : "#858585")};
   font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
   font-size: 14px;
   line-height: 1.6;
@@ -238,6 +238,7 @@ const LineNumbers = styled.div<{ $isDark: boolean }>`
   border-right: ${({ $isDark }) =>
     $isDark ? "1px solid #0c1220" : "1px solid #1e1e1e"};
   min-width: 50px;
+  z-index: 1;
 `;
 
 const LineNumber = styled.div`

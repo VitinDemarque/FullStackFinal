@@ -131,7 +131,9 @@ const TabsContainer = styled.div`
   padding-bottom: 0;
 `;
 
-const TabButton = styled.button<{ active: boolean }>`
+const TabButton = styled.button.withConfig({
+  shouldForwardProp: (prop) => prop !== 'active',
+})<{ active: boolean }>`
   background: none;
   border: none;
   padding: 12px 24px;

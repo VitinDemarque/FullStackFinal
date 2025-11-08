@@ -266,9 +266,6 @@ export default function EditGroupExerciseModal({
 
   useEffect(() => {
     if (exercise) {
-      console.log('🔍 [EditModal] Exercise data loaded:', exercise);
-      console.log('🔍 [EditModal] Exercise description:', exercise.description);
-      
       setFormData({
         title: exercise.title || '',
         description: exercise.description || '',
@@ -279,14 +276,6 @@ export default function EditGroupExerciseModal({
         status: exercise.status || 'DRAFT',
         groupId: groupId
       });
-
-      console.log('🔍 [EditModal] Form data set:', {
-        title: exercise.title || '',
-        description: exercise.description || '',
-        difficulty: exercise.difficulty || 1,
-        baseXp: exercise.baseXp || 100,
-        codeTemplate: exercise.codeTemplate || '// start coding...'
-      });
     }
   }, [exercise, groupId]);
 
@@ -294,8 +283,6 @@ export default function EditGroupExerciseModal({
     e.preventDefault();
     if (!formData.title.trim()) return;
 
-    console.log('🔍 [EditModal] Submitting form data:', formData);
-    
     setIsSubmitting(true);
     try {
       const submitData = {
@@ -303,7 +290,6 @@ export default function EditGroupExerciseModal({
         description: formData.description || ''
       };
       
-      console.log('🔍 [EditModal] Final data to submit:', submitData);
       await onSubmit(submitData);
       handleClose();
     } catch (error) {
@@ -330,15 +316,11 @@ export default function EditGroupExerciseModal({
   };
 
   const handleInputChange = (field: keyof UpdateGroupExerciseData, value: string | number | boolean) => {
-    console.log(`🔍 [EditModal] Field ${field} changed to:`, value);
-    
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
   };
-
-  console.log('🔍 [EditModal] Current formData:', formData);
 
   if (!isOpen || !exercise) return null;
 

@@ -207,6 +207,7 @@ export async function joinByToken(req: AuthenticatedRequest, res: Response, next
       throw new BadRequestError('Invalid group ID format');
     }
     const { token } = req.body ?? {};
+    
     if (!token) {
       throw new BadRequestError('Token is required');
     }

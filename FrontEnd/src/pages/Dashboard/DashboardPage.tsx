@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@contexts/AuthContext";
 import { useTheme } from "@contexts/ThemeContext";
-import { FaCode, FaTrophy, FaFire, FaStar, FaPlus } from "react-icons/fa";
+import { FaCode, FaTrophy, FaFire, FaStar, FaPlus, FaUsers, FaComments } from "react-icons/fa";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
 import ChallengeModal from "@components/ChallengeModal";
 import { exercisesService, statsService } from "@services/index";
@@ -59,6 +59,7 @@ export default function DashboardPage() {
   const stats = data?.stats || {
     languages: 0,
     challenges: 0,
+    forumsCreated: 0,
     weekProgress: 0,
   };
   const publishedExercises = data?.publishedExercises || [];
@@ -139,6 +140,40 @@ export default function DashboardPage() {
                 <S.ProgressInfo>
                   <h3>{loading ? "..." : stats.challenges}</h3>
                   <p>Desafios Publicados</p>
+                </S.ProgressInfo>
+              </S.ProgressCard>
+            </S.ProgressGrid>
+          </S.Section>
+
+          <S.Section>
+            <S.SectionTitle $isDark={isDark}>
+              <FaUsers />
+              Comunidade
+            </S.SectionTitle>
+            <S.SectionDescription $isDark={isDark}>
+              Participe de grupos de estudo e fóruns de discussão
+            </S.SectionDescription>
+            <S.ProgressGrid>
+              <S.ProgressCard 
+                $variant="green" 
+                onClick={() => navigate("/grupos")}
+                style={{ cursor: 'pointer' }}
+              >
+                <FaUsers />
+                <S.ProgressInfo>
+                  <h3>Grupos</h3>
+                  <p>Estude em grupo e compartilhe conhecimento</p>
+                </S.ProgressInfo>
+              </S.ProgressCard>
+              <S.ProgressCard 
+                $variant="purple" 
+                onClick={() => navigate("/foruns")}
+                style={{ cursor: 'pointer' }}
+              >
+                <FaComments />
+                <S.ProgressInfo>
+                  <h3>{loading ? "..." : stats.forumsCreated}</h3>
+                  <p>Fóruns Criados</p>
                 </S.ProgressInfo>
               </S.ProgressCard>
             </S.ProgressGrid>

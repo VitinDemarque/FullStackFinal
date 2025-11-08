@@ -275,22 +275,15 @@ export async function listExercisesForGroup(
   groupId: string, 
   { skip, limit }: Paging
 ) {
-  console.log('🔍 [BACKEND] listExercisesForGroup called');
-  console.log('🔍 [BACKEND] requestUserId:', requestUserId);
-  console.log('🔍 [BACKEND] groupId:', groupId);
-  
   // 1. Validar se o usuário é membro
   const membership = await GroupMember.findOne({
       groupId: new Types.ObjectId(groupId),
       userId: new Types.ObjectId(requestUserId)
   }).lean();
 
-  console.log('🔍 [BACKEND] Membership found:', membership);
-
   if (!membership) {
       // Verificar se o grupo existe antes de dar 403 (para não vazar informação)
       const group = await Group.findById(groupId).lean<IGroup | null>();
-      console.log('🔍 [BACKEND] Group found:', group);
       if (!group) throw new NotFoundError('Group not found');
       
       throw new ForbiddenError('You must be a member of this group to view its exercises');
@@ -301,8 +294,6 @@ export async function listExercisesForGroup(
       groupId: new Types.ObjectId(groupId)
   };
 
-  console.log('🔍 [BACKEND] MongoDB query where:', where);
-
   const [items, total] = await Promise.all([
       Exercise.find(where)
           .sort({ createdAt: -1 })
@@ -311,9 +302,6 @@ export async function listExercisesForGroup(
           .lean<IExercise[]>(),
       Exercise.countDocuments(where)
   ]);
-
-  console.log('🔍 [BACKEND] Found exercises:', items);
-  console.log('🔍 [BACKEND] Total count:', total);
 
   return {
       items: items.map(sanitizeExerciseLite),
