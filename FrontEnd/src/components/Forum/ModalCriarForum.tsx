@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import styled from 'styled-components'
 import { forunsService } from '@/services/forum.services'
+import { exercisesService } from '@/services'
 
 interface ModalCriarForumProps {
     aberto: boolean
@@ -88,6 +89,13 @@ const Label = styled.label`
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.medium};
   color: var(--color-text-secondary);
+`
+
+const HelpText = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  color: var(--color-text-secondary);
+  margin-top: 0.25rem;
+  display: block;
 `
 
 const Input = styled.input`
@@ -240,11 +248,12 @@ export default function ModalCriarForum({ aberto, onFechar, onCriado }: ModalCri
     const [nome, setNome] = useState('')
     const [assunto, setAssunto] = useState('')
     const [descricao, setDescricao] = useState('')
-    const [palavrasChave, setPalavrasChave] = useState('')
     const [privacidade, setPrivacidade] = useState<'PUBLICO' | 'PRIVADO'>('PUBLICO')
+    const [exerciseCode, setExerciseCode] = useState('')
     const [loading, setLoading] = useState(false)
     const [erro, setErro] = useState<string | null>(null)
     const [sucesso, setSucesso] = useState<string | null>(null)
+    const [lockedByExercise, setLockedByExercise] = useState(false)
 
     if (!aberto) return null
 
@@ -252,10 +261,11 @@ export default function ModalCriarForum({ aberto, onFechar, onCriado }: ModalCri
         setNome('')
         setAssunto('')
         setDescricao('')
-        setPalavrasChave('')
         setPrivacidade('PUBLICO')
+        setExerciseCode('')
         setErro(null)
         setSucesso(null)
+        setLockedByExercise(false)
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -266,12 +276,16 @@ export default function ModalCriarForum({ aberto, onFechar, onCriado }: ModalCri
         try {
             setLoading(true)
 
+            if (!exerciseCode) {
+                throw new Error('Informe o Código do Desafio (ex: #ASFS0001).')
+            }
+
             const payload = {
                 nome,
                 assunto,
                 descricao,
-                palavrasChave: palavrasChave.split(',').map(p => p.trim()).filter(Boolean),
                 statusPrivacidade: privacidade,
+                exerciseCode,
             }
 
             await forunsService.criar(payload)
@@ -313,6 +327,41 @@ export default function ModalCriarForum({ aberto, onFechar, onCriado }: ModalCri
 
                 <Form onSubmit={handleSubmit}>
                     <FormGroup>
+                        <Label>Código do Desafio *</Label>
+                        <Input
+                            type="text"
+                            value={exerciseCode}
+                            onChange={async (e) => {
+                                const value = e.target.value
+                                setExerciseCode(value)
+                                setErro(null)
+                                setSucesso(null)
+                                setLockedByExercise(false)
+                                if (value && value.trim().length >= 3) {
+                                    try {
+                                        const ex = await exercisesService.getByCode(value.trim())
+                                        if (ex) {
+                                            setAssunto(ex.subject || '')
+                                            setNome(ex.title || '')
+                                            setDescricao(ex.description || '')
+                                            setLockedByExercise(true)
+                                        }
+                                    } catch (err: any) {
+                                        // Mantém campos editáveis e mostra erro amigável
+                                        setLockedByExercise(false)
+                                        if (value.trim().length > 0) {
+                                            setErro(err?.message || 'Desafio não encontrado pelo código informado.')
+                                        }
+                                    }
+                                }
+                            }}
+                            placeholder="Digite o código do desafio (ex: #ASFS0001)"
+                            required
+                            disabled={loading}
+                        />
+                    </FormGroup>
+
+                    <FormGroup>
                         <Label>Nome do Fórum *</Label>
                         <Input
                             type="text"
@@ -320,7 +369,7 @@ export default function ModalCriarForum({ aberto, onFechar, onCriado }: ModalCri
                             onChange={(e) => setNome(e.target.value)}
                             placeholder="Digite o nome do fórum"
                             required
-                            disabled={loading}
+                            disabled={loading || lockedByExercise}
                         />
                     </FormGroup>
 
@@ -332,7 +381,7 @@ export default function ModalCriarForum({ aberto, onFechar, onCriado }: ModalCri
                             onChange={(e) => setAssunto(e.target.value)}
                             placeholder="Ex: Desenvolvimento Web, Backend, Frontend..."
                             required
-                            disabled={loading}
+                            disabled={loading || lockedByExercise}
                         />
                     </FormGroup>
 
@@ -343,19 +392,13 @@ export default function ModalCriarForum({ aberto, onFechar, onCriado }: ModalCri
                             onChange={(e) => setDescricao(e.target.value)}
                             placeholder="Descreva o propósito e tema deste fórum..."
                             rows={4}
-                            disabled={loading}
+                            disabled={loading || lockedByExercise}
                         />
-                    </FormGroup>
-
-                    <FormGroup>
-                        <Label>Palavras-chave</Label>
-                        <Input
-                            type="text"
-                            placeholder="Ex: react, backend, javascript (separadas por vírgula)"
-                            value={palavrasChave}
-                            onChange={(e) => setPalavrasChave(e.target.value)}
-                            disabled={loading}
-                        />
+                        {lockedByExercise && (
+                          <HelpText>
+                            Descrição sincronizada com o Desafio pelo código informado.
+                          </HelpText>
+                        )}
                     </FormGroup>
 
                     <FormGroup>

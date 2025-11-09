@@ -919,6 +919,7 @@ const GroupDetailsPage: React.FC = () => {
                   <ExerciseCard
                     key={exercise.id}
                     id={exercise.id}
+                    publicCode={exercise.publicCode}
                     title={exercise.title}
                     description={exercise.description || ''}
                     icon="💻"

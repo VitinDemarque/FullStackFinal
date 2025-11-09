@@ -34,6 +34,7 @@ export interface IForum {
   palavrasChave: string[]
   assunto: string
   descricao: string
+  exerciseId?: Types.ObjectId
   statusPrivacidade: PrivacidadeForum
   status: StatusForum
   donoUsuarioId: Types.ObjectId
@@ -95,6 +96,8 @@ const ForumSchema = new Schema<IForum>(
     palavrasChave: [{ type: String, trim: true, index: true }],
     assunto: { type: String, required: true, trim: true },
     descricao: { type: String, default: '', trim: true },
+    // Um fórum por desafio: vínculo com Exercise
+    exerciseId: { type: Schema.Types.ObjectId, ref: 'Exercise', index: true, unique: true, sparse: true },
     statusPrivacidade: { type: String, enum: ['PUBLICO', 'PRIVADO'], default: 'PUBLICO' },
     status: {
       type: String,

@@ -309,6 +309,7 @@ export const RecommendationsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
+  align-items: stretch;
 
   @media (max-width: ${theme.breakpoints.tablet}) {
     grid-template-columns: 1fr;
@@ -323,6 +324,9 @@ export const ExerciseCard = styled.div<{ $isDark?: boolean }>`
     $isDark ? '0 4px 15px rgba(0, 0, 0, 0.5)' : '0 4px 15px rgba(0, 0, 0, 0.08)'};
   transition: ${theme.transitions.all};
   border: 1px solid ${({ $isDark }) => ($isDark ? '#334155' : theme.colors.gray[200])};
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 
   &:hover {
     transform: translateY(-5px);
@@ -398,6 +402,9 @@ export const XpBadge = styled.div`
 
 export const CardBody = styled.div`
   padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 `
 
 export const CardTitle = styled.h3<{ $isDark?: boolean }>`
@@ -437,6 +444,7 @@ export const CardFooter = styled.div`
   display: flex;
   gap: 0.75rem;
   padding: 0 1.5rem 1.5rem;
+  margin-top: auto;
 `
 
 export const StartButton = styled.button`

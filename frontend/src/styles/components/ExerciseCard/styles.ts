@@ -125,6 +125,33 @@ export const ActionsContainer = styled.div`
   z-index: 2;
 `;
 
+export const IdBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: ${({ theme }) => theme.colors.gray[100]};
+  color: ${({ theme }) => theme.colors.gray[700]};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+`;
+
+export const CopyButton = styled.button`
+  background: ${({ theme }) => theme.colors.white};
+  color: ${({ theme }) => theme.colors.gray[700]};
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  padding: 0.15rem 0.4rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: ${({ theme }) => theme.transitions.base};
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.gray[50]};
+  }
+`;
+
 export const InactiveOverlay = styled.div`
   position: absolute;
   inset: 0;

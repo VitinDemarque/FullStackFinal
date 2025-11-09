@@ -7,12 +7,14 @@ export interface IExercise {
   authorUserId: Types.ObjectId;
   languageId?: Types.ObjectId | null;
   title: string;
+  subject?: string;
   description?: string;
   groupId?: Types.ObjectId | null;
   difficulty: number;     // 1..5
   baseXp: number;         // base para cálculo de XP
   isPublic: boolean;
   codeTemplate: string;   // código pré-pronto
+  publicCode?: string;    // código público amigável (ex.: #ASFS0001)
   status: ExerciseStatus;
   createdAt?: Date;
   updatedAt?: Date;
@@ -23,12 +25,14 @@ const ExerciseSchema = new Schema<IExercise>(
     authorUserId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     languageId: { type: Schema.Types.ObjectId, ref: 'Language', default: null, index: true },
     title: { type: String, required: true, trim: true },
+    subject: { type: String, default: '' },
     description: { type: String, default: '' },
     difficulty: { type: Number, default: 1, min: 1, max: 5, index: true },
     groupId: { type: Schema.Types.ObjectId, ref: 'Group', default: null, index: true },
     baseXp: { type: Number, default: 100, min: 0 },
     isPublic: { type: Boolean, default: true, index: true },
     codeTemplate: { type: String, required: true, default: '// start coding...' },
+    publicCode: { type: String, unique: true, index: true },
     status: { type: String, enum: ['DRAFT', 'PUBLISHED', 'ARCHIVED'], default: 'DRAFT', index: true }
   },
   { timestamps: true }

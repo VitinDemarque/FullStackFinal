@@ -13,6 +13,7 @@ export interface Exercise {
   isPublic: boolean;
   codeTemplate: string;
   status: ExerciseStatus;
+  publicCode?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -56,4 +57,4 @@ export interface PaginatedResponse<T> {
   limit: number;
   hasNext: boolean;
   hasPrev: boolean;
-} 
+}

@@ -1,6 +1,8 @@
 import { Types } from 'mongoose';
 import Forum, { IForum } from '../models/Forum.model';
 import ForumTopic, { IForumTopic } from '../models/ForumTopic.model'
+import ForumComment from '../models/ForumComment.model'
+import Exercise from '../models/Exercise.model';
 import { NotFoundError, BadRequestError } from '../utils/httpErrors';
 import { parsePagination, toMongoPagination } from '../utils/pagination';
 
@@ -94,6 +96,13 @@ export async function obterPorId(id: string) {
   return forum;
 }
 
+// Obter um fórum pelo ID do exercício (challenge)
+export async function obterPorExerciseId(exerciseId: string) {
+  const forum = await Forum.findOne({ exerciseId: new Types.ObjectId(exerciseId) }).lean<IForum | null>();
+  if (!forum) throw new NotFoundError('Fórum para este desafio não foi encontrado');
+  return forum;
+}
+
 // Listar fóruns em que o usuário participa
 export async function listarMeus(userId: string) {
   const objectId = new Types.ObjectId(userId);
@@ -146,6 +155,27 @@ export async function participar(forumId: string, usuarioId: string) {
 // Criar um novo fórum
 export async function criar(usuarioId: string, payload: Partial<IForum>) {
   if (!payload.nome || !payload.assunto) throw new BadRequestError('Nome e assunto são obrigatórios');
+  // Permitir passar exerciseCode (código público) como alternativa ao exerciseId
+  if (!payload.exerciseId && (payload as any).exerciseCode) {
+    const byCode = await Exercise.findOne({ publicCode: (payload as any).exerciseCode }).lean();
+    if (!byCode) throw new BadRequestError('Desafio não encontrado pelo código público.');
+    (payload as any).exerciseId = byCode._id as any;
+  }
+
+  if (!payload.exerciseId) throw new BadRequestError('O ID do desafio (exerciseId) é obrigatório.');
+
+  // Validar existência do exercício
+  const exercise = await Exercise.findById(payload.exerciseId).lean();
+  if (!exercise) throw new BadRequestError('Desafio não encontrado.');
+
+  // Apenas permitir fóruns para desafios públicos e publicados, quando não é do próprio usuário
+  if (!(exercise.isPublic && exercise.status === 'PUBLISHED')) {
+    throw new BadRequestError('Só é possível criar fórum para desafios públicos e publicados');
+  }
+
+  // Garantir fórum único por exercício
+  const jaExiste = await Forum.findOne({ exerciseId: exercise._id }).lean();
+  if (jaExiste) throw new BadRequestError('Já existe um fórum para este desafio.');
 
   const novoForum = await Forum.create({
     ...payload,
@@ -237,6 +267,10 @@ export async function excluir(id: string, usuarioId: string) {
   const todosConcordaram = totalVotos >= totalVotantes;
 
   if (todosConcordaram) {
+    // Exclusão em cascata: remover tópicos e comentários associados ao fórum
+    await ForumComment.deleteMany({ forumId: new Types.ObjectId(id) })
+    await ForumTopic.deleteMany({ forumId: new Types.ObjectId(id) })
+
     const deletado = await Forum.findByIdAndDelete(id);
     if (!deletado) throw new NotFoundError('Fórum não encontrado');
     return { mensagem: 'Fórum excluído com sucesso.', forum: deletado };

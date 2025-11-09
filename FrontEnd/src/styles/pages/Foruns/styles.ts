@@ -119,6 +119,24 @@ export const CardHeader = styled.div`
   gap: 1rem;
 `
 
+export const CardTopGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr; /* padrão seguro: uma coluna para evitar quebra em cards estreitos */
+  gap: 0.75rem 1rem;
+  align-items: start;
+  margin-bottom: 1rem;
+
+  /* Em telas maiores (laptop+), divide em duas metades */
+  @media (min-width: ${({ theme }) => theme.breakpoints.laptop}) {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* Evita overflow dos filhos dentro das colunas */
+  > div {
+    min-width: 0;
+  }
+`
+
 export const CardTitle = styled.h2`
   font-size: ${({ theme }) => theme.fontSizes.xl};
   font-weight: ${({ theme }) => theme.fontWeights.bold};
@@ -126,6 +144,10 @@ export const CardTitle = styled.h2`
   margin: 0;
   flex: 1;
   line-height: 1.4;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 `
 
 export const BadgeContainer = styled.div`
@@ -142,8 +164,8 @@ export const Badge = styled.span<{ variant?: 'public' | 'private' }>`
   font-weight: ${({ theme }) => theme.fontWeights.medium};
   display: inline-block;
   white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  overflow-wrap: break-word;
+  word-break: normal;
   max-width: 100%;
 
   ${props => {
@@ -165,10 +187,9 @@ export const CardDescription = styled.p`
   margin: 0 0 1rem 0;
   line-height: 1.6;
   font-size: ${({ theme }) => theme.fontSizes.base};
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 `
 
 export const CardMeta = styled.div`
@@ -330,6 +351,10 @@ export const DetailTitle = styled.h1`
   font-weight: ${({ theme }) => theme.fontWeights.bold};
   color: var(--color-text-primary);
   margin: 0 0 1rem 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 `
 
 export const DetailSection = styled.div`
@@ -356,6 +381,10 @@ export const DetailText = styled.p`
   line-height: 1.6;
   margin: 0.5rem 0;
   font-size: ${({ theme }) => theme.fontSizes.base};
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 `
 
 export const DetailLabel = styled.span`
@@ -493,7 +522,9 @@ export const TopicList = styled.ul`
   gap: 0.75rem;
 `
 
-export const TopicCard = styled.li`
+export const TopicCard = styled.li.withConfig({
+  shouldForwardProp: (prop) => prop !== 'menuAberto'
+})<{ menuAberto?: boolean }>`
   padding: 1rem;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -503,6 +534,9 @@ export const TopicCard = styled.li`
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
+  position: relative;
+  z-index: ${(props) => (props.menuAberto ? 100 : 'auto')};
+  overflow: visible;
 
   &:hover {
     background: var(--color-surface-hover);
@@ -520,6 +554,10 @@ export const TopicTitle = styled.h3`
   font-size: ${({ theme }) => theme.fontSizes.lg};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
   color: var(--color-text-primary);
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 `
 
 export const TopicContent = styled.p`
@@ -530,12 +568,60 @@ export const TopicContent = styled.p`
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 `
 
 export const TopicActions = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  position: relative;
+  z-index: inherit;
+`
+
+export const OptionsMenu = styled.div`
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  box-shadow: var(--shadow-lg);
+  padding: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  z-index: 1000;
+`
+
+export const OptionsItem = styled.button`
+  background: transparent;
+  border: none;
+  color: var(--color-text-primary);
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  font-size: ${({ theme }) => theme.fontSizes.base};
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &:hover {
+    background: var(--color-surface-hover);
+  }
+
+  &.danger {
+    color: var(--color-danger-text);
+  }
+`
+
+export const OptionsDivider = styled.div`
+  height: 1px;
+  background: var(--color-border);
+  margin: 0.25rem 0;
 `
 
 // ------- Topic details page: comments UI -------
@@ -609,4 +695,39 @@ export const FormRow = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+`
+
+export const TopicsSearchBar = styled.div`
+  display: flex;
+  align-items: center;
+  background: var(--color-surface);
+  padding: 0.5rem 0.75rem;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  border: 1px solid var(--color-border);
+  transition: all 0.3s ease;
+  width: 320px;
+  max-width: 100%;
+
+  &:focus-within {
+    border-color: var(--color-blue-400);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
+
+  input {
+    border: none;
+    background: transparent;
+    color: var(--color-text-primary);
+    outline: none;
+    flex: 1;
+    font-size: ${({ theme }) => theme.fontSizes.base};
+
+    &::placeholder {
+      color: var(--color-text-light);
+    }
+  }
+
+  svg {
+    color: var(--color-text-light);
+    margin-right: 0.5rem;
+  }
 `

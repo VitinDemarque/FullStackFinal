@@ -73,8 +73,10 @@ export async function list(input: Partial<ListExercisesInput>) {
     Exercise.countDocuments(where)
   ]);
 
+  const itemsSanitized = await Promise.all(items.map(ensurePublicCodeAndSanitize));
+
   return {
-    items: items.map(sanitize),
+    items: itemsSanitized,
     total
   };
 }
@@ -87,8 +89,10 @@ export async function listByAuthor(authorId: string, skip = 0, limit = 20) {
     Exercise.countDocuments(where)
   ]);
 
+  const itemsSanitized = await Promise.all(items.map(ensurePublicCodeAndSanitize));
+
   return {
-    items: items.map(sanitize),
+    items: itemsSanitized,
     total
   };
 }
@@ -98,7 +102,7 @@ export async function getById(id: string, requestUserId?: string) {
   if (!ex) throw new NotFoundError('Exercise not found');
 
   if (ex.isPublic && ex.status === 'PUBLISHED') {
-    return sanitize(ex);
+    return ensurePublicCodeAndSanitize(ex);
   }
 
   if (requestUserId) {
@@ -113,7 +117,7 @@ export async function getById(id: string, requestUserId?: string) {
       }).lean();
 
       if (isMember && ex.status === 'PUBLISHED') {
-          return sanitize(ex);
+          return ensurePublicCodeAndSanitize(ex);
       }
     }
   }
@@ -154,11 +158,13 @@ export async function create(userId: string, payload: Partial<any>) {
     languageId: payload.languageId ? new Types.ObjectId(payload.languageId) : undefined,
     groupId: exerciseGroupId,
     title: payload.title ?? 'Untitled',
+    subject: payload.subject ?? '',
     description: payload.description ?? '',
     difficulty: Number(payload.difficulty ?? 1),
     baseXp: Number(payload.baseXp ?? 100),
     isPublic: exerciseIsPublic,
     codeTemplate: String(payload.codeTemplate ?? '// start coding...'),
+    publicCode: await generatePublicCode(),
     status: payload.status ?? (exerciseIsPublic ? 'PUBLISHED' : 'DRAFT')
   });
 
@@ -183,6 +189,7 @@ export async function update(userId: string, id: string, payload: Partial<any>) 
   }
 
   if (payload.title !== undefined) ex.title = payload.title;
+  if (payload.subject !== undefined) ex.subject = payload.subject;
   if (payload.description !== undefined) ex.description = payload.description;
   if (payload.difficulty !== undefined) ex.difficulty = Number(payload.difficulty);
   if (payload.baseXp !== undefined) ex.baseXp = Number(payload.baseXp);
@@ -252,8 +259,10 @@ export async function listCommunity(input: Partial<ListCommunityExercisesInput>)
     Exercise.countDocuments(where)
   ]);
 
+  const itemsSanitized = await Promise.all(items.map(ensurePublicCodeAndSanitize));
+
   return {
-    items: items.map(sanitize),
+    items: itemsSanitized,
     total
   };
 }
@@ -265,13 +274,65 @@ function sanitize(e: any) {
     languageId: e.languageId ? String(e.languageId) : null,
     groupId: e.groupId ? String(e.groupId) : null,
     title: e.title,
+    subject: e.subject,
     description: e.description,
     difficulty: e.difficulty,
     baseXp: e.baseXp,
     isPublic: !!e.isPublic,
     codeTemplate: e.codeTemplate,
+    publicCode: e.publicCode || null,
     status: e.status,
     createdAt: e.createdAt,
     updatedAt: e.updatedAt
   };
+}
+
+async function generatePublicCode(): Promise<string> {
+  const letters = () => Array.from({ length: 4 }, () => String.fromCharCode(65 + Math.floor(Math.random() * 26))).join('');
+  const numbers = () => String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+  for (let i = 0; i < 10; i++) {
+    const code = `#${letters()}${numbers()}`;
+    const exists = await Exercise.findOne({ publicCode: code }).lean();
+    if (!exists) return code;
+  }
+  // Fallback with timestamp to avoid rare collisions
+  const fallback = `#EX${Date.now().toString().slice(-8)}`;
+  return fallback;
+}
+
+export async function getByPublicCode(publicCode: string, requestUserId?: string) {
+  const ex = (await Exercise.findOne({ publicCode }).lean()) as any;
+  if (!ex) throw new NotFoundError('Exercise not found');
+
+  if (ex.isPublic && ex.status === 'PUBLISHED') {
+    return sanitize(ex);
+  }
+
+  if (requestUserId) {
+    if (String(ex.authorUserId) === requestUserId) {
+      return sanitize(ex);
+    }
+
+    if (ex.groupId) {
+      const isMember = await GroupMember.findOne({
+          groupId: ex.groupId,
+          userId: new Types.ObjectId(requestUserId)
+      }).lean();
+
+      if (isMember && ex.status === 'PUBLISHED') {
+          return sanitize(ex);
+      }
+    }
+  }
+
+  throw new NotFoundError('Exercise not found');
+}
+
+async function ensurePublicCodeAndSanitize(e: any) {
+  if (!e.publicCode) {
+    const code = await generatePublicCode();
+    await Exercise.updateOne({ _id: e._id }, { $set: { publicCode: code } });
+    e.publicCode = code;
+  }
+  return sanitize(e);
 }

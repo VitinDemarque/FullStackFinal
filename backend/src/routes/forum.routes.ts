@@ -13,6 +13,9 @@ router.get('/aleatorios', ForumController.listarAleatorios)
 // Pesquisar fóruns
 router.get('/pesquisar', ForumController.pesquisar)
 
+// Obter fórum por exercício (deve vir antes da rota genérica /:id)
+router.get('/exercise/:exerciseId', ForumController.obterPorExerciseId)
+
 // Listar fóruns em que o usuário participa
 router.get('/meus', auth(), ForumController.listarMeus)
 

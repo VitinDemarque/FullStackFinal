@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
+import { FaSearch } from 'react-icons/fa'
 import AuthenticatedLayout from '@/components/Layout/AuthenticatedLayout'
 import ModalEditarForum from '@/components/Forum/ModalEditarForum'
 import ConfirmationModal from '@/components/ConfirmationModal'
@@ -25,11 +26,26 @@ export default function ForumDetalhesPage() {
   const [criandoTopico, setCriandoTopico] = useState(false);
   const [tituloTopico, setTituloTopico] = useState("");
   const [conteudoTopico, setConteudoTopico] = useState("");
+  const [palavraChaveTopico, setPalavraChaveTopico] = useState<string>("");
   const [mostrarEditar, setMostrarEditar] = useState(false);
   const [confirmarExclusao, setConfirmarExclusao] = useState(false);
+  const [menuAbertoId, setMenuAbertoId] = useState<string | null>(null);
+  const [editandoTopicoId, setEditandoTopicoId] = useState<string | null>(null);
+  const [editTitulo, setEditTitulo] = useState<string>('');
+  const [editConteudo, setEditConteudo] = useState<string>('');
+  const [confirmarExclusaoTopicoId, setConfirmarExclusaoTopicoId] = useState<string | null>(null);
+  const [mostrarTodosTopicos, setMostrarTodosTopicos] = useState(false);
+  const [buscaTopico, setBuscaTopico] = useState('');
 
   const createSectionRef = useRef<HTMLDivElement | null>(null);
   const titleInputRef = useRef<HTMLInputElement | null>(null);
+
+  const irParaCriarTopico = () => {
+    createSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => {
+      titleInputRef.current?.focus();
+    }, 250);
+  };
 
   useEffect(() => {
     const carregarDados = async () => {
@@ -126,13 +142,19 @@ export default function ForumDetalhesPage() {
       const novo = await forumTopicService.criar(id, {
         titulo: tituloTopico.trim(),
         conteudo: conteudoTopico.trim(),
-        palavrasChave: [],
+        palavrasChave: (() => {
+          const txt = palavraChaveTopico.trim();
+          if (!txt) return [];
+          // Suporta múltiplas palavras separadas por vírgula, mas aceita uma única também
+          return txt.split(',').map((s) => s.trim()).filter(Boolean);
+        })(),
       });
       // Adiciona o novo tópico à lista local
       setTopicos((prev) => [novo, ...prev]);
       // Limpa campos e mantém foco para criar outro se desejar
       setTituloTopico("");
       setConteudoTopico("");
+      setPalavraChaveTopico("");
       setTimeout(() => {
         titleInputRef.current?.focus();
       }, 100);
@@ -159,6 +181,54 @@ export default function ForumDetalhesPage() {
     setForum(f);
   };
 
+  const meuUsuarioId = String(usuarioAtual?._id || usuarioAtual?.id || '');
+
+  const toggleMenuTopico = (id: string) => {
+    setMenuAbertoId((prev) => (prev === id ? null : id));
+  };
+
+  const iniciarEdicaoTopico = (t: ForumTopic) => {
+    setEditandoTopicoId(t._id);
+    setEditTitulo(t.titulo);
+    setEditConteudo(t.conteudo);
+    setMenuAbertoId(null);
+  };
+
+  const cancelarEdicaoTopico = () => {
+    setEditandoTopicoId(null);
+    setEditTitulo('');
+    setEditConteudo('');
+  };
+
+  const salvarEdicaoTopico = async () => {
+    if (!editandoTopicoId) return;
+    try {
+      const atualizado = await forumTopicService.atualizar(editandoTopicoId, {
+        titulo: editTitulo.trim(),
+        conteudo: editConteudo.trim(),
+      });
+      setTopicos((prev) => prev.map((t) => (t._id === editandoTopicoId ? atualizado : t)));
+      cancelarEdicaoTopico();
+    } catch (err: any) {
+      setErro(err?.message || err?.mensagem || 'Erro ao editar tópico.');
+    }
+  };
+
+  const solicitarExclusaoTopico = (t: ForumTopic) => {
+    setConfirmarExclusaoTopicoId(t._id);
+    setMenuAbertoId(null);
+  };
+
+  const confirmarExclusaoTopico = async () => {
+    if (!confirmarExclusaoTopicoId) return;
+    try {
+      await forumTopicService.excluir(confirmarExclusaoTopicoId);
+      setTopicos((prev) => prev.filter((t) => t._id !== confirmarExclusaoTopicoId));
+      setConfirmarExclusaoTopicoId(null);
+    } catch (err: any) {
+      setErro(err?.message || err?.mensagem || 'Erro ao excluir tópico.');
+    }
+  };
   
 
     return (
@@ -172,20 +242,27 @@ export default function ForumDetalhesPage() {
                 {forum && (
                     <S.DetailContainer>
                         <S.DetailTitle>{forum.nome}</S.DetailTitle>
-                        {isOwner && (
-                          <S.ActionsRow>
-                            <S.Button variant="secondary" onClick={() => setMostrarEditar(true)}>✏️ Editar Fórum</S.Button>
-                            <S.Button variant="danger" onClick={() => setConfirmarExclusao(true)}>🗑️ Excluir Fórum</S.Button>
-                          </S.ActionsRow>
-                        )}
 
                         <S.DetailSection>
                             <S.DetailText>
                                 {forum.descricao || 'Sem descrição'}
                             </S.DetailText>
+                            {isOwner && (
+                              <S.ActionsRow>
+                                <S.Button variant="secondary" onClick={() => setMostrarEditar(true)}>✏️ Editar Fórum</S.Button>
+                                <S.Button variant="danger" onClick={() => setConfirmarExclusao(true)}>🗑️ Excluir Fórum</S.Button>
+                              </S.ActionsRow>
+                            )}
                             <S.ForumMeta>
                                 <span>
-                                    <S.DetailLabel>Dono:</S.DetailLabel> {dono?.name || 'Desconhecido'}
+                                    <S.DetailLabel>Dono:</S.DetailLabel>{' '}
+                                    {forum.donoUsuarioId ? (
+                                      <Link to={`/perfil/${forum.donoUsuarioId}`} style={{ textDecoration: 'none' }}>
+                                        <S.OwnerNameLink>{dono?.name || 'Desconhecido'}</S.OwnerNameLink>
+                                      </Link>
+                                    ) : (
+                                      dono?.name || 'Desconhecido'
+                                    )}
                                 </span>
                                 <span>
                                     <S.DetailLabel>Privacidade:</S.DetailLabel> {forum.statusPrivacidade === 'PRIVADO' ? 'Privado' : 'Público'}
@@ -203,16 +280,73 @@ export default function ForumDetalhesPage() {
                         {participando && (
                             <>
                                 <S.DetailSection>
-                                    <S.DetailSectionTitle>Tópicos</S.DetailSectionTitle>
-                                    {topicos.length === 0 ? (
-                                        <S.DetailText>Nenhum tópico ainda.</S.DetailText>
-                                    ) : (
-                                        <S.TopicList>
-                                            {topicos.map((t) => (
-                                                <S.TopicCard key={t._id}>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+                                      <S.DetailSectionTitle style={{ margin: 0 }}>Tópicos</S.DetailSectionTitle>
+                                      <S.TopicsSearchBar>
+                                        <FaSearch />
+                                        <input
+                                          placeholder="Buscar por título, conteúdo ou palavra-chave"
+                                          value={buscaTopico}
+                                          onChange={(e) => setBuscaTopico(e.target.value)}
+                                        />
+                                      </S.TopicsSearchBar>
+                                    </div>
+
+                                    {(() => {
+                                      const q = buscaTopico.trim().toLowerCase();
+                                      const filtrados = q
+                                        ? topicos.filter((t) => {
+                                            const titulo = (t.titulo || '').toLowerCase();
+                                            const conteudo = (t.conteudo || '').toLowerCase();
+                                            const chaves = (t.palavrasChave || []).map((c) => c.toLowerCase());
+                                            return (
+                                              titulo.includes(q) ||
+                                              conteudo.includes(q) ||
+                                              chaves.some((c) => c.includes(q))
+                                            );
+                                          })
+                                        : topicos;
+                                      const topicosVisiveis = mostrarTodosTopicos ? filtrados : filtrados.slice(0, 2);
+                                      const restantes = Math.max(0, filtrados.length - topicosVisiveis.length);
+
+                                      if (filtrados.length === 0) {
+                                        return <S.DetailText>Nenhum tópico encontrado.</S.DetailText>;
+                                      }
+
+                                      return (
+                                        <>
+                                          <S.TopicList>
+                                            {topicosVisiveis.map((t) => (
+                                                <S.TopicCard key={t._id} menuAberto={menuAbertoId === t._id}>
                                                     <S.TopicHeader>
-                                                        <S.TopicTitle>{t.titulo}</S.TopicTitle>
-                                                        <S.TopicContent>{t.conteudo}</S.TopicContent>
+                                                        {editandoTopicoId === t._id ? (
+                                                          <>
+                                                            <S.Input
+                                                              type="text"
+                                                              value={editTitulo}
+                                                              onChange={(e) => setEditTitulo(e.target.value)}
+                                                              placeholder="Título do tópico"
+                                                            />
+                                                            <S.Textarea
+                                                              value={editConteudo}
+                                                              onChange={(e) => setEditConteudo(e.target.value)}
+                                                              placeholder="Conteúdo do tópico"
+                                                            />
+                                                            <S.ActionsRow>
+                                                              <S.Button variant="success" onClick={salvarEdicaoTopico} disabled={!editTitulo.trim() || !editConteudo.trim()}>
+                                                                Salvar
+                                                              </S.Button>
+                                                              <S.Button variant="secondary" onClick={cancelarEdicaoTopico}>
+                                                                Cancelar
+                                                              </S.Button>
+                                                            </S.ActionsRow>
+                                                          </>
+                                                        ) : (
+                                                          <>
+                                                            <S.TopicTitle>{t.titulo}</S.TopicTitle>
+                                                            <S.TopicContent>{t.conteudo}</S.TopicContent>
+                                                          </>
+                                                        )}
                                                     </S.TopicHeader>
                                                     <S.TopicActions>
                                                         <S.Button
@@ -221,11 +355,46 @@ export default function ForumDetalhesPage() {
                                                         >
                                                             Abrir
                                                         </S.Button>
+                                                        {String(t.autorUsuarioId) === meuUsuarioId && (
+                                                          <>
+                                                            <S.Button variant="secondary" onClick={() => toggleMenuTopico(t._id)} aria-label="Mais opções">...</S.Button>
+                                                            {menuAbertoId === t._id && (
+                                                              <S.OptionsMenu role="menu" aria-label="Opções do tópico">
+                  <S.OptionsItem onClick={() => iniciarEdicaoTopico(t)}>
+                    <span aria-hidden>✏️</span>
+                    <span>Editar</span>
+                  </S.OptionsItem>
+                                                                <S.OptionsDivider />
+                  <S.OptionsItem className="danger" onClick={() => solicitarExclusaoTopico(t)}>
+                    <span aria-hidden>🗑️</span>
+                    <span>Excluir</span>
+                  </S.OptionsItem>
+                                                              </S.OptionsMenu>
+                                                            )}
+                                                          </>
+                                                        )}
                                                     </S.TopicActions>
                                                 </S.TopicCard>
                                             ))}
-                                        </S.TopicList>
-                                    )}
+                                          </S.TopicList>
+                                          <S.ActionsRow>
+                                            {restantes > 0 && !mostrarTodosTopicos && (
+                                              <S.Button variant="secondary" onClick={() => setMostrarTodosTopicos(true)}>
+                                                Ver mais tópicos ({restantes})
+                                              </S.Button>
+                                            )}
+                                            {mostrarTodosTopicos && (
+                                              <S.Button variant="secondary" onClick={() => setMostrarTodosTopicos(false)}>
+                                                Mostrar menos
+                                              </S.Button>
+                                            )}
+                                            <S.Button variant="primary" onClick={irParaCriarTopico}>
+                                              Criar tópico
+                                            </S.Button>
+                                          </S.ActionsRow>
+                                        </>
+                                      );
+                                    })()}
                                 </S.DetailSection>
 
                                 <S.DetailSection ref={createSectionRef}>
@@ -242,6 +411,12 @@ export default function ForumDetalhesPage() {
                                             value={conteudoTopico}
                                             onChange={(e) => setConteudoTopico(e.target.value)}
                                             placeholder="Conteúdo do tópico"
+                                        />
+                                        <S.Input
+                                            type="text"
+                                            value={palavraChaveTopico}
+                                            onChange={(e) => setPalavraChaveTopico(e.target.value)}
+                                            placeholder="Palavra-chave (opcional)"
                                         />
                                         <S.ActionsRow>
                                             <S.Button
@@ -271,6 +446,16 @@ export default function ForumDetalhesPage() {
                   onConfirm={handleExcluirForum}
                   title="Excluir Fórum"
                   message="Tem certeza que deseja excluir este fórum? Esta ação não pode ser desfeita."
+                  confirmText="Excluir"
+                  cancelText="Cancelar"
+                  type="danger"
+                />
+                <ConfirmationModal
+                  isOpen={!!confirmarExclusaoTopicoId}
+                  onClose={() => setConfirmarExclusaoTopicoId(null)}
+                  onConfirm={confirmarExclusaoTopico}
+                  title="Excluir Tópico"
+                  message="Tem certeza que deseja excluir este tópico? Esta ação não pode ser desfeita."
                   confirmText="Excluir"
                   cancelText="Cancelar"
                   type="danger"

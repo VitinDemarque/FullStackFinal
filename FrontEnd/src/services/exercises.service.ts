@@ -21,6 +21,10 @@ export const exercisesService = {
     return apiRequest<Exercise>('GET', `/exercises/${id}`)
   },
 
+  async getByCode(code: string): Promise<Exercise> {
+    return apiRequest<Exercise>('GET', `/exercises/code/${encodeURIComponent(code)}`)
+  },
+
   async getRecommendations(limit = 6): Promise<Exercise[]> {
     const response = await apiRequest<PaginatedResponse<Exercise>>(
       'GET',

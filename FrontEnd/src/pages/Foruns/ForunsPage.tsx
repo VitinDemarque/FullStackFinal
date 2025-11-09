@@ -166,47 +166,27 @@ export default function ForunsPage() {
                 key={forum._id}
                 onClick={() => navigate(`/foruns/${forum._id}`)}
               >
-                <S.CardHeader>
-                  <S.CardTitle>{forum.nome}</S.CardTitle>
-                  <S.BadgeContainer>
-                    <S.Badge variant="public">🌐 Público</S.Badge>
-                    {forum.assunto && (
-                      <S.Badge>{forum.assunto}</S.Badge>
-                    )}
-                  </S.BadgeContainer>
-                </S.CardHeader>
-
-                <S.CardDescription>
-                  {forum.descricao || 'Sem descrição'}
-                </S.CardDescription>
+                <S.CardTopGrid>
+                  <div>
+                    <S.CardTitle>{forum.nome}</S.CardTitle>
+                    <S.CardDescription>
+                      {forum.descricao || 'Sem descrição'}
+                    </S.CardDescription>
+                  </div>
+                  <div>
+                    <S.BadgeContainer>
+                      <S.Badge variant={forum.statusPrivacidade === 'PRIVADO' ? 'private' : 'public'}>
+                        {forum.statusPrivacidade === 'PRIVADO' ? '🔒 Privado' : '🌐 Público'}
+                      </S.Badge>
+                      {forum.assunto && (
+                        <S.Badge>{forum.assunto}</S.Badge>
+                      )}
+                    </S.BadgeContainer>
+                  </div>
+                </S.CardTopGrid>
 
                 <S.CardMeta>
                   <S.MetaItem>🧩 Tópicos: {topicCounts[forum._id] ?? 0}</S.MetaItem>
-                  <S.MetaItem>
-                    👑 Dono:
-                    {forum.donoUsuarioId ? (
-                      <S.OwnerInfo>
-                        {ownerAvatars[forum.donoUsuarioId] ? (
-                          <S.OwnerAvatar src={ownerAvatars[forum.donoUsuarioId] as string} alt={ownerNames[forum.donoUsuarioId]} />
-                        ) : (
-                          <S.OwnerAvatarFallback>
-                            {(ownerNames[forum.donoUsuarioId] || 'U').charAt(0)}
-                          </S.OwnerAvatarFallback>
-                        )}
-                        <Link
-                          to={`/perfil/${forum.donoUsuarioId}`}
-                          onClick={(e) => e.stopPropagation()}
-                          style={{ textDecoration: 'none' }}
-                        >
-                          <S.OwnerNameLink>
-                            {ownerNames[forum.donoUsuarioId] || `Usuário ${forum.donoUsuarioId}`}
-                          </S.OwnerNameLink>
-                        </Link>
-                      </S.OwnerInfo>
-                    ) : (
-                      ' N/A'
-                    )}
-                  </S.MetaItem>
                 </S.CardMeta>
               </S.ForumCard>
             ))}

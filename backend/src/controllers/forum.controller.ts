@@ -49,6 +49,20 @@ export async function obterPorId(req: Request, res: Response, next: NextFunction
   }
 }
 
+// Buscar fórum pelo ID do desafio (exerciseId)
+export async function obterPorExerciseId(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { exerciseId } = req.params
+    if (!exerciseId)
+      return res.status(400).json({ mensagem: 'Parâmetro "exerciseId" é obrigatório.' })
+
+    const forum = await ForumService.obterPorExerciseId(exerciseId)
+    return res.json(forum)
+  } catch (err) {
+    return next(err)
+  }
+}
+
 // Listar fóruns em que o usuário participa
 export async function listarMeus(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {

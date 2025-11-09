@@ -20,7 +20,15 @@ export const forunsService = {
     return apiRequest<Forum>('GET', `/forum/${id}`)
   },
 
-  async criar(data: Partial<Forum>): Promise<Forum> {
+  async getByExerciseId(exerciseId: string): Promise<Forum> {
+    return apiRequest<Forum>('GET', `/forum/exercise/${exerciseId}`)
+  },
+
+  async getByExerciseCode(exerciseCode: string): Promise<Forum> {
+    return apiRequest<Forum>('GET', `/forum/exercise/${exerciseCode}`)
+  },
+
+  async criar(data: Partial<Forum> & { exerciseCode?: string; exerciseId?: string }): Promise<Forum> {
     return apiRequest<Forum>('POST', '/forum/', data)
   },
 

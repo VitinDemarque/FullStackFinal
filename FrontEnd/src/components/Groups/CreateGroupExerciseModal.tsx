@@ -213,6 +213,7 @@ const Button = styled.button<{ variant?: 'secondary' }>`
 
 export interface CreateGroupExerciseData {
   title: string;
+  subject: string;
   description: string;
   difficulty: number;
   baseXp: number;
@@ -239,6 +240,7 @@ export default function CreateGroupExerciseModal({
 }: CreateGroupExerciseModalProps) {
   const [formData, setFormData] = useState<CreateGroupExerciseData>({
     title: '',
+    subject: '',
     description: '',
     difficulty: 1,
     baseXp: 100,
@@ -274,6 +276,7 @@ export default function CreateGroupExerciseModal({
   const handleClose = () => {
     setFormData({
       title: '',
+      subject: '',
       description: '',
       difficulty: 1,
       baseXp: 100,
@@ -332,6 +335,18 @@ export default function CreateGroupExerciseModal({
               onChange={(e) => handleInputChange('description', e.target.value)}
               placeholder="Descreva o Desafio para os membros do grupo..."
               rows={3}
+            />
+          </FieldGroup>
+
+          <FieldGroup>
+            <Label htmlFor="subject">Assunto *</Label>
+            <Input
+              id="subject"
+              type="text"
+              value={formData.subject}
+              onChange={(e) => handleInputChange('subject', e.target.value)}
+              placeholder="Ex: Desenvolvimento Web, Backend, Frontend..."
+              required
             />
           </FieldGroup>
 

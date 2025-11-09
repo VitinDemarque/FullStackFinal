@@ -139,3 +139,15 @@ export async function listCommunity(req: AuthenticatedRequest, res: Response, ne
     return next(err);
   }
 }
+
+export async function getByCode(req: Request, res: Response, next: NextFunction) {
+  try {
+    const authReq = req as AuthenticatedRequest;
+    const requestUserId = authReq.user?.user_id;
+
+    const exercise = await ExercisesService.getByPublicCode(req.params.code, requestUserId);
+    return res.json(exercise);
+  } catch (err) {
+    return next(err);
+  }
+}

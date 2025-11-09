@@ -13,6 +13,7 @@ interface EditExerciseModalProps {
 export default function EditExerciseModal({ isOpen, onClose, onSubmit, exercise }: EditExerciseModalProps) {
   const [formData, setFormData] = useState<CreateExerciseData>({
     title: '',
+    subject: '',
     description: '',
     difficulty: 1,
     baseXp: 100,
@@ -27,6 +28,7 @@ export default function EditExerciseModal({ isOpen, onClose, onSubmit, exercise 
     if (exercise) {
       setFormData({
         title: exercise.title,
+        subject: exercise.subject || '',
         description: exercise.description || '',
         difficulty: exercise.difficulty,
         baseXp: exercise.baseXp,
@@ -55,6 +57,7 @@ export default function EditExerciseModal({ isOpen, onClose, onSubmit, exercise 
   const handleClose = () => {
     setFormData({
       title: '',
+      subject: '',
       description: '',
       difficulty: 1,
       baseXp: 100,
@@ -91,6 +94,18 @@ export default function EditExerciseModal({ isOpen, onClose, onSubmit, exercise 
               value={formData.title}
               onChange={(e) => handleInputChange('title', e.target.value)}
               placeholder="Digite o título do exercício"
+              required
+            />
+          </S.FieldGroup>
+
+          <S.FieldGroup>
+            <S.Label htmlFor="subject">Assunto *</S.Label>
+            <S.Input
+              id="subject"
+              type="text"
+              value={formData.subject}
+              onChange={(e) => handleInputChange('subject', e.target.value)}
+              placeholder="Ex: Desenvolvimento Web, Backend, Frontend..."
               required
             />
           </S.FieldGroup>

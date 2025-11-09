@@ -5,6 +5,7 @@ import * as S from '@/styles/components/ExerciseCard/styles';
 
 interface ExerciseCardProps {
   id: string;
+  publicCode?: string;
   title: string;
   description: string;
   icon: string;
@@ -18,6 +19,8 @@ interface ExerciseCardProps {
 }
 
 export default function ExerciseCard({
+  id,
+  publicCode,
   title,
   description,
   icon,
@@ -30,6 +33,18 @@ export default function ExerciseCard({
   onInactivate
 }: ExerciseCardProps) {
   const isActive = status === 'PUBLISHED';
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyId = async () => {
+    try {
+      const codeToCopy = publicCode ?? id;
+      await navigator.clipboard.writeText(codeToCopy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch (e) {
+      // fallback: ignore
+    }
+  }
 
   return (
     <S.ExerciseCard $inactive={!isActive}>
@@ -50,6 +65,12 @@ export default function ExerciseCard({
             {votes}
           </S.VoteCount>
           <S.CommentsCount>{comments} respostas</S.CommentsCount>
+          <S.IdBadge>
+            Código: <code>{publicCode ?? id}</code>
+            <S.CopyButton onClick={handleCopyId} type="button">
+              {copied ? 'Copiado!' : 'Copiar'}
+            </S.CopyButton>
+          </S.IdBadge>
         </S.StatsLeft>
 
         <div>

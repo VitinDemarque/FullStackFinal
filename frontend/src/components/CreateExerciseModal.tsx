@@ -9,6 +9,7 @@ interface CreateExerciseModalProps {
 
 export interface CreateExerciseData {
   title: string;
+  subject: string;
   description: string;
   difficulty: number;
   baseXp: number;
@@ -20,6 +21,7 @@ export interface CreateExerciseData {
 export default function CreateExerciseModal({ isOpen, onClose, onSubmit }: CreateExerciseModalProps) {
   const [formData, setFormData] = useState<CreateExerciseData>({
     title: '',
+    subject: '',
     description: '',
     difficulty: 1,
     baseXp: 100,
@@ -47,6 +49,7 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit }: Creat
   const handleClose = () => {
     setFormData({
       title: '',
+      subject: '',
       description: '',
       difficulty: 1,
       baseXp: 100,
@@ -83,6 +86,18 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit }: Creat
               value={formData.title}
               onChange={(e) => handleInputChange('title', e.target.value)}
               placeholder="Digite o título do Desafio"
+              required
+            />
+          </S.FieldGroup>
+
+          <S.FieldGroup>
+            <S.Label htmlFor="subject">Assunto *</S.Label>
+            <S.Input
+              id="subject"
+              type="text"
+              value={formData.subject}
+              onChange={(e) => handleInputChange('subject', e.target.value)}
+              placeholder="Ex: Desenvolvimento Web, Backend, Frontend..."
               required
             />
           </S.FieldGroup>

@@ -28,6 +28,8 @@ export interface VotoExclusao {
 
 export interface Forum {
   _id: string
+  exerciseId?: string
+  exerciseCode?: string
   nome: string
   assunto?: string
   descricao?: string

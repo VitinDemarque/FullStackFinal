@@ -222,6 +222,7 @@ const Button = styled.button<{ variant?: 'secondary' }>`
 
 export interface UpdateGroupExerciseData {
   title: string;
+  subject: string;
   description: string;
   difficulty: number;
   baseXp: number;
@@ -252,6 +253,7 @@ export default function EditGroupExerciseModal({
 }: EditGroupExerciseModalProps) {
   const [formData, setFormData] = useState<UpdateGroupExerciseData>({
     title: '',
+    subject: '',
     description: '',
     difficulty: 1,
     baseXp: 100,
@@ -268,6 +270,7 @@ export default function EditGroupExerciseModal({
     if (exercise) {
       setFormData({
         title: exercise.title || '',
+        subject: exercise.subject || '',
         description: exercise.description || '',
         difficulty: exercise.difficulty || 1,
         baseXp: exercise.baseXp || 100,
@@ -303,6 +306,7 @@ export default function EditGroupExerciseModal({
     if (exercise) {
       setFormData({
         title: exercise.title || '',
+        subject: exercise.subject || '',
         description: exercise.description || '',
         difficulty: exercise.difficulty || 1,
         baseXp: exercise.baseXp || 100,
@@ -351,6 +355,18 @@ export default function EditGroupExerciseModal({
               value={formData.title}
               onChange={(e) => handleInputChange('title', e.target.value)}
               placeholder="Digite o título do Desafio"
+              required
+            />
+          </FieldGroup>
+
+          <FieldGroup>
+            <Label htmlFor="subject">Assunto *</Label>
+            <Input
+              id="subject"
+              type="text"
+              value={formData.subject}
+              onChange={(e) => handleInputChange('subject', e.target.value)}
+              placeholder="Ex: Desenvolvimento Web, Backend, Frontend..."
               required
             />
           </FieldGroup>

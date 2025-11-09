@@ -213,6 +213,7 @@ export default function ChallengesPage() {
               <ExerciseCard
                 key={exercise.id}
                 id={exercise.id}
+                publicCode={exercise.publicCode}
                 title={exercise.title}
                 description={exercise.description || 'Sem descrição'}
                 icon={getExerciseIcon(exercise)}

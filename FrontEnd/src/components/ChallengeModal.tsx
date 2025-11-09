@@ -203,6 +203,34 @@ const DifficultyBadge = styled.span<{ difficulty: string }>`
   color: white;
 `;
 
+const CodeBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+`;
+
+const CopyButton = styled.button`
+  background: white;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #f8fafc;
+  }
+`;
+
 const EditorHeader = styled.div<{ $isDark: boolean }>`
   padding: 1rem 1.5rem;
   background: ${({ $isDark }) => ($isDark ? "#1e293b" : "#2d2d2d")};
@@ -352,6 +380,7 @@ interface ChallengeModalProps {
     description: string;
     difficulty: number;
     baseXp: number;
+    publicCode?: string;
     codeTemplate?: string;
   };
   onClose: () => void;
@@ -371,6 +400,7 @@ export default function ChallengeModal({
   );
   const [timeSpent, setTimeSpent] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -411,6 +441,14 @@ export default function ChallengeModal({
   };
 
   const difficultyText = difficultyMap[exercise.difficulty] || "médio";
+  const codeToShow = exercise.publicCode ?? exercise.id;
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(codeToShow);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {}
+  };
 
   return (
     <Overlay $isDark={isDark} onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -424,6 +462,12 @@ export default function ChallengeModal({
             <DifficultyBadge difficulty={difficultyText}>
               {difficultyText.toUpperCase()}
             </DifficultyBadge>
+            <CodeBadge>
+              Código: <code>{codeToShow}</code>
+              <CopyButton onClick={handleCopyCode} type="button">
+                {copied ? 'Copiado!' : 'Copiar'}
+              </CopyButton>
+            </CodeBadge>
           </HeaderLeft>
           <HeaderLeft>
             <Timer>

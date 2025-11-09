@@ -29,12 +29,14 @@ export interface Exercise {
   authorUserId: string
   languageId?: string | null
   title: string
+  subject?: string
   description?: string
   groupId: string | null;
   difficulty: number
   baseXp: number
   isPublic: boolean
   codeTemplate: string
+  publicCode?: string | null
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
   createdAt: string
   updatedAt: string
