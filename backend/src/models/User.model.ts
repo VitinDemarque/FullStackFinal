@@ -25,7 +25,7 @@ const UserSchema = new Schema<IUser>(
     email: { type: String, required: true, unique: true, index: true, lowercase: true, trim: true },
     passwordHash: { type: String, required: true },
     collegeId: { type: Schema.Types.ObjectId, ref: 'College', default: null },
-    level: { type: Number, default: 1, min: 1 },
+    level: { type: Number, default: 0, min: 0 },
     xpTotal: { type: Number, default: 0, min: 0 },
     avatarUrl: { type: String, default: null },
     bio: { type: String, default: null },

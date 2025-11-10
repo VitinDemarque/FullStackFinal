@@ -11,7 +11,8 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "seed": "ts-node src/scripts/seed.ts",
-    "seed:colleges": "ts-node src/scripts/seed-colleges.ts"
+    "seed:colleges": "ts-node src/scripts/seed-colleges.ts",
+    "addxp": "ts-node src/scripts/add_xp.ts"
   },
   "keywords": [],
   "author": "",

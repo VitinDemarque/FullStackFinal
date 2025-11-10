@@ -4,6 +4,7 @@ import { useAuth } from "@contexts/AuthContext";
 import { useAsync } from "@hooks/useAsync";
 import { userService } from "@services/user.service";
 import { api } from "@services/api";
+import { getProgressToNextLevel, deriveLevelFromXp } from "@utils/levels";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
 import {
   FaUser,
@@ -37,6 +38,7 @@ export default function ProfilePage() {
 
   const [allBadges, setAllBadges] = useState<Badge[]>([]);
   const [userBadges, setUserBadges] = useState<string[]>([]);
+  const [userBadgeRarity, setUserBadgeRarity] = useState<Record<string, 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY'>>({});
   const [loadingBadges, setLoadingBadges] = useState(true);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -71,9 +73,17 @@ export default function ProfilePage() {
       const earnedBadgeIds = userBadgesData.map((ub: any) =>
         typeof ub.badge === "string" ? ub.badge : ub.badge?._id
       );
+      const rarityMap: Record<string, 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY'> = {};
+      userBadgesData.forEach((ub: any) => {
+        const bid = typeof ub.badge === 'string' ? ub.badge : ub.badge?._id;
+        const src = ub.source || '';
+        const match = String(src).match(/exercise(?:Complete|HighScore):(COMMON|RARE|EPIC|LEGENDARY)/);
+        rarityMap[bid] = (match?.[1] as any) || rarityMap[bid] || 'COMMON';
+      });
 
       setAllBadges(Array.isArray(allBadgesData) ? allBadgesData : []);
       setUserBadges(earnedBadgeIds);
+      setUserBadgeRarity(rarityMap);
     } catch (error) {
       setAllBadges(createMockBadges());
       setUserBadges([]);
@@ -213,8 +223,10 @@ export default function ProfilePage() {
     ];
   }
 
-  const topBadges = allBadges
-    .filter((badge) => userBadges.includes(badge._id) && badge.type === "gold")
+  const triumphantBadges = allBadges.filter((b: any) => b.isTriumphant === true);
+  const normalBadges = allBadges.filter((b: any) => b.isTriumphant !== true);
+  const topBadges = triumphantBadges
+    .filter((badge) => userBadges.includes(badge._id))
     .slice(0, 3);
 
   async function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
@@ -270,7 +282,9 @@ export default function ProfilePage() {
 
   if (!user) return null;
 
-  const xpPercent = ((user.xp || 0) / 800) * 100;
+  const currentXpTotal = (user as any).xpTotal ?? 0;
+  const currentLevel = deriveLevelFromXp(currentXpTotal);
+  const { withinLevelXp, nextRequirement, percent: xpPercent } = getProgressToNextLevel(currentXpTotal, currentLevel);
   const hasAnyBadge = userBadges.length > 0;
 
   return (
@@ -328,11 +342,15 @@ export default function ProfilePage() {
           <S.ProfileStats>
             <S.StatItem>
               <S.StatLabel>Nível</S.StatLabel>
-              <S.StatValue>{user.level || 7}</S.StatValue>
+              <S.StatValue>{currentLevel}</S.StatValue>
             </S.StatItem>
             <S.StatItem>
-              <S.StatLabel>Experiência</S.StatLabel>
-              <S.StatValue>{user.xp || 730}/800</S.StatValue>
+              <S.StatLabel>XP no nível</S.StatLabel>
+              <S.StatValue>{withinLevelXp}/{nextRequirement}</S.StatValue>
+            </S.StatItem>
+            <S.StatItem>
+              <S.StatLabel>XP total</S.StatLabel>
+              <S.StatValue>{currentXpTotal}</S.StatValue>
             </S.StatItem>
           </S.ProfileStats>
 
@@ -340,6 +358,11 @@ export default function ProfilePage() {
             <S.XpProgressBar>
               <S.XpProgressFill $progress={xpPercent} />
             </S.XpProgressBar>
+            <S.XpProgressPercentContainer>
+              <S.XpProgressPercent $progress={xpPercent}>
+                {Math.round(xpPercent)}%
+              </S.XpProgressPercent>
+            </S.XpProgressPercentContainer>
           </S.XpProgressContainer>
         </S.ProfileHero>
 
@@ -355,14 +378,19 @@ export default function ProfilePage() {
             <S.LoadingBadges>Carregando conquistas...</S.LoadingBadges>
           ) : hasAnyBadge && topBadges.length > 0 ? (
             <S.TopBadges>
-              {topBadges.map((badge, index) => (
-                <S.TopBadge key={badge._id}>
-                  <S.BadgeTrophy position={(index + 1) as 1 | 2 | 3}>
-                    <FaTrophy />
-                  </S.BadgeTrophy>
-                  <S.BadgePedestal />
-                </S.TopBadge>
-              ))}
+              {topBadges.map((badge, index) => {
+                const rarity = userBadgeRarity[badge._id] || 'COMMON';
+                return (
+                  <S.TopBadge key={badge._id}>
+                    <S.RarityOutline $rarity={rarity}>
+                      <S.BadgeTrophy position={(index + 1) as 1 | 2 | 3}>
+                        <FaTrophy />
+                      </S.BadgeTrophy>
+                    </S.RarityOutline>
+                    <S.BadgePedestal />
+                  </S.TopBadge>
+                )
+              })}
             </S.TopBadges>
           ) : (
             <S.NoBadgesMessage>
@@ -381,9 +409,9 @@ export default function ProfilePage() {
 
           {loadingBadges ? (
             <S.LoadingBadges>Carregando...</S.LoadingBadges>
-          ) : allBadges.length > 0 ? (
+          ) : normalBadges.length > 0 ? (
             <S.AllBadges>
-              {allBadges.map((badge, index) => {
+              {normalBadges.map((badge, index) => {
                 const isEarned = userBadges.includes(badge._id);
                 const icons = [
                   FaTrophy,

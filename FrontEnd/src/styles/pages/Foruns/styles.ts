@@ -91,7 +91,9 @@ export const ForumList = styled.div`
   align-items: stretch;
 `
 
-export const ForumCard = styled.div`
+export const ForumCard = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== '$inactive'
+})<{ $inactive?: boolean }>`
   background: var(--color-surface);
   color: var(--color-text-primary);
   border-radius: ${({ theme }) => theme.borderRadius.lg};
@@ -103,12 +105,18 @@ export const ForumCard = styled.div`
   display: flex;
   flex-direction: column;
   height: 100%;
+  position: relative;
 
   &:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-xl);
     border-color: var(--color-primary);
   }
+
+  ${({ $inactive }) => $inactive ? `
+    filter: saturate(0.85);
+    opacity: 0.96;
+  ` : ''}
 `
 
 export const CardHeader = styled.div`
@@ -336,7 +344,9 @@ export const BackButton = styled(Link)`
   }
 `
 
-export const DetailContainer = styled.div`
+export const DetailContainer = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== '$inactive'
+})<{ $inactive?: boolean }>`
   background: var(--color-surface);
   color: var(--color-text-primary);
   border-radius: ${({ theme }) => theme.borderRadius.lg};
@@ -344,6 +354,12 @@ export const DetailContainer = styled.div`
   box-shadow: var(--shadow-md);
   border: 1px solid var(--color-border);
   margin-bottom: 1.5rem;
+  position: relative;
+
+  ${({ $inactive }) => $inactive ? `
+    filter: saturate(0.85);
+    opacity: 0.96;
+  ` : ''}
 `
 
 export const DetailTitle = styled.h1`
@@ -523,8 +539,8 @@ export const TopicList = styled.ul`
 `
 
 export const TopicCard = styled.li.withConfig({
-  shouldForwardProp: (prop) => prop !== 'menuAberto'
-})<{ menuAberto?: boolean }>`
+  shouldForwardProp: (prop) => prop !== 'menuAberto' && prop !== '$inactive'
+})<{ menuAberto?: boolean; $inactive?: boolean }>`
   padding: 1rem;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -543,6 +559,11 @@ export const TopicCard = styled.li.withConfig({
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
   }
+
+  ${({ $inactive }) => $inactive ? `
+    filter: saturate(0.85);
+    opacity: 0.96;
+  ` : ''}
 `
 
 export const TopicHeader = styled.div`
@@ -689,6 +710,33 @@ export const CommentsFooter = styled.div`
   align-items: center;
   margin-top: 0.75rem;
   flex-wrap: wrap;
+`
+
+// Reuso do padrão visual de cartões inativos
+export const InactiveOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+  background: rgba(2, 6, 23, 0.25);
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+`
+
+export const InactiveLabel = styled.div`
+  font-weight: 800;
+  letter-spacing: 0.2rem;
+  text-transform: uppercase;
+  color: #111827;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(17, 24, 39, 0.2);
+  box-shadow: 0 8px 24px rgba(17, 24, 39, 0.15);
+  padding: 0.5rem 1.25rem;
+  border-radius: 999px;
+  font-size: 0.95rem;
 `
 
 export const FormRow = styled.div`

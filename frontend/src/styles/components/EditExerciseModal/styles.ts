@@ -224,3 +224,13 @@ export const SubmitButton = styled.button`
     transform: none;
   }
 `;
+
+export const FormAlert = styled.div`
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  background: ${({ theme }) => theme.colors.gray[100]};
+  color: ${({ theme }) => theme.colors.gray[700]};
+  font-size: 0.875rem;
+`;

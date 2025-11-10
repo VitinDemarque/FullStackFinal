@@ -20,6 +20,7 @@ router.get('/:id/scoreboard', UsersController.getProfileScoreboard);
 
 // Badges do usuário
 router.get('/:id/badges', UsersController.getUserBadges);
+router.post('/:id/badges/check', UsersController.checkAndAwardBadges);
 
 // Recursos por ID (admin ou dono) - deve vir por último
 router.get('/:id', auth(), UsersController.getById);

@@ -3,10 +3,14 @@ import { ForbiddenError, NotFoundError } from '../utils/httpErrors';
 
 // Models
 import Exercise from '../models/Exercise.model';
+import Forum from '../models/Forum.model';
+import ForumTopic from '../models/ForumTopic.model';
+import ForumComment from '../models/ForumComment.model';
 import Language from '../models/Language.model';
 import UserStat from '../models/UserStat.model';
 import GroupMember from '../models/GroupMember.model';
 import Group from '../models/Group.model';
+import User from '../models/User.model';
 
 export interface ListExercisesInput {
   q?: string;
@@ -126,6 +130,10 @@ export async function getById(id: string, requestUserId?: string) {
 }
 
 export async function create(userId: string, payload: Partial<any>) {
+  // Verifica papel do usuário para restringir campos de admin
+  const requester = await User.findById(userId).lean();
+  const isAdmin = requester?.role === 'ADMIN';
+
   if (payload.languageId) {
     const lang = await Language.findById(payload.languageId).lean();
     if (!lang) throw new NotFoundError('Language not found');
@@ -153,6 +161,18 @@ export async function create(userId: string, payload: Partial<any>) {
     exerciseIsPublic = false; 
   }
 
+  // Se não for admin, ignora qualquer configuração de badges enviada
+  const triumphantBadgeId = isAdmin && payload.triumphantBadgeId
+    ? new Types.ObjectId(String(payload.triumphantBadgeId))
+    : undefined;
+  const badgeRarity = isAdmin ? (payload.badgeRarity ?? 'COMMON') : 'COMMON';
+  const highScoreBadgeId = isAdmin && payload.highScoreBadgeId
+    ? new Types.ObjectId(String(payload.highScoreBadgeId))
+    : undefined;
+  const highScoreThreshold = isAdmin && payload.highScoreThreshold != null
+    ? Number(payload.highScoreThreshold)
+    : undefined;
+
   const doc = await Exercise.create({
     authorUserId: new Types.ObjectId(userId),
     languageId: payload.languageId ? new Types.ObjectId(payload.languageId) : undefined,
@@ -165,7 +185,11 @@ export async function create(userId: string, payload: Partial<any>) {
     isPublic: exerciseIsPublic,
     codeTemplate: String(payload.codeTemplate ?? '// start coding...'),
     publicCode: await generatePublicCode(),
-    status: payload.status ?? (exerciseIsPublic ? 'PUBLISHED' : 'DRAFT')
+    status: payload.status ?? (exerciseIsPublic ? 'PUBLISHED' : 'DRAFT'),
+    triumphantBadgeId,
+    badgeRarity,
+    highScoreBadgeId,
+    highScoreThreshold
   });
 
   await UserStat.updateOne(
@@ -182,6 +206,10 @@ export async function update(userId: string, id: string, payload: Partial<any>) 
   if (!ex) throw new NotFoundError('Exercise not found');
   if (String(ex.authorUserId) !== userId) throw new ForbiddenError('Only author can update');
 
+  // Verifica papel do usuário para restringir campos de admin
+  const requester = await User.findById(userId).lean();
+  const isAdmin = requester?.role === 'ADMIN';
+
   if (payload.languageId) {
     const lang = await Language.findById(payload.languageId).lean();
     if (!lang) throw new NotFoundError('Language not found');
@@ -195,6 +223,25 @@ export async function update(userId: string, id: string, payload: Partial<any>) 
   if (payload.baseXp !== undefined) ex.baseXp = Number(payload.baseXp);
   if (payload.codeTemplate !== undefined) ex.codeTemplate = String(payload.codeTemplate);
   if (payload.status !== undefined) ex.status = payload.status;
+  // Alterações de badges apenas por administradores
+  if (isAdmin) {
+    if (payload.triumphantBadgeId !== undefined) {
+      ex.triumphantBadgeId = payload.triumphantBadgeId
+        ? new Types.ObjectId(String(payload.triumphantBadgeId))
+        : null as any;
+    }
+    if (payload.badgeRarity !== undefined) {
+      ex.badgeRarity = payload.badgeRarity as any;
+    }
+    if (payload.highScoreBadgeId !== undefined) {
+      ex.highScoreBadgeId = payload.highScoreBadgeId
+        ? new Types.ObjectId(String(payload.highScoreBadgeId))
+        : null as any;
+    }
+    if (payload.highScoreThreshold !== undefined) {
+      ex.highScoreThreshold = Number(payload.highScoreThreshold);
+    }
+  }
 
   await ex.save();
   return sanitize(ex.toObject());
@@ -204,6 +251,32 @@ export async function remove(userId: string, id: string) {
   const ex = await Exercise.findById(id);
   if (!ex) return;
   if (String(ex.authorUserId) !== userId) throw new ForbiddenError('Only author can delete');
+
+  // Cascade delete: remove forum and related topics/comments linked to this exercise
+  try {
+    const forums = await Forum.find({ exerciseId: ex._id }).select('_id').lean();
+    if (forums.length > 0) {
+      const forumIds = forums.map(f => f._id);
+
+      // Remove comments linked directly to forum
+      await ForumComment.deleteMany({ forumId: { $in: forumIds } });
+
+      // Remove topics and their comments
+      const topics = await ForumTopic.find({ forumId: { $in: forumIds } }).select('_id').lean();
+      const topicIds = topics.map(t => t._id);
+      if (topicIds.length > 0) {
+        await ForumComment.deleteMany({ topicId: { $in: topicIds } });
+      }
+      await ForumTopic.deleteMany({ forumId: { $in: forumIds } });
+
+      // Finally remove forums
+      await Forum.deleteMany({ _id: { $in: forumIds } });
+    }
+  } catch (e) {
+    // If cascade fails, still attempt to delete the exercise to avoid partial failures
+    // You may enhance with logging later
+  }
+
   await ex.deleteOne();
 }
 
@@ -282,6 +355,16 @@ function sanitize(e: any) {
     codeTemplate: e.codeTemplate,
     publicCode: e.publicCode || null,
     status: e.status,
+    triumphantBadgeId: e.triumphantBadgeId ? String(e.triumphantBadgeId) : null,
+    badgeRarity: e.badgeRarity || 'COMMON',
+    highScoreBadgeId: e.highScoreBadgeId ? String(e.highScoreBadgeId) : null,
+    highScoreThreshold: typeof e.highScoreThreshold === 'number' ? e.highScoreThreshold : 90,
+    highScoreAwarded: !!e.highScoreAwarded,
+    highScoreWinnerUserId: e.highScoreWinnerUserId ? String(e.highScoreWinnerUserId) : null,
+    highScoreWinnerSubmissionId: e.highScoreWinnerSubmissionId ? String(e.highScoreWinnerSubmissionId) : null,
+    highScoreWinnerScore: typeof e.highScoreWinnerScore === 'number' ? e.highScoreWinnerScore : null,
+    highScoreWinnerTime: typeof e.highScoreWinnerTime === 'number' ? e.highScoreWinnerTime : null,
+    highScoreAwardedAt: e.highScoreAwardedAt || null,
     createdAt: e.createdAt,
     updatedAt: e.updatedAt
   };

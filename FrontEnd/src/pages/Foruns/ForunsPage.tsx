@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import AuthenticatedLayout from '@/components/Layout/AuthenticatedLayout'
 import { forunsService } from '@/services/forum.services'
+import { exercisesService } from '@/services/exercises.service'
 import { forumTopicService } from '@/services/forumTopic.service'
 import { userService } from '@/services/user.service'
 import { useAuth } from '@/contexts/AuthContext'
@@ -21,6 +22,7 @@ export default function ForunsPage() {
   const [ownerNames, setOwnerNames] = useState<Record<string, string>>({})
   const [ownerAvatars, setOwnerAvatars] = useState<Record<string, string | null>>({})
   const [topicCounts, setTopicCounts] = useState<Record<string, number>>({})
+  const [exerciseStatuses, setExerciseStatuses] = useState<Record<string, 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | null>>({})
   const navigate = useNavigate()
 
   const carregarForuns = async () => {
@@ -114,6 +116,30 @@ export default function ForunsPage() {
     fetchTopicCounts()
   }, [foruns])
 
+  // Buscar status do desafio para cada fórum com exerciseId
+  useEffect(() => {
+    const fetchExerciseStatuses = async () => {
+      try {
+        const pairs = await Promise.all(
+          (foruns || [])
+            .filter((f) => !!f.exerciseId)
+            .map(async (f) => {
+              try {
+                const ex = await exercisesService.getById(String(f.exerciseId))
+                return [f._id, ex.status as 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'] as const
+              } catch {
+                return [f._id, null] as const
+              }
+            })
+        )
+        const map: Record<string, 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | null> = {}
+        pairs.forEach(([id, status]) => { map[id] = status })
+        setExerciseStatuses((prev) => ({ ...prev, ...map }))
+      } catch {}
+    }
+    if (foruns.length > 0) fetchExerciseStatuses()
+  }, [foruns])
+
   const forunsFiltrados = useMemo(() => {
     return foruns.filter((forum) => {
       const termo = busca.toLowerCase()
@@ -161,10 +187,14 @@ export default function ForunsPage() {
           </S.NoResults>
         ) : (
           <S.ForumList>
-            {forunsFiltrados.map((forum) => (
+            {forunsFiltrados.map((forum) => {
+              const status = exerciseStatuses[forum._id]
+              const isActive = status === 'PUBLISHED'
+              return (
               <S.ForumCard
                 key={forum._id}
                 onClick={() => navigate(`/foruns/${forum._id}`)}
+                $inactive={!isActive}
               >
                 <S.CardTopGrid>
                   <div>
@@ -188,8 +218,13 @@ export default function ForunsPage() {
                 <S.CardMeta>
                   <S.MetaItem>🧩 Tópicos: {topicCounts[forum._id] ?? 0}</S.MetaItem>
                 </S.CardMeta>
+                {!isActive && (
+                  <S.InactiveOverlay>
+                    <S.InactiveLabel>INATIVO</S.InactiveLabel>
+                  </S.InactiveOverlay>
+                )}
               </S.ForumCard>
-            ))}
+            )})}
           </S.ForumList>
         )}
 

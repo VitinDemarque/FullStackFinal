@@ -110,7 +110,12 @@ export async function atualizar(req: AuthenticatedRequest, res: Response, next: 
       return res.status(401).json({ mensagem: 'Usuário não autenticado.' })
 
     const { id } = req.params
-    const atualizado = await ForumService.atualizar(id, req.user.user_id, req.body)
+    const atualizado = await ForumService.atualizar(
+      id,
+      req.user.user_id,
+      req.body,
+      req.user.role === 'ADMIN' ? 'ADMIN' : 'USER'
+    )
     return res.json(atualizado)
   } catch (err) {
     return next(err)
@@ -124,7 +129,11 @@ export async function excluir(req: AuthenticatedRequest, res: Response, next: Ne
       return res.status(401).json({ mensagem: 'Usuário não autenticado.' })
 
     const { id } = req.params
-    const deletado = await ForumService.excluir(id, req.user.user_id)
+    const deletado = await ForumService.excluir(
+      id,
+      req.user.user_id,
+      req.user.role === 'ADMIN' ? 'ADMIN' : 'USER'
+    )
     return res.json(deletado)
   } catch (err) {
     return next(err)

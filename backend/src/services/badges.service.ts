@@ -1,4 +1,5 @@
 import Badge from '../models/Badge.model';
+import Exercise from '../models/Exercise.model';
 import UserBadge from '../models/UserBadge.model';
 import { NotFoundError } from '../utils/httpErrors';
 import { Types } from 'mongoose';
@@ -47,6 +48,10 @@ export async function grantToUser(userId: string, badgeId: string, source?: stri
   );
 }
 
+export async function revokeFromUser(userId: string, badgeId: string) {
+  await UserBadge.deleteOne({ userId: new Types.ObjectId(userId), badgeId: new Types.ObjectId(badgeId) });
+}
+
 export async function getUserBadges(userId: string) {
   const userBadges = await UserBadge.find({ userId: new Types.ObjectId(userId) })
     .populate('badgeId')
@@ -58,4 +63,27 @@ export async function getUserBadges(userId: string) {
     awardedAt: ub.awardedAt,
     source: ub.source
   }));
+}
+
+// Concede badges triunfantes vinculados a um exercício concluído
+export async function grantTriumphantBadgesForExerciseCompletion(userId: string, exerciseId: string) {
+  // primeiro tenta pelo campo direto do exercício (configuração do admin)
+  const ex = await Exercise.findById(exerciseId).lean();
+  let rarity: 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY' = 'COMMON';
+  if (ex && ex.badgeRarity) rarity = ex.badgeRarity as any;
+
+  if (ex && ex.triumphantBadgeId) {
+    await grantToUser(userId, String(ex.triumphantBadgeId), `exerciseComplete:${rarity}`);
+    return;
+  }
+
+  // fallback: badges com linkedExerciseId
+  const triumphantBadges = await Badge.find({
+    isTriumphant: true,
+    linkedExerciseId: new Types.ObjectId(exerciseId)
+  }).lean();
+
+  for (const b of triumphantBadges) {
+    await grantToUser(userId, String(b._id), `exerciseComplete:${rarity}`);
+  }
 }

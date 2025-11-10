@@ -4,6 +4,7 @@ import AuthenticatedLayout from '@/components/Layout/AuthenticatedLayout'
 import { forumTopicService } from '@/services/forumTopic.service'
 import { forumCommentService } from '@/services/forumComment.service'
 import { forunsService } from '@/services/forum.services'
+import { exercisesService } from '@/services/exercises.service'
 import { useAuth } from '@/contexts/AuthContext'
 import * as S from '@/styles/pages/Foruns/styles'
 import type { ForumComment, ForumTopic } from '@/types/forum'
@@ -23,6 +24,7 @@ export default function TopicoPage() {
   const formSectionRef = useRef<HTMLDivElement | null>(null)
   const [forumOwnerId, setForumOwnerId] = useState<string | null>(null)
   const [excluindoId, setExcluindoId] = useState<string | null>(null)
+  const [exerciseStatus, setExerciseStatus] = useState<'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | null>(null)
 
   useEffect(() => {
     const carregar = async () => {
@@ -38,6 +40,12 @@ export default function TopicoPage() {
         try {
           const forum = await forunsService.getById(t.forumId)
           setForumOwnerId(forum?.donoUsuarioId ?? null)
+          if (forum?.exerciseId) {
+            try {
+              const ex = await exercisesService.getById(String(forum.exerciseId))
+              setExerciseStatus(ex.status as any)
+            } catch {}
+          }
         } catch {}
         const list = await forumCommentService.listarPorTopico(topicId)
         setComentarios(list)
@@ -90,6 +98,8 @@ export default function TopicoPage() {
     }
   }
 
+  const isExerciseActive = exerciseStatus === 'PUBLISHED'
+
   return (
     <AuthenticatedLayout>
       <S.Container>
@@ -99,11 +109,17 @@ export default function TopicoPage() {
         {erro && <S.Error>{erro}</S.Error>}
 
         {topico && (
-          <S.DetailContainer>
+          <S.DetailContainer $inactive={!isExerciseActive}>
             <S.DetailTitle>{topico.titulo}</S.DetailTitle>
             <S.DetailText style={{ whiteSpace: 'pre-wrap', marginBottom: '1rem' }}>
               {topico.conteudo}
             </S.DetailText>
+
+            {!isExerciseActive && (
+              <S.InactiveOverlay>
+                <S.InactiveLabel>INATIVO</S.InactiveLabel>
+              </S.InactiveOverlay>
+            )}
 
             <S.DetailSection>
               <S.CommentsHeader>Comentários</S.CommentsHeader>

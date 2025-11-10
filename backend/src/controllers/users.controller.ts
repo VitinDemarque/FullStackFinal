@@ -4,6 +4,9 @@ import { AuthenticatedRequest } from '../middlewares/auth';
 import * as UsersService from '../services/users.service';
 import * as StatsService from '../services/stats.service';
 import * as BadgesService from '../services/badges.service';
+import Badge from '../models/Badge.model';
+import User from '../models/User.model';
+import UserStat from '../models/UserStat.model';
 import { BadRequestError, NotFoundError } from '../utils/httpErrors';
 import { parsePagination, toMongoPagination } from '../utils/pagination';
 import { saveDataUrlAvatar } from '../utils/avatar';
@@ -134,6 +137,64 @@ export async function uploadMyAvatar(req: AuthenticatedRequest, res: Response, n
     const avatarUrl = saveDataUrlAvatar(req.user.user_id, dataUrl);
     const updated = await UsersService.updateById(req.user.user_id, { avatarUrl });
     return res.json(updated);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+// Verifica e concede conquistas normais (baseadas em estatísticas do site/app)
+export async function checkAndAwardBadges(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params;
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestError('Invalid user ID format');
+    }
+
+    // Carrega usuário e estatísticas
+    const [user, stats] = await Promise.all([
+      User.findById(id).lean(),
+      UserStat.findOne({ userId: new Types.ObjectId(id) }).lean()
+    ]);
+
+    if (!user) throw new NotFoundError('User not found');
+
+    const xpTotal = Number(user.xpTotal ?? 0);
+    const level = Number(user.level ?? 0);
+    const solved = Number(stats?.exercisesSolvedCount ?? 0);
+    const created = Number(stats?.exercisesCreatedCount ?? 0);
+
+    // Busca badges normais com regras
+    const ruleBadges = await Badge.find({ isTriumphant: { $ne: true }, ruleCode: { $ne: null } }).lean();
+
+    const awardedNow: any[] = [];
+
+    for (const b of ruleBadges) {
+      const rule = String(b.ruleCode);
+      let meets = false;
+
+      // Formatos suportados: EXERCISES_SOLVED_AT_LEAST_N, EXERCISES_CREATED_AT_LEAST_N, XP_TOTAL_AT_LEAST_N, LEVEL_AT_LEAST_N
+      const solvedMatch = rule.match(/^EXERCISES_SOLVED_AT_LEAST_(\d+)$/);
+      const createdMatch = rule.match(/^EXERCISES_CREATED_AT_LEAST_(\d+)$/);
+      const xpMatch = rule.match(/^XP_TOTAL_AT_LEAST_(\d+)$/);
+      const levelMatch = rule.match(/^LEVEL_AT_LEAST_(\d+)$/);
+
+      if (solvedMatch) {
+        meets = solved >= Number(solvedMatch[1]);
+      } else if (createdMatch) {
+        meets = created >= Number(createdMatch[1]);
+      } else if (xpMatch) {
+        meets = xpTotal >= Number(xpMatch[1]);
+      } else if (levelMatch) {
+        meets = level >= Number(levelMatch[1]);
+      }
+
+      if (meets) {
+        await BadgesService.grantToUser(id, String(b._id), 'statsCheck');
+        awardedNow.push(b);
+      }
+    }
+
+    return res.json(awardedNow);
   } catch (err) {
     return next(err);
   }

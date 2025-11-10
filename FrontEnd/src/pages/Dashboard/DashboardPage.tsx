@@ -9,6 +9,7 @@ import { exercisesService, statsService } from "@services/index";
 import { useFetch } from "@hooks/useFetch";
 import type { Exercise } from "../../types";
 import type { DashboardStats as DashboardStatsType } from "@services/stats.service";
+import { deriveLevelFromXp } from "@utils/levels";
 import {
   SkeletonCard,
   SkeletonHeader,
@@ -64,6 +65,10 @@ export default function DashboardPage() {
   };
   const publishedExercises = data?.publishedExercises || [];
 
+  // Cálculo consistente de nível a partir do XP total
+  const currentXpTotal = (user as any)?.xpTotal ?? 0;
+  const currentLevel = deriveLevelFromXp(currentXpTotal);
+
   const handleSubmitChallenge = async (code: string, timeSpent: number) => {
     alert("Submissão recebida! (IA de correção será implementada em breve)");
     setSelectedExercise(null);
@@ -108,14 +113,14 @@ export default function DashboardPage() {
               <S.StatCard $variant="trophy">
                 <FaTrophy />
                 <div>
-                  <S.StatValue>Level {user?.level || 1}</S.StatValue>
+                  <S.StatValue>Level {currentLevel}</S.StatValue>
                   <S.StatLabel>Seu Nível</S.StatLabel>
                 </div>
               </S.StatCard>
               <S.StatCard $variant="star">
                 <FaStar />
                 <div>
-                  <S.StatValue>{user?.xpTotal || 0} XP</S.StatValue>
+                  <S.StatValue>{currentXpTotal} XP</S.StatValue>
                   <S.StatLabel>Experiência</S.StatLabel>
                 </div>
               </S.StatCard>

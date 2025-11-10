@@ -297,12 +297,17 @@ export const StatValue = styled.p`
 // ============================================
 
 export const XpProgressContainer = styled.div`
-  max-width: 400px;
-  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 0.5rem auto 0;
 `
 
 export const XpProgressBar = styled.div`
   width: 100%;
+  max-width: 400px;
   height: 8px;
   background: var(--color-border);
   border-radius: ${theme.borderRadius.full};
@@ -319,6 +324,29 @@ export const XpProgressFill = styled.div<XpProgressFillProps>`
   background: var(--gradient-blue);
   border-radius: ${theme.borderRadius.full};
   transition: width 0.5s ease;
+`
+
+export const XpProgressPercentContainer = styled.div`
+  width: 100%;
+  max-width: 400px;
+  margin: 0.25rem auto 0;
+  position: relative;
+  height: 20px;
+`
+
+interface XpProgressPercentProps {
+  $progress: number
+}
+
+export const XpProgressPercent = styled.span<XpProgressPercentProps>`
+  position: absolute;
+  top: 0;
+  left: ${(props) => `${Math.max(0, Math.min(100, props.$progress))}%`};
+  transform: translateX(-50%);
+  font-size: ${theme.fontSizes.sm};
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  pointer-events: none;
 `
 
 // ============================================
@@ -410,6 +438,21 @@ export const BadgePedestal = styled.div`
   background: ${theme.gradients.blue};
   border-radius: ${theme.borderRadius.full};
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+`
+
+export const RarityOutline = styled.div<{ $rarity: 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY' }>`
+  padding: 6px;
+  border-radius: ${theme.borderRadius.full};
+  border: 3px solid
+    ${(props) => {
+      switch (props.$rarity) {
+        case 'RARE': return theme.colors.blue[400];
+        case 'EPIC': return theme.colors.primary;
+        case 'LEGENDARY': return theme.colors.yellow[500];
+        default: return theme.colors.gray[300];
+      }
+    }};
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
 `
 
 // ============================================

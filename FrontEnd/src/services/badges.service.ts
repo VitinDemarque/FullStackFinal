@@ -7,6 +7,9 @@ export interface Badge {
   icon?: string
   type: 'gold' | 'silver' | 'bronze' | 'special'
   requirement?: string
+  isTriumphant?: boolean
+  linkedExerciseId?: string | null
+  rarity?: 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY'
 }
 
 export interface UserBadge {
@@ -18,7 +21,11 @@ export const badgesService = {
   async getAll(): Promise<Badge[]> {
     try {
       const response = await apiRequest<any>('GET', '/badges')
-      return response.data || response
+      const data = response?.data ?? response
+      if (Array.isArray(data)) return data
+      if (Array.isArray(data?.data)) return data.data
+      if (Array.isArray(data?.results)) return data.results
+      return []
     } catch (error) {
       return createMockBadges()
     }
@@ -41,6 +48,23 @@ export const badgesService = {
       return []
     }
   },
+
+  async create(data: { name: string; description?: string; iconUrl?: string; isTriumphant?: boolean; linkedExerciseId?: string | null; rarity?: 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY' }): Promise<Badge> {
+    const response = await apiRequest<any>('POST', '/badges', data)
+    const created = response?.data ?? response
+    // normalize backend badge to frontend Badge shape
+    return {
+      _id: String(created._id ?? created.id),
+      name: created.name,
+      description: created.description ?? '',
+      icon: created.iconUrl ?? created.icon ?? undefined,
+      type: 'special',
+      requirement: created.requirement ?? undefined,
+      isTriumphant: Boolean(created.isTriumphant ?? false),
+      linkedExerciseId: created.linkedExerciseId ?? null,
+      rarity: created.rarity ?? data.rarity
+    }
+  }
 }
 
 function createMockBadges(): Badge[] {

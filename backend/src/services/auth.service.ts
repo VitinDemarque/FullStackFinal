@@ -44,7 +44,7 @@ export async function signup(input: SignupInput) {
     handle,
     passwordHash,
     collegeId: collegeId ? new Types.ObjectId(collegeId) : undefined,
-    level: 1,
+    level: 0,
     xpTotal: 0
   });
 

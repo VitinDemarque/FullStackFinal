@@ -22,6 +22,7 @@ export default function EditExerciseModal({ isOpen, onClose, onSubmit, exercise 
     languageId: undefined
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
 
   // Preencher formulário quando o exercício for carregado
   useEffect(() => {
@@ -41,7 +42,11 @@ export default function EditExerciseModal({ isOpen, onClose, onSubmit, exercise 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title.trim()) return;
+    if (!formData.title.trim() || !formData.subject.trim() || !formData.description.trim() ||
+        !formData.codeTemplate.trim()) {
+      setFormError('Preencha todos os campos obrigatórios: Título, Assunto, Descrição e Template de Código.');
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -65,6 +70,7 @@ export default function EditExerciseModal({ isOpen, onClose, onSubmit, exercise 
       isPublic: true,
       languageId: undefined
     });
+    setFormError('');
     onClose();
   };
 
@@ -111,24 +117,27 @@ export default function EditExerciseModal({ isOpen, onClose, onSubmit, exercise 
           </S.FieldGroup>
 
           <S.FieldGroup>
-            <S.Label htmlFor="description">Descrição</S.Label>
+            <S.Label htmlFor="description">Descrição *</S.Label>
             <S.TextArea
               id="description"
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
               placeholder="Descreva o exercício..."
               rows={3}
+              required
             />
           </S.FieldGroup>
 
           <S.Row>
             <S.FieldGroup>
-              <S.Label htmlFor="difficulty">Dificuldade</S.Label>
+              <S.Label htmlFor="difficulty">Dificuldade *</S.Label>
               <S.Select
                 id="difficulty"
-                value={formData.difficulty}
+                value={formData.difficulty ?? ''}
                 onChange={(e) => handleInputChange('difficulty', parseInt(e.target.value))}
+                required
               >
+                <option value="">Selecione</option>
                 <option value={1}>Fácil</option>
                 <option value={2}>Médio</option>
                 <option value={3}>Intermediário</option>
@@ -138,25 +147,27 @@ export default function EditExerciseModal({ isOpen, onClose, onSubmit, exercise 
             </S.FieldGroup>
 
             <S.FieldGroup>
-              <S.Label htmlFor="baseXp">XP Base</S.Label>
+              <S.Label htmlFor="baseXp">XP Base *</S.Label>
               <S.Input
                 id="baseXp"
                 type="number"
                 min="0"
                 value={formData.baseXp}
                 onChange={(e) => handleInputChange('baseXp', parseInt(e.target.value))}
+                required
               />
             </S.FieldGroup>
           </S.Row>
 
           <S.FieldGroup>
-            <S.Label htmlFor="codeTemplate">Template de Código</S.Label>
+            <S.Label htmlFor="codeTemplate">Template de Código *</S.Label>
             <S.CodeTextArea
               id="codeTemplate"
               value={formData.codeTemplate}
               onChange={(e) => handleInputChange('codeTemplate', e.target.value)}
               placeholder="// Digite o código inicial..."
               rows={6}
+              required
             />
           </S.FieldGroup>
 
@@ -174,6 +185,10 @@ export default function EditExerciseModal({ isOpen, onClose, onSubmit, exercise 
             </S.CheckboxGroup>
           </S.FieldGroup>
 
+          {formError && (
+            <S.FormAlert aria-live="polite">{formError}</S.FormAlert>
+          )}
+
           <S.ButtonGroup>
             <S.CancelButton type="button" onClick={handleClose}>
               Cancelar
@@ -182,7 +197,7 @@ export default function EditExerciseModal({ isOpen, onClose, onSubmit, exercise 
               {isSubmitting ? 'Salvando...' : 'Salvar Alterações'}
             </S.SubmitButton>
           </S.ButtonGroup>
-        </S.Form>
+      </S.Form>
       </S.Modal>
     </S.Overlay>
   );

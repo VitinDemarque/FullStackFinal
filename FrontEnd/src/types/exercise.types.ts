@@ -14,6 +14,10 @@ export interface Exercise {
   codeTemplate: string;
   status: ExerciseStatus;
   publicCode?: string;
+  triumphantBadgeId?: string | null;
+  badgeRarity?: 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY';
+  highScoreBadgeId?: string | null;
+  highScoreThreshold?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,6 +31,10 @@ export interface CreateExerciseData {
   isPublic: boolean;
   languageId?: string;
   groupId?: string;
+  triumphantBadgeId?: string;
+  badgeRarity?: 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY';
+  highScoreBadgeId?: string;
+  highScoreThreshold?: number;
 }
 
 export interface UpdateExerciseData {
@@ -38,6 +46,10 @@ export interface UpdateExerciseData {
   isPublic?: boolean;
   languageId?: string;
   status?: ExerciseStatus;
+  triumphantBadgeId?: string | null;
+  badgeRarity?: 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY';
+  highScoreBadgeId?: string | null;
+  highScoreThreshold?: number;
 }
 
 export interface ExerciseFilters {

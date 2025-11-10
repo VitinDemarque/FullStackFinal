@@ -16,6 +16,16 @@ export interface IExercise {
   codeTemplate: string;   // código pré-pronto
   publicCode?: string;    // código público amigável (ex.: #ASFS0001)
   status: ExerciseStatus;
+  triumphantBadgeId?: Types.ObjectId | null;  // badge concedido ao concluir
+  badgeRarity?: 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY'; // raridade visual e multiplicador de XP
+  highScoreBadgeId?: Types.ObjectId | null; // badge especial para alta pontuação
+  highScoreThreshold?: number; // porcentagem mínima de score p/ alta pontuação (0..100)
+  highScoreAwarded?: boolean; // se já foi concedido ao vencedor
+  highScoreWinnerUserId?: Types.ObjectId | null;
+  highScoreWinnerSubmissionId?: Types.ObjectId | null;
+  highScoreWinnerScore?: number | null;
+  highScoreWinnerTime?: number | null; // em ms
+  highScoreAwardedAt?: Date | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -33,7 +43,17 @@ const ExerciseSchema = new Schema<IExercise>(
     isPublic: { type: Boolean, default: true, index: true },
     codeTemplate: { type: String, required: true, default: '// start coding...' },
     publicCode: { type: String, unique: true, index: true },
-    status: { type: String, enum: ['DRAFT', 'PUBLISHED', 'ARCHIVED'], default: 'DRAFT', index: true }
+    status: { type: String, enum: ['DRAFT', 'PUBLISHED', 'ARCHIVED'], default: 'DRAFT', index: true },
+    triumphantBadgeId: { type: Schema.Types.ObjectId, ref: 'Badge', default: null, index: true },
+    badgeRarity: { type: String, enum: ['COMMON', 'RARE', 'EPIC', 'LEGENDARY'], default: 'COMMON' },
+    highScoreBadgeId: { type: Schema.Types.ObjectId, ref: 'Badge', default: null },
+    highScoreThreshold: { type: Number, default: 90, min: 0, max: 100 },
+    highScoreAwarded: { type: Boolean, default: false, index: true },
+    highScoreWinnerUserId: { type: Schema.Types.ObjectId, ref: 'User', default: null },
+    highScoreWinnerSubmissionId: { type: Schema.Types.ObjectId, ref: 'Submission', default: null },
+    highScoreWinnerScore: { type: Number, default: null },
+    highScoreWinnerTime: { type: Number, default: null },
+    highScoreAwardedAt: { type: Date, default: null }
   },
   { timestamps: true }
 );

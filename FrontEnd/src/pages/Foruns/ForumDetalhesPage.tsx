@@ -5,6 +5,7 @@ import AuthenticatedLayout from '@/components/Layout/AuthenticatedLayout'
 import ModalEditarForum from '@/components/Forum/ModalEditarForum'
 import ConfirmationModal from '@/components/ConfirmationModal'
 import { forunsService } from '@/services/forum.services'
+import { exercisesService } from '@/services/exercises.service'
 import { userService } from '@/services/user.service'
 import { forumTopicService } from '@/services/forumTopic.service'
 import type { Forum, ForumTopic } from '@/types/forum'
@@ -36,6 +37,7 @@ export default function ForumDetalhesPage() {
   const [confirmarExclusaoTopicoId, setConfirmarExclusaoTopicoId] = useState<string | null>(null);
   const [mostrarTodosTopicos, setMostrarTodosTopicos] = useState(false);
   const [buscaTopico, setBuscaTopico] = useState('');
+  const [exerciseStatus, setExerciseStatus] = useState<'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | null>(null);
 
   const createSectionRef = useRef<HTMLDivElement | null>(null);
   const titleInputRef = useRef<HTMLInputElement | null>(null);
@@ -62,6 +64,14 @@ export default function ForumDetalhesPage() {
 
         const data = await forunsService.getById(id);
         setForum(data);
+
+        // Buscar status do desafio ligado ao fórum para exibir estado inativo nos tópicos
+        if (data.exerciseId) {
+          try {
+            const ex = await exercisesService.getById(String(data.exerciseId));
+            setExerciseStatus(ex.status as any);
+          } catch {}
+        }
 
         if (data.donoUsuarioId) {
           const donoUser = await userService.getById(data.donoUsuarioId);
@@ -166,6 +176,7 @@ export default function ForumDetalhesPage() {
   };
 
   const isOwner = !!usuarioAtual && !!forum && String(forum.donoUsuarioId || '') === String(usuarioAtual._id || usuarioAtual.id || '');
+  const isAdmin = (usuarioAtual as any)?.role === 'ADMIN';
 
   const handleExcluirForum = async () => {
     if (!forum) return;
@@ -230,6 +241,8 @@ export default function ForumDetalhesPage() {
     }
   };
   
+  const isExerciseActive = exerciseStatus === 'PUBLISHED';
+  
 
     return (
         <AuthenticatedLayout>
@@ -247,7 +260,7 @@ export default function ForumDetalhesPage() {
                             <S.DetailText>
                                 {forum.descricao || 'Sem descrição'}
                             </S.DetailText>
-                            {isOwner && (
+                            {(isOwner || isAdmin) && (
                               <S.ActionsRow>
                                 <S.Button variant="secondary" onClick={() => setMostrarEditar(true)}>✏️ Editar Fórum</S.Button>
                                 <S.Button variant="danger" onClick={() => setConfirmarExclusao(true)}>🗑️ Excluir Fórum</S.Button>
@@ -317,7 +330,7 @@ export default function ForumDetalhesPage() {
                                         <>
                                           <S.TopicList>
                                             {topicosVisiveis.map((t) => (
-                                                <S.TopicCard key={t._id} menuAberto={menuAbertoId === t._id}>
+                                                <S.TopicCard key={t._id} menuAberto={menuAbertoId === t._id} $inactive={!isExerciseActive}>
                                                     <S.TopicHeader>
                                                         {editandoTopicoId === t._id ? (
                                                           <>
@@ -374,6 +387,11 @@ export default function ForumDetalhesPage() {
                                                           </>
                                                         )}
                                                     </S.TopicActions>
+                                                    {!isExerciseActive && (
+                                                      <S.InactiveOverlay>
+                                                        <S.InactiveLabel>INATIVO</S.InactiveLabel>
+                                                      </S.InactiveOverlay>
+                                                    )}
                                                 </S.TopicCard>
                                             ))}
                                           </S.TopicList>

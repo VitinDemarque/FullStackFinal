@@ -187,14 +187,20 @@ export async function criar(usuarioId: string, payload: Partial<IForum>) {
 }
 
 // Atualizar informações de um fórum, com a regra de negocio implementada
-export async function atualizar(id: string, usuarioId: string, payload: Partial<IForum>) {
+export async function atualizar(
+  id: string,
+  usuarioId: string,
+  payload: Partial<IForum>,
+  requesterRole?: 'ADMIN' | 'USER'
+) {
   const forum = await Forum.findById(id).lean<IForum | null>();
   if (!forum) throw new NotFoundError('Fórum não encontrado');
 
   const seDono = String(forum.donoUsuarioId) === usuarioId;
   const seModerador = forum.moderadores?.some(m => String(m.usuarioId) === usuarioId);
+  const isAdmin = requesterRole === 'ADMIN';
 
-  if (!seDono && !seModerador) {
+  if (!seDono && !seModerador && !isAdmin) {
     throw new BadRequestError('Apenas o dono ou moderadores podem alterar este fórum.');
   }
 
@@ -227,7 +233,7 @@ export async function atualizar(id: string, usuarioId: string, payload: Partial<
       mudancas: {
         camposAlterados: Object.keys(atualizacoes),
         usuarioAlteracaoId: new Types.ObjectId(usuarioId),
-        usuarioValidacaoId: seDono ? new Types.ObjectId(usuarioId) : null,
+        usuarioValidacaoId: (seDono || isAdmin) ? new Types.ObjectId(usuarioId) : null,
         data: new Date(),
         tipo: 'EDICAO',
       },
@@ -238,14 +244,15 @@ export async function atualizar(id: string, usuarioId: string, payload: Partial<
 }
 
 // Excluir um fórum (após confirmações)
-export async function excluir(id: string, usuarioId: string) {
+export async function excluir(id: string, usuarioId: string, requesterRole?: 'ADMIN' | 'USER') {
   const forum = await Forum.findById(id).lean<IForum | null>();
   if (!forum) throw new NotFoundError('Fórum não encontrado');
 
   const seDono = String(forum.donoUsuarioId) === usuarioId;
   const seModerador = forum.moderadores?.some((m) => String(m.usuarioId) === usuarioId);
+  const isAdmin = requesterRole === 'ADMIN';
 
-  if (!seDono && !seModerador) {
+  if (!seDono && !seModerador && !isAdmin) {
     throw new BadRequestError('Somente o dono ou moderadores podem solicitar exclusão.');
   }
 
@@ -264,7 +271,11 @@ export async function excluir(id: string, usuarioId: string) {
 
   const totalVotantes = 1 + moderadoresValidos.length; // dono + moderadores (sem duplicar dono)
   const totalVotos = votos.length;
-  const todosConcordaram = totalVotos >= totalVotantes;
+  let todosConcordaram = totalVotos >= totalVotantes;
+  if (isAdmin) {
+    // Admin tem poder para executar exclusão imediata
+    todosConcordaram = true;
+  }
 
   if (todosConcordaram) {
     // Exclusão em cascata: remover tópicos e comentários associados ao fórum

@@ -11,6 +11,7 @@ import College from '../models/College.model';
 import Exercise from '../models/Exercise.model';
 import UserStat from '../models/UserStat.model';
 import Submission from '../models/Submission.model';
+import LevelRule from '../models/LevelRule.model';
 
 async function seed() {
   try {
@@ -29,6 +30,7 @@ async function seed() {
       Exercise.deleteMany({}),
       UserStat.deleteMany({}),
       Submission.deleteMany({}),
+      LevelRule.deleteMany({}),
     ]);
     console.log('✅ Dados antigos removidos\n');
 
@@ -87,7 +89,7 @@ async function seed() {
         email: 'teste@example.com',
         passwordHash,
         collegeId: colleges[0]._id, // FAMINAS
-        level: 1,
+        level: 0,
         xpTotal: 0,
         bio: 'Usuário de teste principal',
         role: 'USER',
@@ -456,4 +458,19 @@ export default function TodoList() {
 
 // Executar seed
 seed();
+
+    // ==================== REGRAS DE NÍVEL ====================
+    console.log('🧭 Criando regras de nível (100, 150, 225, ...)');
+    const baseInc = 100;
+    const fator = 1.5;
+    const maxLevel = 30; // quantidade de níveis a popular
+    const levelRules: { level: number; minXp: number }[] = [];
+    let acumulado = 0;
+    for (let lvl = 1; lvl <= maxLevel; lvl++) {
+      const inc = Math.round(baseInc * Math.pow(fator, lvl - 1));
+      acumulado += inc;
+      levelRules.push({ level: lvl, minXp: acumulado });
+    }
+    await LevelRule.insertMany(levelRules);
+    console.log(`✅ ${levelRules.length} regras de nível criadas\n`);
 

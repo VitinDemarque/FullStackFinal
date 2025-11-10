@@ -38,6 +38,10 @@ export interface Exercise {
   codeTemplate: string
   publicCode?: string | null
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
+  triumphantBadgeId?: string | null
+  badgeRarity?: 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY'
+  highScoreBadgeId?: string | null
+  highScoreThreshold?: number
   createdAt: string
   updatedAt: string
 }

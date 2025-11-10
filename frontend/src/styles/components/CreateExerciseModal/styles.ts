@@ -224,3 +224,91 @@ export const SubmitButton = styled.button`
     transform: none;
   }
 `;
+
+// Inline controls para posicionar o botão "+" ao lado dos selects
+export const InlineControls = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+export const AddBadgeButton = styled.button`
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid ${({ theme }) => theme.colors.blue[400]};
+  background: linear-gradient(135deg, ${({ theme }) => theme.colors.blue[500]}, ${({ theme }) => theme.colors.blue[600]});
+  color: ${({ theme }) => theme.colors.white};
+  box-shadow: ${({ theme }) => theme.shadows.md};
+  cursor: pointer;
+  transition: ${({ theme }) => theme.transitions.base};
+
+  &:hover {
+    transform: translateY(-1px) scale(1.03);
+    box-shadow: ${({ theme }) => theme.shadows.lg};
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: ${({ theme }) => theme.shadows.sm};
+  }
+
+  &:focus-visible {
+    outline: 3px solid ${({ theme }) => theme.colors.blue[200]};
+    outline-offset: 2px;
+  }
+`;
+
+// Área de upload/previsualização do ícone do badge
+export const UploadArea = styled.button<{ $hasImage?: boolean }>`
+  width: 96px;
+  height: 96px;
+  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  border: 2px dashed ${({ theme }) => theme.colors.gray[300]};
+  background: ${({ theme }) => theme.colors.white};
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: ${({ theme }) => theme.colors.gray[500]};
+  cursor: pointer;
+  transition: ${({ theme }) => theme.transitions.base};
+  overflow: hidden;
+
+  ${({ $hasImage, theme }) => $hasImage ? `
+    border-style: solid;
+    border-color: ${theme.colors.gray[200]};
+    box-shadow: ${theme.shadows.md};
+  ` : ''}
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.blue[500]};
+    box-shadow: ${({ theme }) => theme.shadows.md};
+    transform: translateY(-1px);
+  }
+`;
+
+export const IconPreview = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
+export const UploadHint = styled.small`
+  display: block;
+  color: ${({ theme }) => theme.colors.gray[500]};
+  margin-top: 0.5rem;
+`;
+
+// Alerta simples para feedback de formulário
+export const FormAlert = styled.div`
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  background: ${({ theme }) => theme.colors.gray[100]};
+  color: ${({ theme }) => theme.colors.gray[700]};
+  font-size: 0.875rem;
+`;
