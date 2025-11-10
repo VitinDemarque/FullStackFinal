@@ -22,6 +22,9 @@ router.get('/:id/scoreboard', UsersController.getProfileScoreboard);
 router.get('/:id/badges', UsersController.getUserBadges);
 router.post('/:id/badges/check', UsersController.checkAndAwardBadges);
 
+// Titles do usuário
+router.get('/:id/titles', UsersController.getUserTitles);
+
 // Recursos por ID (admin ou dono) - deve vir por último
 router.get('/:id', auth(), UsersController.getById);
 router.patch('/:id', auth(), requireOwnership('id'), UsersController.updateById);

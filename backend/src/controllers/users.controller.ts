@@ -4,6 +4,8 @@ import { AuthenticatedRequest } from '../middlewares/auth';
 import * as UsersService from '../services/users.service';
 import * as StatsService from '../services/stats.service';
 import * as BadgesService from '../services/badges.service';
+import UserTitle from '../models/UserTitle.model';
+import Title from '../models/Title.model';
 import Badge from '../models/Badge.model';
 import User from '../models/User.model';
 import UserStat from '../models/UserStat.model';
@@ -127,12 +129,46 @@ export async function getUserBadges(req: Request, res: Response, next: NextFunct
   }
 }
 
+export async function getUserTitles(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params;
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestError('Invalid user ID format');
+    }
+
+    const titles = await UserTitle.find({ userId: new Types.ObjectId(id) })
+      .populate({ path: 'titleId', select: { name: 1, description: 1, minLevel: 1, minXp: 1 } })
+      .lean();
+
+    return res.json(
+      (titles ?? []).map((ut: any) => ({
+        _id: String(ut._id),
+        title: ut.titleId,
+        awardedAt: ut.awardedAt,
+        active: ut.active,
+      }))
+    );
+  } catch (err) {
+    return next(err);
+  }
+}
+
 export async function uploadMyAvatar(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     if (!req.user?.user_id) throw new NotFoundError('User not in token');
     const { dataUrl } = req.body ?? {};
     if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/')) {
       throw new BadRequestError('Invalid or missing dataUrl image');
+    }
+    // Validate image size (<= 5MB)
+    const match = /^data:(image\/\w+);base64,(.+)$/.exec(dataUrl);
+    if (!match) {
+      throw new BadRequestError('Invalid image data URL');
+    }
+    const base64 = match[2];
+    const buffer = Buffer.from(base64, 'base64');
+    if (buffer.length > 5 * 1024 * 1024) {
+      throw new BadRequestError('Imagem muito grande (máx 5MB)');
     }
     const avatarUrl = saveDataUrlAvatar(req.user.user_id, dataUrl);
     const updated = await UsersService.updateById(req.user.user_id, { avatarUrl });

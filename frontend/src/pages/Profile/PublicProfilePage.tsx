@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@components/Layout/AuthenticatedLayout'
 import { useFetch } from '@hooks/useFetch'
 import { userService } from '@services/user.service'
 import * as S from '@/styles/pages/Profile/styles'
+import { resolvePublicUrl } from '@services/api'
 import { FaAward } from 'react-icons/fa'
 
 export default function PublicProfilePage() {
@@ -22,7 +23,7 @@ export default function PublicProfilePage() {
           <S.AvatarContainer>
             <S.Avatar>
               {user?.avatarUrl ? (
-                <S.AvatarImage src={user.avatarUrl} alt={user.name} />
+                <S.AvatarImage src={resolvePublicUrl(user.avatarUrl)!} alt={user.name} />
               ) : (
                 <span>{user?.name?.charAt(0) ?? '?'}</span>
               )}

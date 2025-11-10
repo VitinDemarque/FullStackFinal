@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { FaFilter } from 'react-icons/fa';
 import AuthenticatedLayout from '@components/Layout/AuthenticatedLayout';
 import submissionsService from '../../services/submissions.service';
 import ExerciseCard from '@components/ExerciseCard';
@@ -12,6 +13,8 @@ import * as S from '@/styles/pages/Challenges/styles';
 
 export default function ChallengesPage() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [showFilter, setShowFilter] = useState(false);
+  const [filterStatus, setFilterStatus] = useState<'todos' | 'ativos' | 'inativos'>('todos');
   const [responsesCount, setResponsesCount] = useState<Record<string, number>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -199,9 +202,23 @@ export default function ChallengesPage() {
 
         <S.ExercisesSection>
           <S.YellowBackgroundShape />
-          <S.SectionTitle>
-            Meus Desafios ({exercises.length.toString().padStart(2, '0')})
-          </S.SectionTitle>
+          <S.SectionHeader>
+            <S.SectionTitle>
+              Meus Desafios ({exercises.length.toString().padStart(2, '0')})
+            </S.SectionTitle>
+            <div style={{ position: 'relative' }}>
+              <S.FilterIconButton aria-label="Filtrar" onClick={() => setShowFilter((s) => !s)}>
+                <FaFilter />
+              </S.FilterIconButton>
+              {showFilter && (
+                <S.FilterMenu>
+                  <S.FilterItem selected={filterStatus === 'todos'} onClick={() => { setFilterStatus('todos'); setShowFilter(false); }}>Todos</S.FilterItem>
+                  <S.FilterItem selected={filterStatus === 'ativos'} onClick={() => { setFilterStatus('ativos'); setShowFilter(false); }}>Ativos</S.FilterItem>
+                  <S.FilterItem selected={filterStatus === 'inativos'} onClick={() => { setFilterStatus('inativos'); setShowFilter(false); }}>Inativos</S.FilterItem>
+                </S.FilterMenu>
+              )}
+            </div>
+          </S.SectionHeader>
           
           {isLoading ? (
             <S.EmptyState>
@@ -209,7 +226,13 @@ export default function ChallengesPage() {
               <S.EmptyText>Carregando Desafios...</S.EmptyText>
             </S.EmptyState>
           ) : exercises.length > 0 ? (
-            exercises.map((exercise) => (
+            exercises
+              .filter((exercise) => {
+                if (filterStatus === 'todos') return true;
+                const isActive = exercise.status === 'PUBLISHED';
+                return filterStatus === 'ativos' ? isActive : !isActive;
+              })
+              .map((exercise) => (
               <ExerciseCard
                 key={exercise.id}
                 id={exercise.id}

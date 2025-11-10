@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@contexts/AuthContext";
 import { useAsync } from "@hooks/useAsync";
 import { userService } from "@services/user.service";
-import { api } from "@services/api";
+import { api, resolvePublicUrl } from "@services/api";
+import { titlesService } from "@services/titles.service";
 import { getProgressToNextLevel, deriveLevelFromXp } from "@utils/levels";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
 import {
@@ -27,6 +28,20 @@ interface Badge {
   requirement?: string;
 }
 
+interface Title {
+  _id: string;
+  name: string;
+  description?: string;
+  minLevel?: number;
+  minXp?: number;
+}
+
+interface UserTitleItem {
+  title: string | Title;
+  awardedAt?: string;
+  active?: boolean;
+}
+
 export default function ProfilePage() {
   const { user, updateUser } = useAuth();
   const navigate = useNavigate();
@@ -43,11 +58,15 @@ export default function ProfilePage() {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [showImageUpload, setShowImageUpload] = useState(false);
+  const [allTitles, setAllTitles] = useState<Title[]>([]);
+  const [userTitles, setUserTitles] = useState<UserTitleItem[]>([]);
+  const [loadingTitles, setLoadingTitles] = useState(true);
 
   useEffect(() => {
     if (user) {
       execute();
       loadBadges();
+      loadTitles();
 
       if (user.avatarUrl) {
         setProfileImage(user.avatarUrl);
@@ -89,6 +108,24 @@ export default function ProfilePage() {
       setUserBadges([]);
     } finally {
       setLoadingBadges(false);
+    }
+  }
+
+  async function loadTitles() {
+    try {
+      setLoadingTitles(true);
+      const [titlesRes, userTitlesRes] = await Promise.all([
+        titlesService.listAll(),
+        titlesService.getUserTitles(user!.id),
+      ]);
+      const items = (titlesRes as any)?.items || (titlesRes as any)?.data || titlesRes;
+      setAllTitles(Array.isArray(items) ? items : []);
+      setUserTitles(Array.isArray(userTitlesRes as any) ? (userTitlesRes as any) : []);
+    } catch (err) {
+      setAllTitles([]);
+      setUserTitles([]);
+    } finally {
+      setLoadingTitles(false);
     }
   }
 
@@ -223,11 +260,95 @@ export default function ProfilePage() {
     ];
   }
 
-  const triumphantBadges = allBadges.filter((b: any) => b.isTriumphant === true);
-  const normalBadges = allBadges.filter((b: any) => b.isTriumphant !== true);
-  const topBadges = triumphantBadges
-    .filter((badge) => userBadges.includes(badge._id))
-    .slice(0, 3);
+  const earnedBadges = allBadges.filter((b: any) => userBadges.includes(b._id));
+
+  function getTitleProgress(t: Title) {
+    const minLevel = Number(t.minLevel ?? 0);
+    const minXp = Number(t.minXp ?? 0);
+    const earned = userTitles.some((ut) => {
+      const tid = typeof ut.title === 'string' ? ut.title : (ut.title as any)?._id;
+      return tid && String(tid) === String(t._id);
+    });
+
+    const levelProgress = minLevel > 0 ? Math.min(100, (currentLevel / minLevel) * 100) : 0;
+    const xpProgress = minXp > 0 ? Math.min(100, (currentXpTotal / minXp) * 100) : 0;
+    const rawPercent = Math.round(Math.min(100, Math.max(levelProgress, xpProgress)));
+    const percent = earned ? 100 : rawPercent;
+
+    const remainingLevel = minLevel > 0 ? Math.max(0, minLevel - currentLevel) : 0;
+    const remainingXp = minXp > 0 ? Math.max(0, minXp - currentXpTotal) : 0;
+    const label = earned
+      ? 'Conquistado'
+      : minLevel > 0 && minXp > 0
+        ? `Falta ${remainingLevel} níveis e ${remainingXp} XP`
+        : minLevel > 0
+          ? `Falta ${remainingLevel} níveis`
+          : minXp > 0
+            ? `Falta ${remainingXp} XP`
+            : 'Em progresso';
+
+    return { earned, percent, label };
+  }
+
+  function getTitleHint(t: Title) {
+    const earned = userTitles.some((ut) => {
+      const tid = typeof ut.title === 'string' ? ut.title : (ut.title as any)?._id;
+      return tid && String(tid) === String(t._id);
+    });
+
+    if (earned) {
+      const ut = userTitles.find((u) => {
+        const tid = typeof u.title === 'string' ? u.title : (u.title as any)?._id;
+        return tid && String(tid) === String(t._id);
+      });
+      const when = ut?.awardedAt ? new Date(ut.awardedAt).toLocaleDateString() : undefined;
+      return `✅ Conquistado${when ? ` em ${when}` : ''}`;
+    }
+
+    const solved = Number((scoreboard as any)?.solved ?? 0);
+    const created = Number((scoreboard as any)?.created ?? 0);
+
+    // Mapeamento de requisitos por título (foco no que precisa fazer)
+    const name = (t.name || '').toLowerCase();
+    if (name === 'primeiro de muitos') {
+      const needed = 1;
+      const falta = Math.max(0, needed - solved);
+      return `Para ganhar: concluir 1 desafio. Você concluiu ${solved}. Falta ${falta}.`;
+    }
+    if (name === 'dev em ascensão') {
+      const needed = 10;
+      const falta = Math.max(0, needed - solved);
+      return `Para ganhar: concluir 10 desafios. Você concluiu ${solved}. Falta ${falta}.`;
+    }
+    if (name === 'lenda do terminal') {
+      const needed = 100;
+      const falta = Math.max(0, needed - solved);
+      return `Para ganhar: concluir 100 desafios. Você concluiu ${solved}. Falta ${falta}.`;
+    }
+    if (name === 'criador de bugs (sem querer)') {
+      const needed = 1;
+      const falta = Math.max(0, needed - created);
+      return `Para ganhar: criar seu primeiro desafio publicado. Você criou ${created}. Falta ${falta}.`;
+    }
+    if (name === 'quebrador de gelo') {
+      return 'Para ganhar: abrir seu primeiro tópico no fórum.';
+    }
+    if (name === 'palpiteiro de primeira viagem') {
+      return 'Para ganhar: fazer seu primeiro comentário em um tópico do fórum.';
+    }
+    if (name === 'recruta do código') {
+      return 'Para ganhar: entrar em um grupo pela primeira vez.';
+    }
+    if (name === 'fundador de equipe') {
+      return 'Para ganhar: criar seu primeiro grupo.';
+    }
+
+    // Padrão: usar a descrição como pista e orientar ação
+    if (t.description) {
+      return `Para ganhar: ${t.description}`;
+    }
+    return 'Para ganhar: conclua desafios, participe do fórum ou grupos.';
+  }
 
   async function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -250,8 +371,9 @@ export default function ProfilePage() {
         const dataUrl = reader.result as string;
         try {
           const updated = await userService.uploadAvatar(dataUrl);
-          setProfileImage(updated.avatarUrl || null);
-          updateUser({ avatarUrl: updated.avatarUrl || null });
+          const resolved = resolvePublicUrl(updated.avatarUrl || null);
+          setProfileImage(resolved);
+          updateUser({ avatarUrl: resolved || null });
           alert("✅ Foto de perfil atualizada com sucesso!");
         } catch (err) {
           alert("❌ Erro ao enviar a imagem ao servidor.");
@@ -272,7 +394,8 @@ export default function ProfilePage() {
       try {
         const updated = await userService.updateMe({ avatarUrl: null });
         setProfileImage(null);
-        updateUser({ avatarUrl: updated.avatarUrl || null });
+        const resolved = resolvePublicUrl(updated.avatarUrl || null);
+        updateUser({ avatarUrl: resolved || null });
         alert("✅ Foto de perfil removida!");
       } catch (err) {
         alert("❌ Erro ao remover a foto no servidor.");
@@ -368,81 +491,74 @@ export default function ProfilePage() {
 
         <S.AchievementsSection>
           <S.SectionTitle>
-            {"<"}CONQUISTAS TRIUNFANTES{">"}
+            {"<"}EMBLEMAS TRIUNFANTES{">"}
           </S.SectionTitle>
           <S.SectionSubtitle>
             Somente conquistas de maior prestígio ficam aqui
           </S.SectionSubtitle>
 
           {loadingBadges ? (
-            <S.LoadingBadges>Carregando conquistas...</S.LoadingBadges>
-          ) : hasAnyBadge && topBadges.length > 0 ? (
-            <S.TopBadges>
-              {topBadges.map((badge, index) => {
-                const rarity = userBadgeRarity[badge._id] || 'COMMON';
-                return (
-                  <S.TopBadge key={badge._id}>
-                    <S.RarityOutline $rarity={rarity}>
-                      <S.BadgeTrophy position={(index + 1) as 1 | 2 | 3}>
-                        <FaTrophy />
-                      </S.BadgeTrophy>
-                    </S.RarityOutline>
-                    <S.BadgePedestal />
-                  </S.TopBadge>
-                )
-              })}
-            </S.TopBadges>
-          ) : (
-            <S.NoBadgesMessage>
-              <FaLock />
-              <p>
-                Complete desafios para desbloquear suas primeiras conquistas!
-              </p>
-            </S.NoBadgesMessage>
-          )}
-        </S.AchievementsSection>
-
-        <S.AchievementsSection>
-          <S.SectionTitle>
-            {"<"}CONQUISTAS{">"}
-          </S.SectionTitle>
-
-          {loadingBadges ? (
-            <S.LoadingBadges>Carregando...</S.LoadingBadges>
-          ) : normalBadges.length > 0 ? (
+            <S.LoadingBadges>Carregando emblemas...</S.LoadingBadges>
+          ) : earnedBadges.length > 0 ? (
             <S.AllBadges>
-              {normalBadges.map((badge, index) => {
-                const isEarned = userBadges.includes(badge._id);
-                const icons = [
-                  FaTrophy,
-                  FaStar,
-                  FaMedal,
-                  FaAward,
-                  FaTrophy,
-                  FaStar,
-                ];
+              {earnedBadges.map((badge, index) => {
+                const icons = [FaTrophy, FaStar, FaMedal, FaAward, FaTrophy, FaStar];
                 const Icon = icons[index % icons.length];
-
+                const rarity = userBadgeRarity[badge._id] || 'COMMON';
                 return (
                   <S.BadgeItem
                     key={badge._id}
-                    isEarned={isEarned}
+                    isEarned={true}
                     colorIndex={index}
-                    title={
-                      isEarned
-                        ? badge.name
-                        : `🔒 ${badge.requirement || "Bloqueado"}`
-                    }
+                    title={badge.name}
                   >
-                    {isEarned ? <Icon /> : <FaLock />}
-                    <S.BadgeBase isEarned={isEarned} />
+                    <Icon />
+                    <S.BadgeBase isEarned={true} />
                   </S.BadgeItem>
                 );
               })}
             </S.AllBadges>
           ) : (
             <S.NoBadgesMessage>
-              <p>Nenhuma conquista disponível no momento.</p>
+              <FaLock />
+              <p>Nenhum emblema conquistado ainda.</p>
+            </S.NoBadgesMessage>
+          )}
+        </S.AchievementsSection>
+
+        <S.AchievementsSection>
+          <S.SectionTitle>{"<"}TITULOS{">"}</S.SectionTitle>
+
+          {loadingTitles ? (
+            <S.LoadingBadges>Carregando títulos...</S.LoadingBadges>
+          ) : allTitles.length > 0 ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '1rem', maxWidth: 1200, margin: '0 auto' }}>
+              {allTitles.map((t) => {
+                const { earned, percent, label } = getTitleProgress(t)
+                return (
+                  <div key={t._id} title={getTitleHint(t)} style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '0.75rem 1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <strong style={{ color: 'var(--color-text-primary)' }}>{t.name}</strong>
+                      <span style={{ fontSize: '0.875rem', color: earned ? 'var(--color-green-500)' : 'var(--color-text-secondary)' }}>
+                        {earned ? '✅' : '🔒'} {label}
+                      </span>
+                    </div>
+                    {t.description && (
+                      <div style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', marginTop: '0.25rem' }}>{t.description}</div>
+                    )}
+                    <div style={{ marginTop: '0.5rem' }}>
+                      <div style={{ height: 8, background: 'var(--color-border)', borderRadius: 9999, overflow: 'hidden' }}>
+                        <div style={{ width: `${percent}%`, height: 8, background: 'var(--gradient-blue)' }} />
+                      </div>
+                      <div style={{ textAlign: 'right', fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>{percent}%</div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <S.NoBadgesMessage>
+              <p>Nenhum título cadastrado.</p>
             </S.NoBadgesMessage>
           )}
         </S.AchievementsSection>

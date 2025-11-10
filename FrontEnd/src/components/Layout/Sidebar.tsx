@@ -10,6 +10,7 @@ import {
   FaUsers,
 } from "react-icons/fa";
 import { useAuth } from "@contexts/AuthContext";
+import { resolvePublicUrl } from "@/services/api";
 import * as S from "@/styles/components/Sidebar/styles";
 
 export default function Sidebar() {
@@ -45,7 +46,7 @@ export default function Sidebar() {
       <S.UserInfo onClick={() => navigate("/profile")}>
         <S.UserAvatar>
           {user?.avatarUrl ? (
-            <S.UserAvatarImage src={user.avatarUrl} alt={user.name} />
+            <S.UserAvatarImage src={resolvePublicUrl(user.avatarUrl)!} alt={user.name} />
           ) : (
             <FaUser />
           )}

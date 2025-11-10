@@ -9,7 +9,9 @@ import routes from './routes';
 const app = express();
 app.use(helmet());
 app.use(cors());
-app.use(express.json());
+// Increase JSON and URL-encoded body limits to support avatar uploads via data URL
+app.use(express.json({ limit: '8mb' }));
+app.use(express.urlencoded({ limit: '8mb', extended: true }));
 
 // Static serving for uploaded files (e.g., avatars)
 const uploadsDir = path.resolve(__dirname, '../uploads');
@@ -21,7 +23,9 @@ try {
   // eslint-disable-next-line no-console
   console.error('Failed initializing uploads directory:', err);
 }
-app.use('/uploads', express.static(uploadsDir));
+// Serve from backend/uploads (primary) and also fallback to backend/src/uploads (legacy)
+app.use('/uploads', express.static(uploadsDir, { fallthrough: true }));
+app.use('/uploads', express.static(path.resolve(__dirname, './uploads'), { fallthrough: true }));
 
 app.use('/api', routes);
 

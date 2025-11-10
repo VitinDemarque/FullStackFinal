@@ -74,6 +74,20 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
     });
   }
 
+  // Handle payload too large (body-parser/raw-body)
+  if (anyErr?.status === 413 || anyErr?.type === 'entity.too.large') {
+    return res.status(413).json({
+      error: {
+        message: 'Payload demasiado grande. Envie imagens até 5MB.',
+        statusCode: 413,
+        details: {
+          limit: anyErr?.limit,
+          length: anyErr?.length,
+        },
+      },
+    });
+  }
+
   const message = anyErr?.message ?? 'Internal Server Error';
   console.error('[errorHandler]', anyErr);
   return res.status(500).json({

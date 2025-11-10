@@ -102,6 +102,14 @@ export const ExercisesSection = styled.div`
   margin-top: 2rem;
 `;
 
+export const SectionHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  position: relative;
+`;
+
 export const SectionTitle = styled.h2`
   font-size: 1.5rem;
   font-weight: 600;
@@ -110,6 +118,59 @@ export const SectionTitle = styled.h2`
 
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     font-size: 1.25rem;
+  }
+`;
+
+export const FilterIconButton = styled.button`
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: ${({ theme }) => theme.transitions.base};
+
+  &:hover {
+    background: var(--color-surface-hover);
+  }
+`;
+
+export const FilterMenu = styled.div`
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  box-shadow: var(--shadow-lg);
+  padding: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  z-index: 1000;
+`;
+
+export const FilterItem = styled.button<{ selected?: boolean }>`
+  background: transparent;
+  border: none;
+  color: var(--color-text-primary);
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  font-size: ${({ theme }) => theme.fontSizes.base};
+  cursor: pointer;
+
+  ${({ selected }) => selected ? `
+    background: var(--color-surface-hover);
+    font-weight: 600;
+  ` : ''}
+
+  &:hover {
+    background: var(--color-surface-hover);
   }
 `;
 

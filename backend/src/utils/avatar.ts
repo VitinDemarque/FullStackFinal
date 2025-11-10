@@ -11,7 +11,8 @@ export function saveDataUrlAvatar(userId: string, dataUrl: string) {
   const base64 = match[2];
   const ext = mime.split('/')[1].toLowerCase();
 
-  const uploadsDir = path.resolve(__dirname, '../uploads');
+  // Ensure we write to the same uploads directory served by app.ts (backend/uploads)
+  const uploadsDir = path.resolve(__dirname, '../../uploads');
   const avatarsDir = path.join(uploadsDir, 'avatars');
   if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
   if (!fs.existsSync(avatarsDir)) fs.mkdirSync(avatarsDir, { recursive: true });

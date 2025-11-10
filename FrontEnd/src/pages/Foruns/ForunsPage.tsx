@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import ModalCriarForum from '@/components/Forum/ModalCriarForum'
 import type { Forum } from '@/types/forum'
 import * as S from '@/styles/pages/Foruns/styles'
-import { FaSearch } from 'react-icons/fa'
+import { FaSearch, FaFilter } from 'react-icons/fa'
 
 export default function ForunsPage() {
   const { user } = useAuth()
@@ -23,6 +23,8 @@ export default function ForunsPage() {
   const [ownerAvatars, setOwnerAvatars] = useState<Record<string, string | null>>({})
   const [topicCounts, setTopicCounts] = useState<Record<string, number>>({})
   const [exerciseStatuses, setExerciseStatuses] = useState<Record<string, 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | null>>({})
+  const [mostrarFiltro, setMostrarFiltro] = useState(false)
+  const [filtroStatus, setFiltroStatus] = useState<'todos' | 'ativos' | 'inativos'>('todos')
   const navigate = useNavigate()
 
   const carregarForuns = async () => {
@@ -116,28 +118,32 @@ export default function ForunsPage() {
     fetchTopicCounts()
   }, [foruns])
 
-  // Buscar status do desafio para cada fórum com exerciseId
+  // Buscar status do desafio de forma agregada (evita múltiplos 404s no console)
   useEffect(() => {
     const fetchExerciseStatuses = async () => {
       try {
-        const pairs = await Promise.all(
-          (foruns || [])
-            .filter((f) => !!f.exerciseId)
-            .map(async (f) => {
-              try {
-                const ex = await exercisesService.getById(String(f.exerciseId))
-                return [f._id, ex.status as 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'] as const
-              } catch {
-                return [f._id, null] as const
-              }
-            })
-        )
+        const forumExerciseIds = (foruns || [])
+          .map((f) => f.exerciseId)
+          .filter((id): id is string => !!id)
+
+        if (forumExerciseIds.length === 0) return
+
+        // Busca apenas exercícios publicados acessíveis ao usuário
+        const resp = await exercisesService.getAll({ status: 'PUBLISHED', limit: 1000 })
+        const publishedIds = new Set((resp.items || []).map((e: any) => e.id))
+
         const map: Record<string, 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | null> = {}
-        pairs.forEach(([id, status]) => { map[id] = status })
+        foruns.forEach((f) => {
+          if (!f.exerciseId) return
+          map[f._id] = publishedIds.has(String(f.exerciseId)) ? 'PUBLISHED' : null
+        })
+
         setExerciseStatuses((prev) => ({ ...prev, ...map }))
-      } catch {}
+      } catch (err) {
+        // Em caso de erro na listagem, mantém os anteriores e não polui o console
+      }
     }
-    if (foruns.length > 0) fetchExerciseStatuses()
+    fetchExerciseStatuses()
   }, [foruns])
 
   const forunsFiltrados = useMemo(() => {
@@ -152,10 +158,15 @@ export default function ForunsPage() {
         forum.donoUsuarioId === user?.id ||
         forum.moderadores?.some((mod) => mod.usuarioId === user?.id)
 
-      if (mostrarMeus) return correspondeBusca && souParticipante
-      return correspondeBusca
+      if (!correspondeBusca) return false
+
+      const status = exerciseStatuses[forum._id]
+      const isActive = status === 'PUBLISHED'
+      const passaFiltro = filtroStatus === 'todos' ? true : filtroStatus === 'ativos' ? isActive : !isActive
+
+      return (mostrarMeus ? souParticipante : true) && passaFiltro
     })
-  }, [foruns, busca, mostrarMeus, user?.id])
+  }, [foruns, busca, mostrarMeus, user?.id, exerciseStatuses, filtroStatus])
 
   return (
     <AuthenticatedLayout>
@@ -168,14 +179,28 @@ export default function ForunsPage() {
           </S.NewForumButton>
         </S.Header>
 
-        <S.SearchBar>
-          <FaSearch />
-          <input
-            placeholder="Buscar por título, assunto ou descrição"
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-          />
-        </S.SearchBar>
+        <S.SearchActions>
+          <S.SearchBar>
+            <FaSearch />
+            <input
+              placeholder="Buscar por título, assunto ou descrição"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+            />
+          </S.SearchBar>
+          <S.FilterWrapper>
+            <S.FilterIconButton aria-label="Filtrar" onClick={() => setMostrarFiltro((v) => !v)}>
+              <FaFilter />
+            </S.FilterIconButton>
+            {mostrarFiltro && (
+              <S.FilterMenu>
+                <S.FilterItem selected={filtroStatus === 'todos'} onClick={() => { setFiltroStatus('todos'); setMostrarFiltro(false) }}>Todos</S.FilterItem>
+                <S.FilterItem selected={filtroStatus === 'ativos'} onClick={() => { setFiltroStatus('ativos'); setMostrarFiltro(false) }}>Ativos</S.FilterItem>
+                <S.FilterItem selected={filtroStatus === 'inativos'} onClick={() => { setFiltroStatus('inativos'); setMostrarFiltro(false) }}>Inativos</S.FilterItem>
+              </S.FilterMenu>
+            )}
+          </S.FilterWrapper>
+        </S.SearchActions>
 
         {erro && <S.Error>{erro}</S.Error>}
 

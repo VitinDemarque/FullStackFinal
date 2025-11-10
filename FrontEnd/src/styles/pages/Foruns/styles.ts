@@ -289,15 +289,23 @@ export const NoResults = styled.div`
   }
 `
 
+export const SearchActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+`
+
 export const SearchBar = styled.div`
   display: flex;
   align-items: center;
+  position: relative;
   background: var(--color-surface);
   padding: 0.75rem 1rem;
   border-radius: ${({ theme }) => theme.borderRadius.md};
   border: 1px solid var(--color-border);
-  margin-bottom: 2rem;
   transition: all 0.3s ease;
+  flex: 1; /* encurta um pouco ao reservar espaço para o botão de filtro */
 
   &:focus-within {
     border-color: var(--color-blue-400);
@@ -320,6 +328,65 @@ export const SearchBar = styled.div`
   svg {
     color: var(--color-text-light);
     margin-right: 0.5rem;
+  }
+`
+
+export const FilterWrapper = styled.div`
+  position: relative;
+  display: inline-block;
+`
+
+export const FilterIconButton = styled.button`
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center; /* centraliza o ícone no botão */
+  cursor: pointer;
+  transition: ${({ theme }) => theme.transitions.base};
+
+  &:hover {
+    background: var(--color-surface-hover);
+    border-color: var(--color-blue-400);
+  }
+`
+
+export const FilterMenu = styled.div`
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  box-shadow: var(--shadow-lg);
+  padding: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  z-index: 1000;
+`
+
+export const FilterItem = styled.button<{ selected?: boolean }>`
+  background: transparent;
+  border: none;
+  color: var(--color-text-primary);
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  font-size: ${({ theme }) => theme.fontSizes.base};
+  cursor: pointer;
+
+  ${({ selected }) => selected ? `
+    background: var(--color-surface-hover);
+    font-weight: 600;
+  ` : ''}
+
+  &:hover {
+    background: var(--color-surface-hover);
   }
 `
 
