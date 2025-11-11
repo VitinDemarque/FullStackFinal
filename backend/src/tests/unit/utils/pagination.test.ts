@@ -1,4 +1,4 @@
-// comando de teste para esse arquivo: npm test -- src/tests/unit/utils/pagination.test.ts
+// comando de teste para esse arquivo: npm test -- src/tests/unit/utils/pagination.test.ts --verbose
 
 import {
   parsePagination,

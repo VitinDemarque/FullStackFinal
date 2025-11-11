@@ -1,4 +1,4 @@
-// comando de teste para esse arquivo: npm test -- src/tests/unit/utils/sanitizeUser.test.ts
+// comando de teste para esse arquivo: npm test -- src/tests/unit/utils/sanitizeUser.test.ts --verbose
 
 import { sanitizeUser } from '@/utils/sanitizeUser';
 import { IUser } from '@/models/User.model';

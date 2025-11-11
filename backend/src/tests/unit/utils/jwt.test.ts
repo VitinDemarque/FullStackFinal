@@ -1,4 +1,4 @@
-// comando de teste para esse arquivo: npm test -- src/tests/unit/utils/jwt.test.ts
+// comando de teste para esse arquivo: npm test -- src/tests/unit/utils/jwt.test.ts --verbose
 
 import jwt from 'jsonwebtoken';
 import { signToken, verifyToken, getBearerToken, UserTokenPayload, VerifyResult } from '@/utils/jwt';

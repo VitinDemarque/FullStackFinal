@@ -1,4 +1,4 @@
-// comando de teste para esse arquivo: npm test -- src/tests/unit/utils/bcrypt.test.ts
+// comando de teste para esse arquivo: npm test -- src/tests/unit/utils/bcrypt.test.ts --verbose
 
 import bcrypt from 'bcrypt';
 import { hashPassword, comparePassword } from '@/utils/bcrypt';
