@@ -1,1 +1,0 @@
-test.todo('Testar rotas de usuário (integração)');
