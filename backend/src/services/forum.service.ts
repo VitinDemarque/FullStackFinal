@@ -1,8 +1,8 @@
 import { Types } from 'mongoose';
-import Forum, { IForum } from '../models/Forum.model';
+import Forum, { IForum } from '../models/forum.model';
 import ForumTopic, { IForumTopic } from '../models/ForumTopic.model'
 import ForumComment from '../models/ForumComment.model'
-import Exercise from '../models/Exercise.model';
+import Exercise, { IExercise } from '../models/Exercise.model'
 import { NotFoundError, BadRequestError } from '../utils/httpErrors';
 import { parsePagination, toMongoPagination } from '../utils/pagination';
 
@@ -157,16 +157,20 @@ export async function criar(usuarioId: string, payload: Partial<IForum>) {
   if (!payload.nome || !payload.assunto) throw new BadRequestError('Nome e assunto são obrigatórios');
   // Permitir passar exerciseCode (código público) como alternativa ao exerciseId
   if (!payload.exerciseId && (payload as any).exerciseCode) {
-    const byCode = await Exercise.findOne({ publicCode: (payload as any).exerciseCode }).lean();
-    if (!byCode) throw new BadRequestError('Desafio não encontrado pelo código público.');
-    (payload as any).exerciseId = byCode._id as any;
+    const byCode = await Exercise.findOne({ publicCode: (payload as any).exerciseCode }).lean<IExercise | null>()
+    if (!byCode) {
+      throw new BadRequestError('Desafio não encontrado pelo código público.')
+    }
+    (payload as any).exerciseId = byCode._id
   }
 
   if (!payload.exerciseId) throw new BadRequestError('O ID do desafio (exerciseId) é obrigatório.');
 
   // Validar existência do exercício
-  const exercise = await Exercise.findById(payload.exerciseId).lean();
-  if (!exercise) throw new BadRequestError('Desafio não encontrado.');
+  const exercise = await Exercise.findById(payload.exerciseId).lean<IExercise | null>()
+  if (!exercise) {
+    throw new BadRequestError('Desafio não encontrado.')
+  }
 
   // Apenas permitir fóruns para desafios públicos e publicados, quando não é do próprio usuário
   if (!(exercise.isPublic && exercise.status === 'PUBLISHED')) {
@@ -177,6 +181,7 @@ export async function criar(usuarioId: string, payload: Partial<IForum>) {
   const jaExiste = await Forum.findOne({ exerciseId: exercise._id }).lean();
   if (jaExiste) throw new BadRequestError('Já existe um fórum para este desafio.');
 
+  // Cria o novo exercicio
   const novoForum = await Forum.create({
     ...payload,
     donoUsuarioId: new Types.ObjectId(usuarioId),

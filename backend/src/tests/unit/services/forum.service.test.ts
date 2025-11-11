@@ -1,7 +1,7 @@
 // comando de teste para esse arquivo: npm test -- src/tests/unit/services/forum.service.test.ts --verbose
 
 import * as forumService from '@/services/forum.service';
-import Forum, { IForum } from '@/models/Forum.model';
+import Forum, { IForum } from '@/models/forum.model';
 import ForumTopic from '@/models/ForumTopic.model'
 import { NotFoundError, BadRequestError } from '@/utils/httpErrors';
 import { Types } from 'mongoose';
