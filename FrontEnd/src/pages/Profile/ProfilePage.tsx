@@ -291,6 +291,48 @@ export default function ProfilePage() {
   }
 
   function getTitleHint(t: Title) {
+    // Frases fixas por título (hover). Chave: nome em minúsculas
+    const requirementHints: Record<string, string> = {
+      'primeiro de muitos': 'Conclua 1 Desafio',
+      'destrava códigos': 'Conclua 5 Desafios',
+      'dev em ascensão': 'Conclua 10 Desafios',
+      'mão na massa': 'Conclua 25 Desafios',
+      'ligeirinho da lógica': 'Conclua 50 Desafios',
+      'lenda do terminal': 'Conclua 100 Desafios',
+
+      'criador de bugs': 'Criei 1 Desafio',
+      'arquiteto de ideias': 'Criei 5 Desafio',
+      'engenheiro de lógica': 'Criei 10 Desafio',
+      'sensei do código': 'Criei 25 Desafio',
+
+      'embalado no código': '3 acertos seguidos em 24h',
+      'modo turbo': '5 acertos seguidos em 24h',
+      'imparável': '10 acertos seguidos em 24h',
+      'ligeirinho': 'Concluir um desafio em menos de 1 min',
+
+      'palpiteiro de primeira viagem': 'Comenta 1 vez no forum',
+      'conselheiro de plantão': 'Comenta 10 vezes no forum',
+      'guru da comunidade': 'Comenta 25 vezes no forum',
+
+      'quebrador de gelo': 'Criei 1 tópico',
+      'gerador de ideias': 'Criei 5 tópicos',
+      'debatedor nato': 'Criei 10 tópicos',
+      'voz do fórum': 'Criei 25 tópicos',
+
+      'recruta do código': 'Entre em 1 grupo',
+      'integrador': 'Entre em 5 grupos',
+      'conectadão': 'Entre em 10 grupos',
+
+      'fundador de equipe': 'Criei 1 grupo',
+      'líder de stack': 'Criei 3 grupos',
+      'gestor do caos': 'Criei 5 grupos',
+      'senhor das comunidades': 'Criei 10 grupos',
+
+      'explorador do código': 'Faça Login 1 dia consecutivo',
+      'dev constante': 'Faça Login 7 dias consecutivos',
+      'perfect coder': 'Conclua um desafio sem erra nada',
+    };
+
     const earned = userTitles.some((ut) => {
       const tid = typeof ut.title === 'string' ? ut.title : (ut.title as any)?._id;
       return tid && String(tid) === String(t._id);
@@ -309,38 +351,9 @@ export default function ProfilePage() {
     const created = Number((scoreboard as any)?.created ?? 0);
 
     // Mapeamento de requisitos por título (foco no que precisa fazer)
-    const name = (t.name || '').toLowerCase();
-    if (name === 'primeiro de muitos') {
-      const needed = 1;
-      const falta = Math.max(0, needed - solved);
-      return `Para ganhar: concluir 1 desafio. Você concluiu ${solved}. Falta ${falta}.`;
-    }
-    if (name === 'dev em ascensão') {
-      const needed = 10;
-      const falta = Math.max(0, needed - solved);
-      return `Para ganhar: concluir 10 desafios. Você concluiu ${solved}. Falta ${falta}.`;
-    }
-    if (name === 'lenda do terminal') {
-      const needed = 100;
-      const falta = Math.max(0, needed - solved);
-      return `Para ganhar: concluir 100 desafios. Você concluiu ${solved}. Falta ${falta}.`;
-    }
-    if (name === 'criador de bugs (sem querer)') {
-      const needed = 1;
-      const falta = Math.max(0, needed - created);
-      return `Para ganhar: criar seu primeiro desafio publicado. Você criou ${created}. Falta ${falta}.`;
-    }
-    if (name === 'quebrador de gelo') {
-      return 'Para ganhar: abrir seu primeiro tópico no fórum.';
-    }
-    if (name === 'palpiteiro de primeira viagem') {
-      return 'Para ganhar: fazer seu primeiro comentário em um tópico do fórum.';
-    }
-    if (name === 'recruta do código') {
-      return 'Para ganhar: entrar em um grupo pela primeira vez.';
-    }
-    if (name === 'fundador de equipe') {
-      return 'Para ganhar: criar seu primeiro grupo.';
+    const name = (t.name || '').toLowerCase().trim();
+    if (requirementHints[name]) {
+      return requirementHints[name];
     }
 
     // Padrão: usar a descrição como pista e orientar ação
@@ -528,16 +541,36 @@ export default function ProfilePage() {
 
         <S.AchievementsSection>
           <S.SectionTitle>{"<"}TITULOS{">"}</S.SectionTitle>
+          <S.SectionSubtitle>
+            Seus titulos ficam aqui
+          </S.SectionSubtitle>
 
           {loadingTitles ? (
             <S.LoadingBadges>Carregando títulos...</S.LoadingBadges>
           ) : allTitles.length > 0 ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '1rem', maxWidth: 1200, margin: '0 auto' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '1rem', margin: 0, justifyItems: 'start', alignItems: 'stretch' }}>
               {allTitles.map((t) => {
                 const { earned, percent, label } = getTitleProgress(t)
                 return (
-                  <div key={t._id} title={getTitleHint(t)} style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '0.75rem 1rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div
+                    key={t._id}
+                    title={getTitleHint(t)}
+                    style={{
+                      background: 'var(--color-surface)',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: '8px',
+                      padding: '0.75rem 1rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'flex-start',
+                      textAlign: 'left',
+                      height: '100%',
+                      minHeight: 160,
+                      boxSizing: 'border-box',
+                      width: '100%'
+                    }}
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.25rem' }}>
                       <strong style={{ color: 'var(--color-text-primary)' }}>{t.name}</strong>
                       <span style={{ fontSize: '0.875rem', color: earned ? 'var(--color-green-500)' : 'var(--color-text-secondary)' }}>
                         {earned ? '✅' : '🔒'} {label}

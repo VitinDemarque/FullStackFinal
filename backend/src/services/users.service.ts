@@ -9,6 +9,7 @@ import Exercise, { IExercise } from '../models/Exercise.model';
 import UserBadge, { IUserBadge } from '../models/UserBadge.model';
 import UserTitle, { IUserTitle } from '../models/UserTitle.model';
 import UserStat, { IUserStat } from '../models/UserStat.model';
+import * as StatsService from './stats.service';
 
 export async function getById(id: string) {
     const user = await User.findById(id).lean<IUser | null>();
@@ -101,7 +102,7 @@ export async function getPublicProfile({ userId, skip, limit }: PublicProfileInp
         UserTitle.find({ userId: new Types.ObjectId(userId), active: true })
             .populate({ path: 'titleId', select: { name: 1 } })
             .lean<IUserTitlePopulated[]>(),
-        UserStat.findOne({ userId: new Types.ObjectId(userId) }).lean<IUserStat | null>()
+        StatsService.getUserScoreboard(userId)
     ]);
 
     return {
@@ -126,8 +127,8 @@ export async function getPublicProfile({ userId, skip, limit }: PublicProfileInp
             };
         }),
         scoreboard: {
-            created: scoreboard?.exercisesCreatedCount ?? 0,
-            solved: scoreboard?.exercisesSolvedCount ?? 0
+            created: scoreboard?.created ?? 0,
+            solved: scoreboard?.solved ?? 0
         },
         exercises: {
             items: exercises.map(sanitizeExerciseLite),

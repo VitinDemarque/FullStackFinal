@@ -59,6 +59,11 @@ export async function getUserStats(userId: string) {
     userId: new Types.ObjectId(userId) 
   });
 
+  // Contar desafios existentes (ativos no banco) criados pelo usuário
+  const createdChallenges = await Exercise.countDocuments({
+    authorUserId: new Types.ObjectId(userId)
+  });
+
   // Contar desafios publicados pelo usuário
   const publishedChallenges = await Exercise.countDocuments({
     authorUserId: new Types.ObjectId(userId),
@@ -73,7 +78,7 @@ export async function getUserStats(userId: string) {
 
   return {
     userId,
-    exercisesCreatedCount: stats?.exercisesCreatedCount ?? 0,
+    exercisesCreatedCount: createdChallenges,
     exercisesSolvedCount: stats?.exercisesSolvedCount ?? 0,
     languagesUsed: languagesUsed.length,
     publishedChallenges,

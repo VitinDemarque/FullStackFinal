@@ -277,6 +277,20 @@ export async function remove(userId: string, id: string) {
     // You may enhance with logging later
   }
 
+  // Decrement the user's exercisesCreatedCount so deleted challenges are not counted
+  try {
+    const stat = await UserStat.findOne({ userId: new Types.ObjectId(userId) }).lean();
+    const current = stat?.exercisesCreatedCount ?? 0;
+    const next = Math.max(0, current - 1);
+    await UserStat.updateOne(
+      { userId: new Types.ObjectId(userId) },
+      { $set: { exercisesCreatedCount: next }, $setOnInsert: { userId: new Types.ObjectId(userId) } },
+      { upsert: true }
+    );
+  } catch (e) {
+    // If stats update fails, proceed with deletion to avoid partial failures
+  }
+
   await ex.deleteOne();
 }
 
