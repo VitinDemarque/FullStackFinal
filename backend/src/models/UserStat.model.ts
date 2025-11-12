@@ -5,6 +5,9 @@ export interface IUserStat {
   userId: Types.ObjectId;
   exercisesCreatedCount: number;
   exercisesSolvedCount: number;
+  lastLoginAt?: Date | null;
+  loginStreakCurrent?: number;
+  loginStreakMax?: number;
   lastUpdatedAt?: Date | null;
 }
 
@@ -13,6 +16,9 @@ const UserStatSchema = new Schema<IUserStat>(
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, unique: true, index: true },
     exercisesCreatedCount: { type: Number, default: 0, min: 0 },
     exercisesSolvedCount: { type: Number, default: 0, min: 0 },
+    lastLoginAt: { type: Date, default: null },
+    loginStreakCurrent: { type: Number, default: 0, min: 0 },
+    loginStreakMax: { type: Number, default: 0, min: 0 },
     lastUpdatedAt: { type: Date, default: null }
   },
   { timestamps: true }

@@ -341,7 +341,53 @@ interface XpProgressPercentProps {
 export const XpProgressPercent = styled.span<XpProgressPercentProps>`
   position: absolute;
   top: 0;
-  left: ${(props) => `${Math.max(0, Math.min(100, props.$progress))}%`};
+  left: ${(props) => `${Math.max(5, Math.min(95, props.$progress))}%`};
+  transform: translateX(-50%);
+  font-size: ${theme.fontSizes.sm};
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  pointer-events: none;
+`
+
+// ============================================
+// TITLE PROGRESS (barra nos cards de títulos)
+// ============================================
+
+export const TitleProgressWrapper = styled.div`
+  width: 100%;
+  margin-top: 0.5rem;
+`
+
+export const TitleProgressBar = styled.div`
+  width: 100%;
+  height: 8px;
+  background: var(--color-border);
+  border-radius: ${theme.borderRadius.full};
+  overflow: hidden;
+`
+
+interface TitleProgressFillProps { $progress: number }
+export const TitleProgressFill = styled.div<TitleProgressFillProps>`
+  height: 100%;
+  width: ${(props) => Math.max(0, Math.min(100, props.$progress))}%;
+  background: var(--gradient-blue);
+  border-radius: ${theme.borderRadius.full};
+  transition: width 0.5s ease;
+  filter: drop-shadow(0 2px 8px rgba(59, 130, 246, 0.35));
+`
+
+export const TitleProgressPercentContainer = styled.div`
+  position: relative;
+  width: 100%;
+  height: 20px;
+  margin-top: 0.25rem;
+`
+
+interface TitleProgressPercentProps { $progress: number }
+export const TitleProgressPercent = styled.span<TitleProgressPercentProps>`
+  position: absolute;
+  top: 0;
+  left: ${(props) => `${Math.max(5, Math.min(95, props.$progress))}%`};
   transform: translateX(-50%);
   font-size: ${theme.fontSizes.sm};
   color: var(--color-text-secondary);
@@ -374,6 +420,148 @@ export const SectionSubtitle = styled.p`
   font-size: ${theme.fontSizes.sm};
   color: var(--color-text-secondary);
   margin-bottom: 2rem;
+`
+
+// Filtro de títulos
+export const FilterControls = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+  color: var(--color-text-secondary);
+
+  svg {
+    font-size: 1rem;
+    color: var(--color-text-secondary);
+  }
+`
+
+export const FilterSelect = styled.select`
+  appearance: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  padding: 0.35rem 0.5rem;
+  border-radius: ${theme.borderRadius.sm};
+  font-size: ${theme.fontSizes.sm};
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--color-blue-400);
+  }
+`
+
+// ============================================
+// TITLES GROUPING
+// ============================================
+
+export const CategoryTitle = styled.h3`
+  font-size: ${theme.fontSizes.lg};
+  font-weight: ${theme.fontWeights.bold};
+  color: var(--color-text-primary);
+  text-align: left;
+  margin: 1rem 0 0.5rem;
+`
+
+export const TitlesSection = styled.section`
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+`
+
+export const SectionHeader = styled.h3`
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: ${theme.fontSizes.lg};
+  color: var(--color-text-primary);
+
+  & > span {
+    font-size: ${theme.fontSizes.sm};
+    color: var(--color-text-secondary);
+  }
+`
+
+export const TitlesGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-flow: row; /* garantir preenchimento horizontal (esquerda → direita) */
+  gap: 1rem;
+  margin: 0;
+  justify-items: start;
+  align-items: stretch;
+  width: 100%;
+
+  @media (max-width: ${theme.breakpoints.tablet}) {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+`
+
+export const EarnedChip = styled.span`
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: ${theme.gradients.green};
+  color: white;
+  font-size: ${theme.fontSizes.xs};
+  font-weight: ${theme.fontWeights.semibold};
+  padding: 4px 8px;
+  border-radius: ${theme.borderRadius.full};
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  pointer-events: none;
+`
+
+// ============================================
+// TITLE CARD (visual refinado)
+// ============================================
+
+export const TitleCard = styled.div`
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: ${theme.borderRadius.md};
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  height: 100%;
+  min-height: 160px;
+  box-sizing: border-box;
+  width: 100%;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  transition: ${theme.transitions.all};
+
+  &:hover {
+    transform: translateY(-3px);
+    border-color: var(--color-blue-400);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);
+  }
+`
+
+export const TitleHeader = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+`
+
+export const TitleName = styled.strong`
+  color: var(--color-text-primary);
+  font-weight: ${theme.fontWeights.semibold};
+`
+
+export const TitleLabel = styled.span<{ $earned?: boolean }>`
+  font-size: ${theme.fontSizes.sm};
+  color: ${({ $earned }) => ($earned ? 'var(--color-green-500)' : 'var(--color-text-secondary)')};
+`
+
+export const TitleDescription = styled.div`
+  font-size: ${theme.fontSizes.sm};
+  color: var(--color-text-secondary);
+  margin-top: 0.25rem;
 `
 
 // ============================================

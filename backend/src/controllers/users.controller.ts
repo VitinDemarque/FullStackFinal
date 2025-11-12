@@ -235,3 +235,51 @@ export async function checkAndAwardBadges(req: Request, res: Response, next: Nex
     return next(err);
   }
 }
+
+// Atualiza e retorna o streak de login do usuário autenticado
+export async function pingLoginStreak(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new NotFoundError('User not in token');
+    const result = await StatsService.updateLoginStreak(req.user.user_id);
+    return res.json({
+      loginStreakCurrent: result.loginStreakCurrent,
+      loginStreakMax: result.loginStreakMax,
+      lastLoginAt: result.lastLoginAt
+    });
+  } catch (err) {
+    return next(err);
+  }
+}
+
+// Missão: 3 desafios concluídos em menos de 24 horas
+export async function checkMissionThreeSolves24h(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new NotFoundError('User not in token');
+    const result = await StatsService.checkThreeSolvedIn24h(req.user.user_id);
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+// Missão: concluir desafio ACEITO em menos de 1 minuto
+export async function checkMissionSolveUnderOneMinute(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new NotFoundError('User not in token');
+    const result = await StatsService.checkSolveUnderOneMinute(req.user.user_id);
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+// Missão: concluir desafio ACEITO com nota perfeita (100)
+export async function checkMissionPerfectScore(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new NotFoundError('User not in token');
+    const result = await StatsService.checkPerfectScore(req.user.user_id);
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+}

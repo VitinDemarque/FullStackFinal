@@ -559,6 +559,29 @@ const GroupDetailsPage: React.FC = () => {
   const handleLeave = async () => {
     if (!id || !isAuthenticated) return;
 
+    // Se o usuário for dono, avisar que sair implica excluir o grupo e executar a exclusão
+    if (isUserOwner) {
+      const confirmarExclusao = confirm(
+        "Você é o dono do grupo. Ao sair, o grupo será excluído para todos os membros.\n\nTem certeza que deseja EXCLUIR este grupo? Esta ação não pode ser desfeita."
+      );
+      if (!confirmarExclusao) return;
+
+      setActionLoading(true);
+      try {
+        await groupService.delete(id);
+        showSuccess("Grupo excluído", "O grupo foi excluído com sucesso.");
+        navigate("/grupos");
+      } catch (error: any) {
+        showError(
+          "Erro ao excluir grupo",
+          error.message || "Não foi possível excluir o grupo. Tente novamente."
+        );
+      } finally {
+        setActionLoading(false);
+      }
+      return;
+    }
+
     if (!confirm("Tem certeza que deseja sair do grupo?")) return;
 
     setActionLoading(true);
@@ -567,7 +590,18 @@ const GroupDetailsPage: React.FC = () => {
       showSuccess("Você saiu do grupo", "Você não é mais membro deste grupo.");
       navigate("/grupos");
     } catch (error: any) {
-      showError("Erro ao sair do grupo", error.message || "Não foi possível sair do grupo. Tente novamente.");
+      // Caso o backend bloqueie a saída por ser dono (fallback de proteção)
+      if (String(error?.message || '').includes('dono não pode sair')) {
+        showError(
+          "O dono não pode sair",
+          "Para encerrar, exclua o grupo ou transfira a propriedade."
+        );
+      } else {
+        showError(
+          "Erro ao sair do grupo",
+          error.message || "Não foi possível sair do grupo. Tente novamente."
+        );
+      }
     } finally {
       setActionLoading(false);
     }
