@@ -49,5 +49,23 @@ export const leaderboardService = {
             },
         })
     },
+
+    async getByGroup(groupId: string, filters?: LeaderboardFilters): Promise<LeaderboardEntry[]> {
+        return apiRequest<LeaderboardEntry[]>('GET', '/leaderboards/by-group', undefined, {
+            params: {
+                groupId,
+                ...filters,
+            },
+        })
+    },
+
+    async getByExercise(exerciseId: string, filters?: LeaderboardFilters): Promise<LeaderboardEntry[]> {
+        return apiRequest<LeaderboardEntry[]>('GET', '/leaderboards/by-exercise', undefined, {
+            params: {
+                exerciseId,
+                ...filters,
+            },
+        })
+    },
 }
 

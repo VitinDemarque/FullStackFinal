@@ -7,6 +7,7 @@ import { apiRequest } from '@services/api'
 import type { College } from '@/types/index'
 import { FaArrowLeft, FaSave, FaUserEdit, FaKey, FaPlus } from 'react-icons/fa'
 import styled from 'styled-components'
+import CollegeAutocomplete from '@components/Colleges/CollegeAutocomplete'
 
 const PageContainer = styled.div`
   max-width: 960px;
@@ -364,23 +365,12 @@ export default function ProfileEditPage() {
               <FormGroup>
                 <Label>Faculdade</Label>
                 <InlineRow>
-                  <Select name="collegeId" value={form.collegeId} onChange={handleChange}>
-                    <option value="">Selecionar...</option>
-                    {colleges.map((c) => {
-                      const acronym = c.acronym?.trim()
-                      const hasAcronymInName = acronym
-                        ? (c.name || '').toLowerCase().includes(`(${acronym.toLowerCase()})`)
-                        : false
-                      const displayName = hasAcronymInName
-                        ? c.name
-                        : `${c.name}${acronym ? ` (${acronym})` : ''}`
-                      return (
-                        <option key={c.id} value={c.id}>
-                          {displayName}
-                        </option>
-                      )
-                    })}
-                  </Select>
+                  <CollegeAutocomplete
+                    value={form.collegeId}
+                    onChange={(id) => setForm((prev) => ({ ...prev, collegeId: (id || '') }))}
+                    onCreateRequested={() => navigate('/faculdades/criar')}
+                    placeholder="Digite o nome da faculdade"
+                  />
                   <IconButton type="button" aria-label="Cadastrar nova faculdade" title="Cadastrar nova faculdade" onClick={() => navigate('/faculdades/criar')}>
                     <FaPlus />
                   </IconButton>

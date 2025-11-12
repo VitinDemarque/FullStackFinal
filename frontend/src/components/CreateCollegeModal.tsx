@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import styled from 'styled-components'
 import { collegesService } from '@services/colleges.service'
 import type { College } from '@/types'
+import { brUniversitiesService } from '@services/brUniversities.service'
 
 interface CreateCollegeModalProps {
   isOpen: boolean
@@ -78,6 +79,45 @@ const Input = styled.input`
   color: var(--color-text-primary);
 `
 
+// Dropdown de sugestões ancorado ao campo de nome
+const FieldWrapper = styled.div`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+`
+
+const BRSuggestions = styled.ul`
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  width: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  box-shadow: var(--shadow-md);
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 1100;
+  margin: 0;
+  padding: 8px;
+  list-style: none;
+`
+
+const BRItem = styled.li`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  cursor: pointer;
+  color: var(--color-text-primary);
+
+  &:hover { background: var(--color-surface-hover); }
+`
+
 const Footer = styled.div`
   display: flex;
   gap: 0.75rem;
@@ -121,8 +161,12 @@ export default function CreateCollegeModal({ isOpen, onClose, onCreated }: Creat
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [brOpen, setBrOpen] = useState(false)
+  const [brFocused, setBrFocused] = useState(false)
+  const [brResults, setBrResults] = useState<Array<{ id: string; name: string; acronym?: string; city?: string; state?: string }>>([])
+  const debounceRef = useRef<number | null>(null)
+  const wrapperRef = useRef<HTMLDivElement | null>(null)
 
-  if (!isOpen) return null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -145,7 +189,50 @@ export default function CreateCollegeModal({ isOpen, onClose, onCreated }: Creat
     if (!loading) onClose()
   }
 
-  return (
+  // Busca inicial
+  useEffect(() => {
+    if (!isOpen) return
+    let active = true
+    brUniversitiesService.search('', 10).then(res => {
+      if (!active) return
+      setBrResults(res.items)
+    })
+    return () => { active = false }
+  }, [isOpen])
+
+  // Busca com debounce usando nome
+  useEffect(() => {
+    if (debounceRef.current) window.clearTimeout(debounceRef.current)
+    debounceRef.current = window.setTimeout(async () => {
+      const res = await brUniversitiesService.search(name, 10)
+      setBrResults(res.items)
+      setBrOpen(brFocused)
+    }, 250)
+    return () => {
+      if (debounceRef.current) window.clearTimeout(debounceRef.current)
+    }
+  }, [name, brFocused])
+
+  // Fecha sugestões ao clicar fora do campo
+  useEffect(() => {
+    function handleDocClick(ev: MouseEvent | TouchEvent) {
+      const el = wrapperRef.current
+      if (!el) return
+      const target = ev.target as Node | null
+      if (target && !el.contains(target)) {
+        setBrOpen(false)
+        setBrFocused(false)
+      }
+    }
+    document.addEventListener('mousedown', handleDocClick)
+    document.addEventListener('touchstart', handleDocClick)
+    return () => {
+      document.removeEventListener('mousedown', handleDocClick)
+      document.removeEventListener('touchstart', handleDocClick)
+    }
+  }, [])
+
+  return isOpen ? (
     <Overlay onClick={handleClose}>
       <Modal onClick={(e) => e.stopPropagation()}>
         <Header>
@@ -156,22 +243,54 @@ export default function CreateCollegeModal({ isOpen, onClose, onCreated }: Creat
         {error && <Alert type="error">{error}</Alert>}
         {success && <Alert type="success">{success}</Alert>}
 
-        <Form onSubmit={handleSubmit}>
+        <Form onSubmit={handleSubmit} autoComplete="off">
           <FormGroup>
             <Label>Nome *</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Universidade de Exemplo" required disabled={loading} />
+            <FieldWrapper ref={wrapperRef}>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onFocus={() => { setBrFocused(true); setBrOpen(true) }}
+                placeholder="Ex: Universidade de Exemplo"
+                required
+                disabled={loading}
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck={false}
+              />
+              {brOpen && (
+                <BRSuggestions>
+                  {brResults.map(u => (
+                    <BRItem key={u.id} onClick={() => {
+                      setName(u.name)
+                      setAcronym(u.acronym || '')
+                      setCity(u.city || '')
+                      setState(u.state || '')
+                      setBrOpen(false)
+                    }}>
+                      <span>{u.name}{u.acronym ? ` (${u.acronym})` : ''}</span>
+                      {(u.city || u.state) && (
+                        <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem' }}>
+                          {[u.city, u.state].filter(Boolean).join(' / ')}
+                        </span>
+                      )}
+                    </BRItem>
+                  ))}
+                </BRSuggestions>
+              )}
+            </FieldWrapper>
           </FormGroup>
           <FormGroup>
             <Label>Sigla</Label>
-            <Input value={acronym} onChange={(e) => setAcronym(e.target.value)} placeholder="Ex: UEX" disabled={loading} />
+            <Input value={acronym} onChange={(e) => setAcronym(e.target.value)} placeholder="Ex: UEX" disabled={loading} autoComplete="off" autoCorrect="off" spellCheck={false} />
           </FormGroup>
           <FormGroup>
             <Label>Cidade</Label>
-            <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ex: São Paulo" disabled={loading} />
+            <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ex: São Paulo" disabled={loading} autoComplete="off" autoCorrect="off" spellCheck={false} />
           </FormGroup>
           <FormGroup>
             <Label>Estado</Label>
-            <Input value={state} onChange={(e) => setState(e.target.value)} placeholder="Ex: SP" disabled={loading} />
+            <Input value={state} onChange={(e) => setState(e.target.value)} placeholder="Ex: SP" disabled={loading} autoComplete="off" autoCorrect="off" spellCheck={false} />
           </FormGroup>
 
           <Footer>
@@ -183,5 +302,5 @@ export default function CreateCollegeModal({ isOpen, onClose, onCreated }: Creat
         </Form>
       </Modal>
     </Overlay>
-  )
+  ) : null
 }

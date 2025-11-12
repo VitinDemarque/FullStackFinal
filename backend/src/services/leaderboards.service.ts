@@ -59,6 +59,37 @@ export async function byLanguage(languageId: string, { skip, limit }: Paging) {
   }));
 }
 
+/** Ranking por grupo */
+export async function byGroup(groupId: string, { skip, limit }: Paging) {
+  if (!groupId) throw new BadRequestError('groupId required');
+
+  const pipeline: PipelineStage[] = [
+    { $match: { status: 'ACCEPTED' } },
+    { $lookup: { from: 'exercises', localField: 'exerciseId', foreignField: '_id', as: 'ex' } },
+    { $unwind: '$ex' },
+    { $match: { 'ex.groupId': new Types.ObjectId(groupId) } },
+    { $group: { _id: '$userId', points: { $sum: '$xpAwarded' } } },
+    { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user' } },
+    { $unwind: '$user' },
+    { $project: { _id: 0, userId: '$_id', points: 1, xpTotal: '$user.xpTotal', name: '$user.name', handle: '$user.handle', collegeId: '$user.collegeId', avatarUrl: '$user.avatarUrl' } },
+    { $sort: { points: -1 } },
+    { $skip: skip },
+    { $limit: limit }
+  ];
+
+  const rows = await Submission.aggregate(pipeline);
+  return rows.map((r: any, idx: any) => ({
+    position: skip + idx + 1,
+    userId: String(r.userId),
+    name: r.name,
+    handle: r.handle,
+    avatarUrl: r.avatarUrl ?? null,
+    collegeId: r.collegeId ? String(r.collegeId) : null,
+    points: r.points,
+    xpTotal: r.xpTotal
+  }));
+}
+
 /** Ranking por temporada */
 export async function bySeason(seasonId: string, { skip, limit }: Paging) {
   if (!seasonId) throw new BadRequestError('seasonId required');
@@ -100,6 +131,34 @@ export async function byCollege(collegeId: string, { skip, limit }: Paging) {
     { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user2' } },
     { $unwind: '$user2' },
     { $project: { _id: 0, userId: '$_id', points: 1, xpTotal: '$user2.xpTotal', name: '$user2.name', handle: '$user2.handle', collegeId: '$user2.collegeId', avatarUrl: '$user2.avatarUrl' } },
+    { $sort: { points: -1 } },
+    { $skip: skip },
+    { $limit: limit }
+  ];
+
+  const rows = await Submission.aggregate(pipeline);
+  return rows.map((r: any, idx: any) => ({
+    position: skip + idx + 1,
+    userId: String(r.userId),
+    name: r.name,
+    handle: r.handle,
+    avatarUrl: r.avatarUrl ?? null,
+    collegeId: r.collegeId ? String(r.collegeId) : null,
+    points: r.points,
+    xpTotal: r.xpTotal
+  }));
+}
+
+/** Ranking por exercício (desafio) */
+export async function byExercise(exerciseId: string, { skip, limit }: Paging) {
+  if (!exerciseId) throw new BadRequestError('exerciseId required');
+
+  const pipeline: PipelineStage[] = [
+    { $match: { status: 'ACCEPTED', exerciseId: new Types.ObjectId(exerciseId) } },
+    { $group: { _id: '$userId', points: { $sum: '$xpAwarded' } } },
+    { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user' } },
+    { $unwind: '$user' },
+    { $project: { _id: 0, userId: '$_id', points: 1, xpTotal: '$user.xpTotal', name: '$user.name', handle: '$user.handle', collegeId: '$user.collegeId', avatarUrl: '$user.avatarUrl' } },
     { $sort: { points: -1 } },
     { $skip: skip },
     { $limit: limit }

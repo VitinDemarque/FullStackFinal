@@ -4,6 +4,7 @@ import AuthenticatedLayout from '@components/Layout/AuthenticatedLayout'
 import { collegesService } from '@services/colleges.service'
 import type { College } from '@/types/index'
 import styled from 'styled-components'
+import { brUniversitiesService } from '@services/brUniversities.service'
 import { FaPlus, FaArrowLeft } from 'react-icons/fa'
 
 const PageContainer = styled.div`
@@ -63,6 +64,48 @@ const Form = styled.form`
   @media (max-width: 640px) {
     grid-template-columns: 1fr;
   }
+`
+
+const FieldWrapper = styled.div`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`
+
+const BRSuggestions = styled.ul`
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  width: 100%;
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  max-height: 280px;
+  overflow-y: auto;
+  z-index: 1000;
+  margin: 0;
+  padding: 8px;
+  list-style: none;
+  opacity: 1;
+  backdrop-filter: none;
+`
+
+const BRItem = styled.li`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  background: var(--color-surface, #ffffff);
+
+  &:hover { background: var(--surface-hover); }
 `
 
 const FormGroup = styled.div`
@@ -158,6 +201,52 @@ export default function CollegeCreatePage() {
     state: '',
   })
 
+  const [brOpen, setBrOpen] = useState(false)
+  const [brFocused, setBrFocused] = useState(false)
+  const [brResults, setBrResults] = useState<Array<{ id: string; name: string; acronym?: string; city?: string; state?: string }>>([])
+  const debounceRef = React.useRef<number | null>(null)
+  const wrapperRef = React.useRef<HTMLDivElement | null>(null)
+
+  React.useEffect(() => {
+    let active = true
+    brUniversitiesService.search('', 10).then(res => {
+      if (!active) return
+      setBrResults(res.items)
+    })
+    return () => { active = false }
+  }, [])
+
+  React.useEffect(() => {
+    if (debounceRef.current) window.clearTimeout(debounceRef.current)
+    debounceRef.current = window.setTimeout(async () => {
+      const res = await brUniversitiesService.search(form.name, 10)
+      setBrResults(res.items)
+      setBrOpen(brFocused)
+    }, 250)
+    return () => {
+      if (debounceRef.current) window.clearTimeout(debounceRef.current)
+    }
+  }, [form.name, brFocused])
+
+  // Fecha ao clicar fora
+  React.useEffect(() => {
+    function handleDocClick(ev: MouseEvent | TouchEvent) {
+      const el = wrapperRef.current
+      if (!el) return
+      const target = ev.target as Node | null
+      if (target && !el.contains(target)) {
+        setBrOpen(false)
+        setBrFocused(false)
+      }
+    }
+    document.addEventListener('mousedown', handleDocClick)
+    document.addEventListener('touchstart', handleDocClick)
+    return () => {
+      document.removeEventListener('mousedown', handleDocClick)
+      document.removeEventListener('touchstart', handleDocClick)
+    }
+  }, [])
+
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target
     setForm((prev) => ({ ...prev, [name]: value }))
@@ -207,24 +296,56 @@ export default function CollegeCreatePage() {
         </Header>
 
         <Card>
-          <Form onSubmit={handleSubmit}>
+          <Form onSubmit={handleSubmit} autoComplete="off">
             <Inline>
-              <FormGroup>
+              <FieldWrapper ref={wrapperRef}>
                 <Label>Nome da faculdade</Label>
-                <Input name="name" value={form.name} onChange={handleChange} placeholder="Ex.: Universidade XYZ" />
-              </FormGroup>
+                <Input
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                  onFocus={() => { setBrFocused(true); setBrOpen(true) }}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  placeholder="Ex.: Universidade XYZ"
+                />
+                {brOpen && (
+                  <BRSuggestions>
+                    {brResults.map(u => (
+                      <BRItem key={u.id} onClick={() => {
+                        setForm(prev => ({
+                          ...prev,
+                          name: u.name,
+                          acronym: u.acronym || '',
+                          city: u.city || '',
+                          state: u.state || '',
+                        }))
+                        setBrOpen(false)
+                      }}>
+                        <span>{u.name}{u.acronym ? ` (${u.acronym})` : ''}</span>
+                        {(u.city || u.state) && (
+                          <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                            {[u.city, u.state].filter(Boolean).join(' / ')}
+                          </span>
+                        )}
+                      </BRItem>
+                    ))}
+                  </BRSuggestions>
+                )}
+              </FieldWrapper>
             </Inline>
             <FormGroup>
               <Label>Sigla (opcional)</Label>
-              <Input name="acronym" value={form.acronym} onChange={handleChange} placeholder="Ex.: USP" />
+              <Input name="acronym" value={form.acronym} onChange={handleChange} placeholder="Ex.: USP" autoComplete="off" autoCorrect="off" spellCheck={false} />
             </FormGroup>
             <FormGroup>
               <Label>Cidade (opcional)</Label>
-              <Input name="city" value={form.city} onChange={handleChange} placeholder="Ex.: São Paulo" />
+              <Input name="city" value={form.city} onChange={handleChange} placeholder="Ex.: São Paulo" autoComplete="off" autoCorrect="off" spellCheck={false} />
             </FormGroup>
             <FormGroup>
               <Label>Estado (UF) (opcional)</Label>
-              <Input name="state" value={form.state} onChange={handleChange} placeholder="Ex.: SP" />
+              <Input name="state" value={form.state} onChange={handleChange} placeholder="Ex.: SP" autoComplete="off" autoCorrect="off" spellCheck={false} />
             </FormGroup>
 
             <Inline>

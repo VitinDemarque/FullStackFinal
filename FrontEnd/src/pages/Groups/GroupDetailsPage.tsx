@@ -76,22 +76,27 @@ const MetaInfo = styled.div`
 `;
 
 const ActionsSection = styled.div`
-  display: flex;
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(2, auto);
   gap: 12px;
-  flex-wrap: wrap;
   align-items: flex-start;
 `;
+
+// Removido o fix de primeira linha para evitar reflow inesperado
 
 const Button = styled.button.withConfig({
   shouldForwardProp: (prop) => prop !== 'variant',
 })<{ variant?: "secondary" | "danger" }>`
-  padding: 0.75rem 1.25rem;
+  padding: 0.65rem 1rem;
+  width: 180px;
   border-radius: 6px;
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   border: 1px solid transparent;
 
@@ -130,7 +135,8 @@ const Button = styled.button.withConfig({
 `;
 
 const LinkButton = styled(Link)`
-  padding: 0.75rem 1.25rem;
+  padding: 0.65rem 1rem;
+  width: 180px;
   background: var(--color-blue-500);
   color: white;
   border-radius: 6px;
@@ -141,6 +147,7 @@ const LinkButton = styled(Link)`
   text-decoration: none;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   border: 1px solid var(--color-blue-500);
 
@@ -158,7 +165,8 @@ const LinkButton = styled(Link)`
 `;
 
 const NavLink = styled(Link)`
-  padding: 0.75rem 1.25rem;
+  padding: 0.65rem 1rem;
+  width: 180px;
   background: var(--color-surface);
   color: var(--color-text-primary);
   border-radius: 6px;
@@ -169,6 +177,7 @@ const NavLink = styled(Link)`
   text-decoration: none;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   border: 1px solid var(--color-border);
 
@@ -178,7 +187,8 @@ const NavLink = styled(Link)`
 `;
 
 const ProgressLink = styled(Link)`
-  padding: 0.75rem 1.25rem;
+  padding: 0.65rem 1rem;
+  width: 180px;
   background: var(--color-green-500);
   color: white;
   border-radius: 6px;
@@ -189,6 +199,7 @@ const ProgressLink = styled(Link)`
   text-decoration: none;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   border: 1px solid var(--color-green-500);
 
@@ -795,7 +806,7 @@ const GroupDetailsPage: React.FC = () => {
 
             {isAuthenticated && isUserMember && (
               <Button
-                variant="secondary"
+                variant="danger"
                 onClick={handleLeave}
                 disabled={actionLoading}
               >
@@ -806,19 +817,23 @@ const GroupDetailsPage: React.FC = () => {
             {isUserMember && (
               <>
                 <NavLink to={`/grupos/${group.id}/exercicios`}>
-                  💻 Ver Desafios
+                  Ver Desafios
                 </NavLink>
                 
                 <ProgressLink to={`/grupos/${group.id}/progresso`}>
-                  📊 Meu Progresso
+                  Meu Progresso
                 </ProgressLink>
+
+                <RankingLink to={`/grupos/${group.id}/ranking`}>
+                  Ranking do Grupo
+                </RankingLink>
               </>
             )}
 
             {(isUserOwner || isUserModerator) && (
               <>
                 <LinkButton to={`/grupos/${group.id}/membros`}>
-                  👥 Gerenciar Membros
+                  Gerenciar Membros
                 </LinkButton>
                 {group.visibility === 'PRIVATE' && (
                   <>
@@ -827,7 +842,7 @@ const GroupDetailsPage: React.FC = () => {
                         onClick={handleGenerateInviteLink}
                         disabled={generatingLink}
                       >
-                        {generatingLink ? "Gerando..." : "🔗 Gerar Link de Convite"}
+                        {generatingLink ? "Gerando..." : "Gerar Link de Convite"}
                       </Button>
                     )}
                   </>
@@ -838,14 +853,14 @@ const GroupDetailsPage: React.FC = () => {
             {isUserOwner && (
               <>
                 <LinkButton to={`/grupos/${group.id}/editar`}>
-                  ✏️ Editar Grupo
+                  Editar Grupo
                 </LinkButton>
                 <Button
                   variant="danger"
                   onClick={handleDelete}
                   disabled={actionLoading}
                 >
-                  {actionLoading ? "Excluindo..." : "🗑️ Excluir Grupo"}
+                  {actionLoading ? "Excluindo..." : "Excluir Grupo"}
                 </Button>
               </>
             )}
@@ -864,13 +879,13 @@ const GroupDetailsPage: React.FC = () => {
             />
             <InviteLinkActions>
               <Button onClick={handleCopyInviteLink}>
-                📋 Copiar Link
+                Copiar Link
               </Button>
               <Button
                 variant="secondary"
                 onClick={() => setInviteLink(null)}
               >
-                ✖️ Fechar
+                Fechar
               </Button>
             </InviteLinkActions>
           </InviteLinkContainer>
@@ -1025,3 +1040,28 @@ const GroupDetailsPage: React.FC = () => {
 };
 
 export default GroupDetailsPage;
+const RankingLink = styled(Link)`
+  padding: 0.65rem 1rem;
+  width: 180px;
+  background: var(--color-yellow-500);
+  color: white;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: none;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid var(--color-yellow-500);
+
+  &:hover,
+  &:focus {
+    color: white !important;
+    background: var(--color-yellow-600);
+    border-color: var(--color-yellow-600);
+    text-decoration: none;
+  }
+`;

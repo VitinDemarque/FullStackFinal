@@ -410,6 +410,35 @@ export default function ChallengeModal({
     return () => clearInterval(interval);
   }, []);
 
+  // Bloqueia operações de copiar/colar via atalhos enquanto o desafio estiver aberto
+  useEffect(() => {
+    const keydownBlocker = (e: KeyboardEvent) => {
+      const key = (e.key || '').toLowerCase();
+      if ((e.ctrlKey || e.metaKey) && (key === 'c' || key === 'v')) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    const copyBlocker = (e: ClipboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    const pasteBlocker = (e: ClipboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    window.addEventListener('keydown', keydownBlocker, true);
+    window.addEventListener('copy', copyBlocker, true);
+    window.addEventListener('paste', pasteBlocker, true);
+
+    return () => {
+      window.removeEventListener('keydown', keydownBlocker, true);
+      window.removeEventListener('copy', copyBlocker, true);
+      window.removeEventListener('paste', pasteBlocker, true);
+    };
+  }, []);
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -521,6 +550,24 @@ export default function ChallengeModal({
                 onChange={(e) => setCode(e.target.value)}
                 placeholder="// Escreva seu código aqui..."
                 spellCheck={false}
+                onPaste={(e) => {
+                  // Impede colagem direta no editor
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onCopy={(e) => {
+                  // Impede copiar direto do editor (usar botão Copiar do código do desafio)
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onKeyDown={(e) => {
+                  // Redundância local para garantir bloqueio dentro do editor
+                  const key = (e.key || '').toLowerCase();
+                  if ((e.ctrlKey || e.metaKey) && (key === 'c' || key === 'v')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }
+                }}
               />
             </EditorContainer>
           </RightPanel>

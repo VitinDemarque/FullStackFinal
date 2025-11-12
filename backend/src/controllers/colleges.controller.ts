@@ -7,7 +7,8 @@ export async function list(req: Request, res: Response, next: NextFunction) {
   try {
     const page = parsePagination(req.query, { page: 1, limit: 100 }, 200);
     const { skip, limit } = toMongoPagination(page);
-    const result = await CollegesService.list({ skip, limit });
+    const q = typeof req.query.q === 'string' ? req.query.q : undefined;
+    const result = await CollegesService.list({ skip, limit }, q);
     return res.json(result);
   } catch (err) {
     return next(err);
