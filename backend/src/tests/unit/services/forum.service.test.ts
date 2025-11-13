@@ -2,15 +2,17 @@
 
 import * as forumService from '@/services/forum.service';
 import Forum, { IForum } from '@/models/Forum.model';
+import Exercise from '@/models/Exercise.model';
 import ForumTopic from '@/models/ForumTopic.model'
 import { NotFoundError, BadRequestError } from '@/utils/httpErrors';
 import { Types } from 'mongoose';
 
 // Mocks dos Models
 jest.mock('@/models/Forum.model', () => ({
-    find: jest.fn(),
+    find: jest.fn().mockReturnValue({ lean: jest.fn() }),
+    findById: jest.fn().mockReturnValue({ lean: jest.fn() }),
+    findOne: jest.fn().mockReturnValue({ lean: jest.fn() }),
     aggregate: jest.fn(),
-    findById: jest.fn(),
     create: jest.fn(),
     findByIdAndUpdate: jest.fn(),
     findByIdAndDelete: jest.fn(),
@@ -19,6 +21,10 @@ jest.mock('@/models/Forum.model', () => ({
 jest.mock('@/models/ForumTopic.model', () => ({
     find: jest.fn(),
 }))
+
+jest.mock('@/models/Exercise.model', () => ({
+    findById: jest.fn(),
+}));
 
 // Mock do Types.ObjectId
 jest.spyOn(Types, 'ObjectId').mockImplementation((id?: any) => {
@@ -146,18 +152,83 @@ describe('forum.service', () => {
 
     describe('criar', () => {
         it('deve criar fórum com sucesso', async () => {
-            const payload = { nome: 'Novo Fórum', assunto: 'Assunto' };
-            const mockForum = { ...payload, donoUsuarioId: usuarioId, toObject: jest.fn().mockReturnValue(payload) };
+            const fakeExerciseId = new Types.ObjectId();
+            const payload = { nome: 'Novo Fórum', assunto: 'Assunto', exerciseId: fakeExerciseId };
+
+            const mockExercise = {
+                _id: fakeExerciseId,
+                isPublic: true,
+                status: 'PUBLISHED',
+            };
+
+            const mockForum = {
+                ...payload,
+                donoUsuarioId: usuarioId,
+                toObject: jest.fn().mockReturnValue({
+                    ...payload,
+                    donoUsuarioId: usuarioId,
+                }),
+            };
+
+            (Exercise.findById as jest.Mock).mockReturnValue({
+                lean: jest.fn().mockResolvedValue(mockExercise),
+            });
+
+            (Forum.findOne as jest.Mock).mockReturnValue({
+                lean: jest.fn().mockResolvedValue(null),
+            });
+
             (Forum.create as jest.Mock).mockResolvedValue(mockForum);
 
-            const result = await forumService.criar(usuarioId, payload);
+            const result = await forumService.criar(usuarioId.toString(), payload);
+
+            expect(Exercise.findById).toHaveBeenCalledWith(fakeExerciseId);
+            expect(Forum.findOne).toHaveBeenCalledWith({ exerciseId: fakeExerciseId });
             expect(Forum.create).toHaveBeenCalled();
-            expect(result).toEqual(payload);
+            expect(result.nome).toBe('Novo Fórum');
         });
 
         it('deve lançar BadRequestError se faltar nome ou assunto', async () => {
-            await expect(forumService.criar(usuarioId, { nome: 'Fórum' })).rejects.toThrow(BadRequestError);
-            await expect(forumService.criar(usuarioId, { assunto: 'Assunto' })).rejects.toThrow(BadRequestError);
+            await expect(forumService.criar(usuarioId.toString(), { nome: 'Fórum' })).rejects.toThrow(BadRequestError);
+            await expect(forumService.criar(usuarioId.toString(), { assunto: 'Assunto' })).rejects.toThrow(BadRequestError);
+        });
+
+        it('deve lançar erro se o desafio não for público e publicado', async () => {
+            const fakeExerciseId = new Types.ObjectId();
+            const mockExercise = { _id: fakeExerciseId, isPublic: false, status: 'DRAFT' };
+
+            (Exercise.findById as jest.Mock).mockReturnValue({
+                lean: jest.fn().mockResolvedValue(mockExercise),
+            });
+
+            await expect(
+                forumService.criar(usuarioId.toString(), {
+                    nome: 'Fórum inválido',
+                    assunto: 'Teste',
+                    exerciseId: fakeExerciseId,
+                })
+            ).rejects.toThrow('Só é possível criar fórum para desafios públicos e publicados');
+        });
+
+        it('deve lançar erro se já existir fórum para o mesmo exercício', async () => {
+            const fakeExerciseId = new Types.ObjectId();
+            const mockExercise = { _id: fakeExerciseId, isPublic: true, status: 'PUBLISHED' };
+
+            (Exercise.findById as jest.Mock).mockReturnValue({
+                lean: jest.fn().mockResolvedValue(mockExercise),
+            });
+
+            (Forum.findOne as jest.Mock).mockReturnValue({
+                lean: jest.fn().mockResolvedValue({ _id: new Types.ObjectId() }),
+            });
+
+            await expect(
+                forumService.criar(usuarioId.toString(), {
+                    nome: 'Duplicado',
+                    assunto: 'Teste',
+                    exerciseId: fakeExerciseId,
+                })
+            ).rejects.toThrow('Já existe um fórum para este desafio.');
         });
     });
 
@@ -278,6 +349,7 @@ describe('forum.service', () => {
             await expect(forumService.excluir(forumId, usuarioId)).rejects.toThrow(NotFoundError);
         });
     });
+
     describe('listarMeus', () => {
         it('deve listar fóruns do usuário', async () => {
             const mockForuns = [{ _id: '1', nome: 'Meu Fórum' }];
