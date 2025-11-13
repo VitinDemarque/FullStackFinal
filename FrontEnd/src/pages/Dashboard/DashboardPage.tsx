@@ -5,7 +5,7 @@ import { useTheme } from "@contexts/ThemeContext";
 import { FaCode, FaTrophy, FaFire, FaStar, FaPlus, FaUsers, FaComments } from "react-icons/fa";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
 import ChallengeModal from "@components/ChallengeModal";
-import { exercisesService, statsService } from "@services/index";
+import { exercisesService, statsService, judge0Service, submissionsService } from "@services/index";
 import { useFetch } from "@hooks/useFetch";
 import type { Exercise } from "../../types";
 import type { DashboardStats as DashboardStatsType } from "@services/stats.service";
@@ -70,8 +70,35 @@ export default function DashboardPage() {
   const currentLevel = deriveLevelFromXp(currentXpTotal);
 
   const handleSubmitChallenge = async (code: string, timeSpent: number) => {
-    alert("Submissão recebida! (IA de correção será implementada em breve)");
-    setSelectedExercise(null);
+    if (!selectedExercise || !user) return;
+
+    try {
+      const JAVA_LANGUAGE_ID = 62;
+      const compileResult = await judge0Service.executeCode(code, JAVA_LANGUAGE_ID);
+
+      if (!compileResult.sucesso) {
+        alert(`Erro na compilação:\n\n${compileResult.resultado}`);
+        return;
+      }
+
+      const score = 100;
+      const timeSpentMs = timeSpent * 1000;
+      
+      await submissionsService.create({
+        exerciseId: selectedExercise.id,
+        code: code,
+        score: score,
+        timeSpentMs: timeSpentMs,
+      });
+
+      alert(`Código compilado e submetido com sucesso!\n\nResultado:\n${compileResult.resultado}\n\nScore: ${score}%`);
+      
+      setSelectedExercise(null);
+      refetch();
+    } catch (error: any) {
+      console.error('Erro ao submeter desafio:', error);
+      alert(`Erro ao submeter desafio: ${error.message || 'Erro desconhecido'}`);
+    }
   };
 
   return (
