@@ -181,6 +181,14 @@ export async function join(userId: string, groupId: string) {
 }
 
 export async function leave(userId: string, groupId: string) {
+  // Impede o dono de "sair" do grupo: ele deve excluir ou transferir
+  const g = await Group.findById(groupId).lean<IGroup | null>();
+  if (!g) throw new NotFoundError('Group not found');
+
+  if (String(g.ownerUserId) === String(userId)) {
+    throw new BadRequestError('O dono não pode sair do grupo. Para encerrar, exclua o grupo.');
+  }
+
   await GroupMember.deleteOne({
     groupId: new Types.ObjectId(groupId),
     userId: new Types.ObjectId(userId)

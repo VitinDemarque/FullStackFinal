@@ -24,6 +24,7 @@ import GroupEditPage from "./pages/Groups/GroupEditPage";
 import GroupMembersPage from "./pages/Groups/GroupMembersPage";
 import GroupExercisesPage from "./pages/Groups/GroupExercisesPage";
 import GroupProgressPage from "./pages/Groups/GroupProgressPage";
+import GroupRankingPage from "./pages/Groups/GroupRankingPage";
 import GroupJoinByTokenPage from "./pages/Groups/GroupJoinByTokenPage";
 import ThemeTest from "@components/ThemeTest";
 import CollegeCreatePage from "@pages/Colleges/CollegeCreatePage";
@@ -177,6 +178,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <GroupProgressPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/grupos/:id/ranking"
+              element={
+                <PrivateRoute>
+                  <GroupRankingPage />
                 </PrivateRoute>
               }
             />

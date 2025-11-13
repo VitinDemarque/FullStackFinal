@@ -16,6 +16,8 @@ import forumTopicRoutes from './forumTopic.routes';
 import forumCommentRoutes from './forumComment.routes';
 import badgesRoutes from './badges.routes';
 import titlesRoutes from './titles.routes';
+import brUniversitiesRoutes from './brUniversities.routes';
+import judge0Routes from './judge0.routes';
 
 const router = Router();
 
@@ -35,5 +37,7 @@ router.use('/forum-topics', forumTopicRoutes);
 router.use('/forum-comments', forumCommentRoutes);
 router.use('/badges', badgesRoutes);
 router.use('/titles', titlesRoutes);
+router.use('/br-universities', brUniversitiesRoutes);
+router.use('/execute', judge0Routes);
 
 export default router;

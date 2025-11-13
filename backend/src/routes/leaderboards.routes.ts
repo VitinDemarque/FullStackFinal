@@ -7,6 +7,8 @@ import * as LeaderboardsController from '../controllers/leaderboards.controller'
  * - Por linguagem
  * - Por temporada
  * - Por faculdade
+ * - Por grupo
+ * - Por exercício
  */
 const router = Router();
 
@@ -23,5 +25,15 @@ router.get('/by-season', LeaderboardsController.getBySeason);
  * /by-college?collegeId=...&page=1&limit=50
  */
 router.get('/by-college', LeaderboardsController.getByCollege);
+
+/**
+ * /by-group?groupId=...&page=1&limit=50
+ */
+router.get('/by-group', LeaderboardsController.getByGroup);
+
+/**
+ * /by-exercise?exerciseId=...&page=1&limit=50
+ */
+router.get('/by-exercise', LeaderboardsController.getByExercise);
 
 export default router;

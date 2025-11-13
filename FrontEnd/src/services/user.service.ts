@@ -34,4 +34,12 @@ export const userService = {
   async getScoreboard(id: string): Promise<{ created: number; solved: number }> {
     return apiRequest<{ created: number; solved: number }>('GET', `/users/${id}/scoreboard`)
   },
+
+  async pingLoginStreak(): Promise<{ loginStreakCurrent: number; loginStreakMax: number; lastLoginAt: string } | void> {
+    try {
+      return await apiRequest('POST', '/users/me/login-streak/ping') as any;
+    } catch (error) {
+      return;
+    }
+  },
 }

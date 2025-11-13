@@ -6,6 +6,7 @@ import { Exercise } from "../../types";
 import { ThemedButton } from "../../styles/themed-components";
 import { groupService } from "../../services/group.service";
 import { exercisesService } from "../../services/exercises.service";
+import { leaderboardService, type LeaderboardEntry } from "../../services/leaderboard.service";
 import styled from "styled-components";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
 import ExerciseCard from "@components/ExerciseCard";
@@ -210,6 +211,9 @@ const GroupExercisesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [exercisesLoading, setExercisesLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  // Ranking oculto por desafio: mantemos em memória, sem exibir na UI
+  const [exerciseRankings, setExerciseRankings] = useState<Record<string, LeaderboardEntry[]>>({});
+  const [rankingsLoading, setRankingsLoading] = useState(false);
   
   const [filters, setFilters] = useState({
     difficulty: 'all',
@@ -283,6 +287,48 @@ const GroupExercisesPage: React.FC = () => {
       loadGroupExercises();
     }
   }, [group]);
+
+  // Pré-carrega ranking oculto por exercício sem alterar a UI
+  useEffect(() => {
+    const idsToLoad = exercises
+      .map((e) => e.id)
+      .filter((id) => id && !exerciseRankings[id]);
+
+    if (idsToLoad.length > 0) {
+      preloadExerciseRankings(idsToLoad);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exercises]);
+
+  const preloadExerciseRankings = async (exerciseIds: string[]) => {
+    try {
+      setRankingsLoading(true);
+      const results = await Promise.allSettled(
+        exerciseIds.map((id) =>
+          leaderboardService
+            .getByExercise(id, { limit: 5, page: 1 })
+            .then((entries) => ({ id, entries }))
+        )
+      );
+
+      const map: Record<string, LeaderboardEntry[]> = {};
+      results.forEach((res, idx) => {
+        const id = exerciseIds[idx];
+        if (res.status === "fulfilled") {
+          map[id] = res.value.entries || res.value;
+        }
+      });
+
+      if (Object.keys(map).length > 0) {
+        setExerciseRankings((prev) => ({ ...prev, ...map }));
+      }
+    } catch (error) {
+      // silenciar erros: ranking é oculto e não deve impactar a UI
+      console.error("Falha ao pré-carregar ranking por exercício", error);
+    } finally {
+      setRankingsLoading(false);
+    }
+  };
 
   const filteredExercises = exercises.filter(exercise => {
     if (filters.difficulty !== 'all' && exercise.difficulty !== parseInt(filters.difficulty)) {

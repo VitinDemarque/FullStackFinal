@@ -410,6 +410,7 @@ export default function ChallengeModal({
     return () => clearInterval(interval);
   }, []);
 
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -417,11 +418,6 @@ export default function ChallengeModal({
   };
 
   const handleSubmit = async () => {
-    if (timeSpent < 600) {
-      alert("Tempo mínimo de 10 minutos ainda não atingido!");
-      return;
-    }
-
     setIsSubmitting(true);
     try {
       await onSubmit(code, timeSpent);
@@ -528,13 +524,9 @@ export default function ChallengeModal({
 
         <Footer $isDark={isDark}>
           <FooterInfo $isDark={isDark}>
-            {timeSpent < 600 ? (
-              `Tempo mínimo: ${formatTime(600 - timeSpent)} restantes`
-            ) : (
-              <span style={{ fontWeight: 600 }}>
-                ✓ Tempo mínimo atingido
-              </span>
-            )}
+            <span style={{ fontWeight: 600 }}>
+              Tempo decorrido: {formatTime(timeSpent)}
+            </span>
           </FooterInfo>
           <ButtonGroup>
             <Button variant="secondary" onClick={onClose}>
@@ -543,7 +535,7 @@ export default function ChallengeModal({
             <Button
               variant="primary"
               onClick={handleSubmit}
-              disabled={isSubmitting || timeSpent < 600}
+              disabled={isSubmitting}
             >
               <FaCheckCircle />
               {isSubmitting ? "Enviando..." : "Submeter Solução"}

@@ -1,4 +1,5 @@
 import { apiRequest } from './api'
+import { userService } from './user.service'
 import type { LoginCredentials, SignupData, AuthResponse, User } from '../types/index'
 
 export const authService = {
@@ -6,6 +7,8 @@ export const authService = {
     const response = await apiRequest<AuthResponse>('POST', '/auth/login', credentials)
     localStorage.setItem('accessToken', response.tokens.accessToken)
     localStorage.setItem('refreshToken', response.tokens.refreshToken)
+    // Atualiza streak de login após autenticar
+    try { await userService.pingLoginStreak() } catch {}
     return response
   },
 

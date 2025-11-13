@@ -103,20 +103,26 @@ export function resolvePublicUrl(url: string | null | undefined): string | null 
     return parsed.href
   } catch {}
 
-  // Derive API origin (without trailing slashes)
-  let origin = ''
+  // Derive base origin. When API_URL is relative (e.g. '/api'), use window.location.origin.
+  let baseOrigin = ''
   try {
-    origin = new URL(API_URL).origin
+    baseOrigin = new URL(API_URL).origin
   } catch {
-    origin = API_URL
+    // API_URL is likely a relative path like '/api' in production.
+    if (typeof window !== 'undefined' && window.location && window.location.origin) {
+      baseOrigin = window.location.origin
+    } else {
+      baseOrigin = ''
+    }
   }
-  origin = origin.replace(/\/+$/, '')
+  baseOrigin = baseOrigin.replace(/\/+$/, '')
 
-  // Handle paths starting with '/'
+  // If we have a leading slash path, join with base origin
   if (trimmed.startsWith('/')) {
-    return `${origin}${trimmed}`
+    // Ensure we do not accidentally prepend '/api' when API_URL is relative
+    return baseOrigin ? `${baseOrigin}${trimmed}` : trimmed
   }
 
-  // Fallback: join origin and relative path
-  return `${origin}/${trimmed.replace(/^\/+/, '')}`
+  // Otherwise, treat as relative path from origin
+  return baseOrigin ? `${baseOrigin}/${trimmed.replace(/^\/+/, '')}` : `/${trimmed.replace(/^\/+/, '')}`
 }

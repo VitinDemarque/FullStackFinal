@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import styled from "styled-components";
 import { FaPlus } from "react-icons/fa";
 import CreateCollegeModal from "@/components/CreateCollegeModal";
+import CollegeAutocomplete from "@components/Colleges/CollegeAutocomplete";
 import { useAuth } from "@contexts/AuthContext";
 import { FaArrowLeft } from "react-icons/fa";
 import Notification from "@components/Notification";
@@ -223,26 +224,12 @@ export default function SignupPage() {
             <S.FormGroup>
               <S.FormLabel>Faculdade</S.FormLabel>
               <CollegeActions>
-                <S.FormSelect
-                  name="college"
+                <CollegeAutocomplete
                   value={formData.college}
-                  onChange={handleChange}
-                  required
-                  disabled={loadingColleges}
-                >
-                  <option value="">
-                    {loadingColleges
-                      ? "Carregando faculdades..."
-                      : "Selecione sua Faculdade"}
-                  </option>
-                  {colleges.map((college) => (
-                    <option key={college.id} value={college.id}>
-                      {college.name}{" "}
-                      {college.acronym ? `(${college.acronym})` : ""}
-                    </option>
-                  ))}
-                </S.FormSelect>
-
+                  onChange={(id) => setFormData((prev) => ({ ...prev, college: (id || '') }))}
+                  onCreateRequested={() => setIsCreateCollegeOpen(true)}
+                  placeholder="Digite o nome da faculdade"
+                />
                 <CreateCollegeButton
                   type="button"
                   aria-label="Criar faculdade"

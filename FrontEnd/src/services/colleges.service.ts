@@ -56,4 +56,22 @@ export const collegesService = {
   async create(data: Partial<College>): Promise<College> {
     return apiRequest<College>('POST', '/colleges', data)
   },
+
+  async search(q: string, limit = 10): Promise<PaginatedResponse<College>> {
+    try {
+      const response = await apiRequest<PaginatedResponse<College>>('GET', '/colleges', undefined, {
+        params: { q, page: 1, limit },
+      })
+      if (response && response.items) return response
+      return getMockColleges()
+    } catch (error) {
+      // Fallback: filtra o mock localmente
+      const mock = getMockColleges()
+      const term = (q || '').trim().toLowerCase()
+      const filtered = mock.items.filter((c) =>
+        c.name.toLowerCase().includes(term) || (c.acronym || '').toLowerCase().includes(term)
+      )
+      return { ...mock, items: filtered, meta: { ...mock.meta, total: filtered.length } }
+    }
+  },
 }

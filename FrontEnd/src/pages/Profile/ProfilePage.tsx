@@ -15,6 +15,7 @@ import {
   FaAward,
   FaEdit,
   FaLock,
+  FaFilter,
 } from "react-icons/fa";
 import * as S from "@/styles/pages/Profile/styles";
 
@@ -61,6 +62,7 @@ export default function ProfilePage() {
   const [allTitles, setAllTitles] = useState<Title[]>([]);
   const [userTitles, setUserTitles] = useState<UserTitleItem[]>([]);
   const [loadingTitles, setLoadingTitles] = useState(true);
+  const [titleFilter, setTitleFilter] = useState<'all' | 'earned' | 'locked'>('all');
 
   useEffect(() => {
     if (user) {
@@ -75,6 +77,17 @@ export default function ProfilePage() {
       }
     }
   }, [user?.id, user?.avatarUrl]);
+
+  // Atualiza o streak de login ao abrir o perfil e recarrega o scoreboard
+  useEffect(() => {
+    if (!user?.id) return;
+    (async () => {
+      try {
+        await userService.pingLoginStreak();
+        await execute();
+      } catch {}
+    })();
+  }, [user?.id]);
 
   async function loadBadges() {
     try {
@@ -263,31 +276,356 @@ export default function ProfilePage() {
   const earnedBadges = allBadges.filter((b: any) => userBadges.includes(b._id));
 
   function getTitleProgress(t: Title) {
-    const minLevel = Number(t.minLevel ?? 0);
-    const minXp = Number(t.minXp ?? 0);
     const earned = userTitles.some((ut) => {
       const tid = typeof ut.title === 'string' ? ut.title : (ut.title as any)?._id;
       return tid && String(tid) === String(t._id);
     });
+    if (earned) {
+      return { earned: true, percent: 100, label: 'Conquistado' };
+    }
 
-    const levelProgress = minLevel > 0 ? Math.min(100, (currentLevel / minLevel) * 100) : 0;
-    const xpProgress = minXp > 0 ? Math.min(100, (currentXpTotal / minXp) * 100) : 0;
-    const rawPercent = Math.round(Math.min(100, Math.max(levelProgress, xpProgress)));
-    const percent = earned ? 100 : rawPercent;
+    const solved = Number((scoreboard as any)?.solved ?? 0);
+    const created = Number((scoreboard as any)?.created ?? 0);
+    const forumComments = Number((scoreboard as any)?.forumComments ?? 0);
+    const forumTopics = Number((scoreboard as any)?.forumTopics ?? 0);
+    const groupsJoined = Number((scoreboard as any)?.groupsJoined ?? 0);
+    const groupsCreated = Number((scoreboard as any)?.groupsCreated ?? 0);
+    const loginStreak = Number((scoreboard as any)?.loginStreak ?? 0);
+    const name = (t.name || '').toLowerCase();
 
-    const remainingLevel = minLevel > 0 ? Math.max(0, minLevel - currentLevel) : 0;
-    const remainingXp = minXp > 0 ? Math.max(0, minXp - currentXpTotal) : 0;
-    const label = earned
-      ? 'Conquistado'
-      : minLevel > 0 && minXp > 0
-        ? `Falta ${remainingLevel} níveis e ${remainingXp} XP`
-        : minLevel > 0
-          ? `Falta ${remainingLevel} níveis`
-          : minXp > 0
-            ? `Falta ${remainingXp} XP`
-            : 'Em progresso';
+    // Cálculo de progresso baseado em ações
+    if (name === 'primeiro de muitos') {
+      const needed = 1;
+      const done = solved;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Falta ${falta} desafio` : 'Quase lá') };
+    }
+    if (name === 'dev em ascensão') {
+      const needed = 10;
+      const done = solved;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Faltam ${falta} desafios` : 'Quase lá') };
+    }
+    if (name === 'destrava códigos') {
+      const needed = 5;
+      const done = solved;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Faltam ${falta} desafios` : 'Quase lá') };
+    }
+    if (name === 'mão na massa') {
+      const needed = 25;
+      const done = solved;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Faltam ${falta} desafios` : 'Quase lá') };
+    }
+    if (name === 'ligeirinho da lógica') {
+      const needed = 50;
+      const done = solved;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Faltam ${falta} desafios` : 'Quase lá') };
+    }
+    if (name === 'lenda do terminal') {
+      const needed = 100;
+      const done = solved;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Faltam ${falta} desafios` : 'Quase lá') };
+    }
+    if (name.includes('criador de bugs')) {
+      const needed = 1;
+      const done = created;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Falta ${falta} desafio criado` : 'Quase lá') };
+    }
 
-    return { earned, percent, label };
+    // Criar 5 desafios => "Arquiteto de Ideias"
+    if (name === 'arquiteto de ideias') {
+      const needed = 5;
+      const done = created;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Faltam ${falta} desafios criados` : 'Quase lá') };
+    }
+
+    if (name === 'engenheiro de lógica') {
+      const needed = 10;
+      const done = created;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Faltam ${falta} desafios criados` : 'Quase lá') };
+    }
+
+    if (name === 'sensei do código') {
+      const needed = 25;
+      const done = created;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Faltam ${falta} desafios criados` : 'Quase lá') };
+    }
+
+    // Comentários no Fórum
+    if (name === 'palpiteiro de primeira viagem') {
+      const needed = 1;
+      const done = forumComments;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Falta ${falta} comentário` : 'Quase lá') };
+    }
+    if (name === 'conselheiro de plantão') {
+      const needed = 10;
+      const done = forumComments;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Faltam ${falta} comentários` : 'Quase lá') };
+    }
+    if (name === 'guru da comunidade') {
+      const needed = 25;
+      const done = forumComments;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Faltam ${falta} comentários` : 'Quase lá') };
+    }
+
+    // Tópicos do Fórum
+    if (name === 'quebrador de gelo') {
+      const needed = 1;
+      const done = forumTopics;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Falta ${falta} tópico` : 'Quase lá') };
+    }
+    if (name === 'gerador de ideias') {
+      const needed = 5;
+      const done = forumTopics;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Faltam ${falta} tópicos` : 'Quase lá') };
+    }
+    if (name === 'debatedor nato') {
+      const needed = 10;
+      const done = forumTopics;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Faltam ${falta} tópicos` : 'Quase lá') };
+    }
+    if (name === 'voz do fórum') {
+      const needed = 25;
+      const done = forumTopics;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Faltam ${falta} tópicos` : 'Quase lá') };
+    }
+
+    // Entrar em Grupos
+    if (name === 'recruta do código') {
+      const needed = 1;
+      const done = groupsJoined;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Falta ${falta} grupo` : 'Quase lá') };
+    }
+    if (name === 'integrador') {
+      const needed = 5;
+      const done = groupsJoined;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Faltam ${falta} grupos` : 'Quase lá') };
+    }
+    if (name === 'conectadão') {
+      const needed = 10;
+      const done = groupsJoined;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Faltam ${falta} grupos` : 'Quase lá') };
+    }
+
+    // Criar Grupos
+    if (name === 'fundador de equipe') {
+      const needed = 1;
+      const done = groupsCreated;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Falta ${falta} grupo criado` : 'Quase lá') };
+    }
+    if (name === 'líder de stack') {
+      const needed = 3;
+      const done = groupsCreated;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Faltam ${falta} grupos criados` : 'Quase lá') };
+    }
+    if (name === 'gestor do caos') {
+      const needed = 5;
+      const done = groupsCreated;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Faltam ${falta} grupos criados` : 'Quase lá') };
+    }
+    if (name === 'senhor das comunidades') {
+      const needed = 10;
+      const done = groupsCreated;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Faltam ${falta} grupos criados` : 'Quase lá') };
+    }
+
+    // Login consecutivo (streak)
+    if (name === 'explorador do código') {
+      const needed = 1;
+      const done = loginStreak;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Falta ${falta} dia` : 'Quase lá') };
+    }
+    if (name === 'dev constante') {
+      const needed = 7;
+      const done = loginStreak;
+      const percent = Math.max(0, Math.min(100, Math.round((done / needed) * 100)));
+      const falta = Math.max(0, needed - done);
+      const earnedNow = done >= needed;
+      return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Faltam ${falta} dias` : 'Quase lá') };
+    }
+
+    // Para títulos sem métrica mensurável neste scoreboard, usar 0% até conquistar
+    return { earned: false, percent: 0, label: 'Ação necessária' };
+  }
+
+  // Agrupamento por categoria de ação
+  function getTitleCategory(t: Title) {
+    const name = (t.name || '').toLowerCase();
+    if (
+      name.includes('criador de bugs') ||
+      name.includes('arquiteto de ideias') ||
+      name.includes('engenheiro de lógica') ||
+      name.includes('sensei do código')
+    ) return 'Criar Desafios';
+
+    if (
+      name.includes('primeiro de muitos') ||
+      name.includes('destrava códigos') ||
+      name.includes('dev em ascensão') ||
+      name.includes('mão na massa') ||
+      name.includes('ligeirinho da lógica') ||
+      name.includes('lenda do terminal')
+    ) return 'Resolver Desafios';
+
+    if (
+      name.includes('palpiteiro de primeira viagem') ||
+      name.includes('conselheiro de plantão') ||
+      name.includes('guru da comunidade')
+    ) return 'Comentários no Fórum';
+
+    if (
+      name.includes('quebrador de gelo') ||
+      name.includes('gerador de ideias') ||
+      name.includes('debatedor nato') ||
+      name.includes('voz do fórum')
+    ) return 'Tópicos do Fórum';
+
+    if (
+      name.includes('recruta do código') ||
+      name.includes('integrador') ||
+      name.includes('conectadão')
+    ) return 'Entrar em Grupos';
+
+    if (
+      name.includes('fundador de equipe') ||
+      name.includes('líder de stack') ||
+      name.includes('gestor do caos') ||
+      name.includes('senhor das comunidades')
+    ) return 'Criar Grupos';
+
+    // Login (streak / constância)
+    if (
+      name.includes('explorador do código') ||
+      name.includes('dev constante')
+    ) return 'Login';
+
+    return 'Outros';
+  }
+
+  // Valor numérico de requisito por título (para ordenação)
+  function getTitleRequirementValue(t: Title): number | undefined {
+    const name = getTitleDisplayName(t).toLowerCase().trim();
+    const map: Record<string, number> = {
+      // Resolver Desafios
+      'primeiro de muitos': 1,
+      'destrava códigos': 5,
+      'dev em ascensão': 10,
+      'mão na massa': 25,
+      'ligeirinho da lógica': 50,
+      'lenda do terminal': 100,
+      // Criar Desafios
+      'criador de bugs': 1,
+      'arquiteto de ideias': 5,
+      'engenheiro de lógica': 10,
+      'sensei do código': 25,
+      // Comentários no Fórum
+      'palpiteiro de primeira viagem': 1,
+      'conselheiro de plantão': 10,
+      'guru da comunidade': 25,
+      // Tópicos do Fórum
+      'quebrador de gelo': 1,
+      'gerador de ideias': 5,
+      'debatedor nato': 10,
+      'voz do fórum': 25,
+      // Entrar em Grupos
+      'recruta do código': 1,
+      'integrador': 5,
+      'conectadão': 10,
+      // Criar Grupos
+      'fundador de equipe': 1,
+      'líder de stack': 3,
+      'gestor do caos': 5,
+      'senhor das comunidades': 10,
+      // Login consecutivo
+      'explorador do código': 1,
+      'dev constante': 7,
+      // Streaks de acertos em 24h
+      'embalado no código': 3,
+      'modo turbo': 5,
+      'imparável': 10,
+    };
+
+    if (map[name] != null) return map[name];
+    const normalized = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (normalized.includes('criador de bugs')) return 1; // variantes com sufixo
+    // Heurísticas por inclusão para evitar divergências de nome
+    if (normalized.includes('embalado')) return 3;
+    if (normalized.includes('modo turbo')) return 5;
+    if (normalized.includes('imparavel')) return 10;
+    return undefined;
   }
 
   function getTitleHint(t: Title) {
@@ -299,8 +637,7 @@ export default function ProfilePage() {
       'mão na massa': 'Conclua 25 Desafios',
       'ligeirinho da lógica': 'Conclua 50 Desafios',
       'lenda do terminal': 'Conclua 100 Desafios',
-
-      'criador de bugs': 'Criei 1 Desafio',
+      'criador de bugs': 'Crie 1 desafio',
       'arquiteto de ideias': 'Criei 5 Desafio',
       'engenheiro de lógica': 'Criei 10 Desafio',
       'sensei do código': 'Criei 25 Desafio',
@@ -352,8 +689,14 @@ export default function ProfilePage() {
 
     // Mapeamento de requisitos por título (foco no que precisa fazer)
     const name = (t.name || '').toLowerCase().trim();
+    // Correspondência direta
     if (requirementHints[name]) {
       return requirementHints[name];
+    }
+
+    // Correspondência por inclusão para variantes com sufixos como "(sem querer)"
+    if (name.includes('criador de bugs')) {
+      return requirementHints['criador de bugs'];
     }
 
     // Padrão: usar a descrição como pista e orientar ação
@@ -361,6 +704,15 @@ export default function ProfilePage() {
       return `Para ganhar: ${t.description}`;
     }
     return 'Para ganhar: conclua desafios, participe do fórum ou grupos.';
+  }
+
+  // Nome de exibição ajustado para casos específicos
+  function getTitleDisplayName(t: Title) {
+    const n = (t.name || '').trim();
+    if (n.toLowerCase().includes('criador de bugs')) {
+      return n.replace(/\s*\(sem querer\)\s*/i, '');
+    }
+    return n;
   }
 
   async function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
@@ -540,55 +892,96 @@ export default function ProfilePage() {
         </S.AchievementsSection>
 
         <S.AchievementsSection>
-          <S.SectionTitle>{"<"}TITULOS{">"}</S.SectionTitle>
-          <S.SectionSubtitle>
-            Seus titulos ficam aqui
-          </S.SectionSubtitle>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+              <S.SectionTitle>{"<"}TÍTULOS{">"}</S.SectionTitle>
+              <S.SectionSubtitle style={{ marginBottom: 0, textAlign: 'left' }}>
+                Seus títulos ficam aqui
+              </S.SectionSubtitle>
+            </div>
+            <S.FilterControls>
+              <FaFilter />
+              <S.FilterSelect
+                aria-label="Filtrar títulos"
+                value={titleFilter}
+                onChange={(e) => setTitleFilter(e.target.value as any)}
+              >
+                <option value="all">Todos</option>
+                <option value="earned">Conquistados</option>
+                <option value="locked">Bloqueados</option>
+              </S.FilterSelect>
+            </S.FilterControls>
+          </div>
 
           {loadingTitles ? (
             <S.LoadingBadges>Carregando títulos...</S.LoadingBadges>
           ) : allTitles.length > 0 ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '1rem', margin: 0, justifyItems: 'start', alignItems: 'stretch' }}>
-              {allTitles.map((t) => {
-                const { earned, percent, label } = getTitleProgress(t)
-                return (
-                  <div
-                    key={t._id}
-                    title={getTitleHint(t)}
-                    style={{
-                      background: 'var(--color-surface)',
-                      border: '1px solid var(--color-border)',
-                      borderRadius: '8px',
-                      padding: '0.75rem 1rem',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'flex-start',
-                      textAlign: 'left',
-                      height: '100%',
-                      minHeight: 160,
-                      boxSizing: 'border-box',
-                      width: '100%'
-                    }}
-                  >
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.25rem' }}>
-                      <strong style={{ color: 'var(--color-text-primary)' }}>{t.name}</strong>
-                      <span style={{ fontSize: '0.875rem', color: earned ? 'var(--color-green-500)' : 'var(--color-text-secondary)' }}>
-                        {earned ? '✅' : '🔒'} {label}
-                      </span>
-                    </div>
-                    {t.description && (
-                      <div style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', marginTop: '0.25rem' }}>{t.description}</div>
-                    )}
-                    <div style={{ marginTop: '0.5rem' }}>
-                      <div style={{ height: 8, background: 'var(--color-border)', borderRadius: 9999, overflow: 'hidden' }}>
-                        <div style={{ width: `${percent}%`, height: 8, background: 'var(--gradient-blue)' }} />
+            (() => {
+              const groups: Record<string, Title[]> = {};
+              for (const t of allTitles) {
+                const cat = getTitleCategory(t);
+                if (!groups[cat]) groups[cat] = [];
+                groups[cat].push(t);
+              }
+              const order = ['Criar Desafios', 'Resolver Desafios', 'Comentários no Fórum', 'Tópicos do Fórum', 'Entrar em Grupos', 'Criar Grupos', 'Login', 'Outros'];
+              return (
+                <div style={{ width: '100%' }}>
+                  {order.filter((o) => groups[o]?.length).map((cat) => {
+                    const visible = [...groups[cat]].filter((t) => {
+                      const { earned } = getTitleProgress(t);
+                      if (titleFilter === 'earned') return !!earned;
+                      if (titleFilter === 'locked') return !earned;
+                      return true; // 'all'
+                    });
+
+                    if (visible.length === 0) return null; // Oculta categorias vazias sob o filtro atual
+
+                    return (
+                      <div key={cat} style={{ marginBottom: '1.5rem' }}>
+                        <S.CategoryTitle>{cat}</S.CategoryTitle>
+                        <S.TitlesGrid>
+                          {visible
+                            .sort((a, b) => {
+                              const ra = getTitleRequirementValue(a);
+                              const rb = getTitleRequirementValue(b);
+                              if (Number.isFinite(ra) && Number.isFinite(rb) && ra !== rb) {
+                                return (ra as number) - (rb as number);
+                              }
+                              const pa = getTitleProgress(a).percent;
+                              const pb = getTitleProgress(b).percent;
+                              if (pb !== pa) return pb - pa;
+                              return (a.name || '').localeCompare(b.name || '');
+                            })
+                            .map((t) => {
+                              const { earned, percent, label } = getTitleProgress(t);
+                              return (
+                                <S.TitleCard key={t._id} title={getTitleHint(t)}>
+                                  {earned && <S.EarnedChip>Conquistado</S.EarnedChip>}
+                                  <S.TitleHeader>
+                                    <S.TitleName>{getTitleDisplayName(t)}</S.TitleName>
+                                    <S.TitleLabel $earned={earned}>{earned ? '✅' : '🔒'} {label}</S.TitleLabel>
+                                  </S.TitleHeader>
+                                  {t.description && (
+                                    <S.TitleDescription>{t.description}</S.TitleDescription>
+                                  )}
+                                  <S.TitleProgressWrapper>
+                                    <S.TitleProgressBar>
+                                      <S.TitleProgressFill $progress={percent} />
+                                    </S.TitleProgressBar>
+                                    <S.TitleProgressPercentContainer>
+                                      <S.TitleProgressPercent $progress={percent}>{Math.round(percent)}%</S.TitleProgressPercent>
+                                    </S.TitleProgressPercentContainer>
+                                  </S.TitleProgressWrapper>
+                                </S.TitleCard>
+                              );
+                            })}
+                        </S.TitlesGrid>
                       </div>
-                      <div style={{ textAlign: 'right', fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>{percent}%</div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+                    );
+                  })}
+                </div>
+              );
+            })()
           ) : (
             <S.NoBadgesMessage>
               <p>Nenhum título cadastrado.</p>

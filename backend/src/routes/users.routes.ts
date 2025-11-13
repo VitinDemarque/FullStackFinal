@@ -9,6 +9,13 @@ router.get('/me', auth(), UsersController.getMe);
 router.patch('/me', auth(), UsersController.updateMe);
 router.post('/me/avatar', auth(), UsersController.uploadMyAvatar);
 router.post('/me/password', auth(), UsersController.changeMyPassword);
+// Atualiza/contabiliza streak de login do usuário autenticado
+router.post('/me/login-streak/ping', auth(), UsersController.pingLoginStreak);
+// Missão: 3 desafios concluídos em menos de 24 horas
+router.post('/me/missions/three-solves-24h/check', auth(), UsersController.checkMissionThreeSolves24h);
+// Missões de tempo e perfeição
+router.post('/me/missions/solve-under-1m/check', auth(), UsersController.checkMissionSolveUnderOneMinute);
+router.post('/me/missions/perfect-score/check', auth(), UsersController.checkMissionPerfectScore);
 router.delete('/me', auth(), UsersController.deleteMe);
 
 // Rotas específicas por ID (devem vir antes da rota genérica /:id)
