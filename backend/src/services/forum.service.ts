@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import Forum, { IForum } from '../models/forum.model';
+import Forum, { IForum } from '../models/Forum.model';
 import ForumTopic, { IForumTopic } from '../models/ForumTopic.model'
 import ForumComment from '../models/ForumComment.model'
 import Exercise, { IExercise } from '../models/Exercise.model'

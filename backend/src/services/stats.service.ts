@@ -3,7 +3,7 @@ import ExerciseStat, { IExerciseStat } from '../models/ExerciseStat.model';
 import UserStat, { IUserStat } from '../models/UserStat.model';
 import Submission from '../models/Submission.model'; // (mantido se usar em futuras agregações)
 import Exercise, { IExercise } from '../models/Exercise.model';
-import Forum from '../models/forum.model';
+import Forum from '../models/Forum.model';
 
 export interface ListExerciseStatsInput {
   exerciseId?: string;
