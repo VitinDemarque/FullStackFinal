@@ -69,7 +69,7 @@ export default function GroupRankingPage() {
                 <S.HeaderCell width="10%">Posição</S.HeaderCell>
                 <S.HeaderCell width="40%">Nome</S.HeaderCell>
                 <S.HeaderCell width="25%">Pontos</S.HeaderCell>
-                <S.HeaderCell width="25%">Pontuação</S.HeaderCell>
+                <S.HeaderCell width="25%">Colocação</S.HeaderCell>
               </S.TableHeader>
 
               <S.TableBody>

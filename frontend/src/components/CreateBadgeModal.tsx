@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
 import { badgesService, type Badge } from '@/services/badges.service'
+import { useNotification } from '@/components/Notification'
 import * as S from '@/styles/components/CreateExerciseModal/styles'
 import { FaPlus } from 'react-icons/fa'
 
@@ -11,6 +12,7 @@ interface CreateBadgeModalProps {
 }
 
 export default function CreateBadgeModal({ isOpen, onClose, onCreated, mode }: CreateBadgeModalProps) {
+  const { addNotification } = useNotification()
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [iconUrl, setIconUrl] = useState('')
@@ -30,17 +32,31 @@ export default function CreateBadgeModal({ isOpen, onClose, onCreated, mode }: C
       return
     }
     setIsSubmitting(true)
+    setFormError('')
     try {
-      // Se houver arquivo escolhido e ainda não geramos dataURL, gerar agora
       if (iconFile && !iconUrl) {
         const dataUrl = await fileToDataUrl(iconFile)
         setIconUrl(dataUrl)
       }
-      const created = await badgesService.create({ name, description, iconUrl: iconUrl || undefined, isTriumphant: true, rarity: badgeRarity })
+      const isTriumphant = mode === 'triumphant'
+      const created = await badgesService.create({ 
+        name, 
+        description, 
+        iconUrl: iconUrl || undefined, 
+        isTriumphant: isTriumphant, 
+        rarity: badgeRarity 
+      })
+      
+      addNotification('Emblema criado com sucesso!', 'success')
       onCreated(created)
       handleClose()
-    } catch (err) {
-      // handle error silently for now
+    } catch (err: any) {
+      if (err?.statusCode === 409) {
+        const errorMessage = err?.message || 'Já existe um emblema com este nome. Por favor, escolha outro nome.'
+        setFormError(errorMessage)
+      } else {
+        setFormError(err?.message || 'Erro ao criar emblema. Tente novamente.')
+      }
     } finally {
       setIsSubmitting(false)
     }

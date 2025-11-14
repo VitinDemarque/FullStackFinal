@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { badgesService, type Badge } from '@/services/badges.service';
+import { useNotification } from '@/components/Notification';
 import { FaPlus } from 'react-icons/fa';
 import CreateBadgeModal from './CreateBadgeModal';
 import * as S from '@/styles/components/CreateExerciseModal/styles';
@@ -26,6 +27,7 @@ export interface CreateExerciseData {
 
 export default function CreateExerciseModal({ isOpen, onClose, onSubmit }: CreateExerciseModalProps) {
   const { user } = useAuth();
+  const { NotificationContainer } = useNotification();
   const isAdmin = user?.role === 'ADMIN';
   const [formData, setFormData] = useState<CreateExerciseData>({
     title: '',
@@ -114,16 +116,31 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit }: Creat
   };
 
   const handleBadgeCreated = async (created: Badge) => {
-    setBadges((prev) => [created, ...(Array.isArray(prev) ? prev : [])]);
+    setLoadingBadges(true)
+    try {
+      const updatedList = await badgesService.getAll()
+      setBadges(Array.isArray(updatedList) ? updatedList : [])
+    } catch (error) {
+      setBadges((prev) => {
+        const existing = Array.isArray(prev) ? prev : []
+        const exists = existing.some(b => b._id === created._id)
+        if (exists) return existing
+        return [created, ...existing]
+      })
+    } finally {
+      setLoadingBadges(false)
+    }
+    
     setFormData((prev) => {
       if (createBadgeMode === 'triumphant') {
-        return { ...prev, triumphantBadgeId: created._id };
+        return { ...prev, triumphantBadgeId: created._id }
       }
-      return { ...prev, highScoreBadgeId: created._id };
-    });
-    setIsCreateBadgeOpen(false);
-    setCreateBadgeMode(null);
-  };
+      return { ...prev, highScoreBadgeId: created._id }
+    })
+    
+    setIsCreateBadgeOpen(false)
+    setCreateBadgeMode(null)
+  }
 
   if (!isOpen) return null;
 
@@ -313,6 +330,7 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit }: Creat
             mode={createBadgeMode}
           />
         )}
+        <NotificationContainer />
       </S.Modal>
     </S.Overlay>
   );

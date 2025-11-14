@@ -48,7 +48,7 @@ export default function RankingPage() {
               <S.SectionIcon>
                 <FaTrophy />
               </S.SectionIcon>
-              <S.SectionTitle $isDark={isDark}>TOP 10° Melhores do Ano</S.SectionTitle>
+              <S.SectionTitle $isDark={isDark}>TOP 10</S.SectionTitle>
             </S.SectionHeader>
 
             <S.LeaderboardTable>
@@ -56,7 +56,7 @@ export default function RankingPage() {
                 <S.HeaderCell width="10%">Posição</S.HeaderCell>
                 <S.HeaderCell width="40%">Nome</S.HeaderCell>
                 <S.HeaderCell width="25%">Pontos</S.HeaderCell>
-                <S.HeaderCell width="25%">Pontuação</S.HeaderCell>
+                <S.HeaderCell width="25%">Colocação</S.HeaderCell>
               </S.TableHeader>
 
               <S.TableBody>

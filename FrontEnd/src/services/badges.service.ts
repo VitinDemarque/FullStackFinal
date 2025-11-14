@@ -22,10 +22,29 @@ export const badgesService = {
     try {
       const response = await apiRequest<any>('GET', '/badges')
       const data = response?.data ?? response
-      if (Array.isArray(data)) return data
-      if (Array.isArray(data?.data)) return data.data
-      if (Array.isArray(data?.results)) return data.results
-      return []
+      let badges: any[] = []
+      
+      if (Array.isArray(data)) {
+        badges = data
+      } else if (Array.isArray(data?.items)) {
+        badges = data.items
+      } else if (Array.isArray(data?.data)) {
+        badges = data.data
+      } else if (Array.isArray(data?.results)) {
+        badges = data.results
+      }
+      
+      return badges.map((b: any) => ({
+        _id: String(b._id ?? b.id),
+        name: b.name ?? '',
+        description: b.description ?? '',
+        icon: b.iconUrl ?? b.icon ?? undefined,
+        type: 'special' as const,
+        requirement: b.requirement ?? undefined,
+        isTriumphant: Boolean(b.isTriumphant ?? false),
+        linkedExerciseId: b.linkedExerciseId ? String(b.linkedExerciseId) : null,
+        rarity: b.rarity ?? undefined
+      }))
     } catch (error) {
       return createMockBadges()
     }
