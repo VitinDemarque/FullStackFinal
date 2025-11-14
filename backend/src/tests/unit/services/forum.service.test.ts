@@ -1,34 +1,54 @@
 // comando de teste para esse arquivo: npm test -- src/tests/unit/services/forum.service.test.ts --verbose
 
-import * as forumService from '@/services/forum.service';
-import Forum, { IForum } from '@/models/Forum.model';
-import Exercise from '@/models/Exercise.model';
-import ForumTopic from '@/models/ForumTopic.model'
-import { NotFoundError, BadRequestError } from '@/utils/httpErrors';
-import { Types } from 'mongoose';
-
-// Mocks dos Models
 jest.mock('@/models/Forum.model', () => ({
-    find: jest.fn().mockReturnValue({ lean: jest.fn() }),
-    findById: jest.fn().mockReturnValue({ lean: jest.fn() }),
-    findOne: jest.fn().mockReturnValue({ lean: jest.fn() }),
-    aggregate: jest.fn(),
-    create: jest.fn(),
-    findByIdAndUpdate: jest.fn(),
-    findByIdAndDelete: jest.fn(),
+    __esModule: true,
+    default: {
+        find: jest.fn(),
+        aggregate: jest.fn(),
+        findById: jest.fn(),
+        findOne: jest.fn(),
+        create: jest.fn(),
+        findByIdAndUpdate: jest.fn(),
+        findByIdAndDelete: jest.fn(),
+    }
 }));
 
 jest.mock('@/models/ForumTopic.model', () => ({
-    find: jest.fn(),
-}))
+    __esModule: true,
+    default: {
+        find: jest.fn(),
+        deleteMany: jest.fn(),
+    }
+}));
+
+jest.mock('@/models/ForumComment.model', () => ({
+    __esModule: true,
+    default: {
+        deleteMany: jest.fn(),
+    }
+}));
 
 jest.mock('@/models/Exercise.model', () => ({
-    findById: jest.fn(),
+    __esModule: true,
+    default: {
+        findById: jest.fn(),
+        findOne: jest.fn(),
+    }
 }));
+
+import * as forumService from '@/services/forum.service';
+import Forum from '@/models/Forum.model';
+import type { IForum } from '@/models/Forum.model';
+import ForumTopic from '@/models/ForumTopic.model'
+import ForumComment from '@/models/ForumComment.model';
+import Exercise from '@/models/Exercise.model';
+import { NotFoundError, BadRequestError } from '@/utils/httpErrors';
+import { Types } from 'mongoose';
 
 // Mock do Types.ObjectId
 jest.spyOn(Types, 'ObjectId').mockImplementation((id?: any) => {
-    return { toString: () => (id ? id.toString() : '000000000000000000000000') } as any;
+    const value = id ?? Math.random().toString(16).slice(2, 26).padEnd(24, "0");
+    return { toString: () => value } as any;
 });
 
 describe('forum.service', () => {
@@ -285,25 +305,65 @@ describe('forum.service', () => {
     });
 
     describe('excluir', () => {
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        const forumId = new Types.ObjectId().toString();
+        const usuarioId = new Types.ObjectId().toString();
+
         const mockForum = {
             _id: forumId,
             donoUsuarioId: usuarioId,
             moderadores: [],
             votosExclusao: [],
+            participantes: [],
             status: 'ATIVO',
         } as unknown as IForum;
 
         it('deve excluir imediatamente se todos votaram', async () => {
-            const forumVotos = {
-                ...mockForum,
-                votosExclusao: [{ usuarioId: 'outroUsuario', data: new Date() }] // outro usuário
-            };
-            (Forum.findById as jest.Mock).mockReturnValue({ lean: jest.fn().mockResolvedValue(forumVotos) });
-            (Forum.findByIdAndDelete as jest.Mock).mockReturnValue({
-                lean: jest.fn().mockResolvedValue(forumVotos),
+            const forumId = new Types.ObjectId().toString();
+
+            // IDs completamente separados
+            const donoId = new Types.ObjectId().toString();           // Dono
+            const moderadorId = new Types.ObjectId().toString();      // Moderador
+            const usuarioQueVota = moderadorId;                       // Quem está votando agora
+
+            // Dono já votou — moderador não votou ainda
+            const forumMock = {
+                _id: forumId,
+                donoUsuarioId: donoId,
+                moderadores: [{ usuarioId: moderadorId }],
+                votosExclusao: [
+                    { usuarioId: donoId, data: new Date() },          // Apenas o DONO votou
+                ],
+                status: "ATIVO",
+            } as unknown as IForum;
+
+            // findById retorna este fórum
+            (Forum.findById as jest.Mock).mockReturnValue({
+                lean: jest.fn().mockResolvedValue(forumMock),
             });
 
-            const result = await forumService.excluir(forumId, usuarioId);
+            // Exclusões em cascata
+            (ForumComment.deleteMany as jest.Mock).mockResolvedValue({ acknowledged: true });
+            (ForumTopic.deleteMany as jest.Mock).mockResolvedValue({ acknowledged: true });
+
+            // findByIdAndDelete retorna o objeto deletado
+            (Forum.findByIdAndDelete as jest.Mock).mockResolvedValue(forumMock);
+
+            const result = await forumService.excluir(forumId, usuarioQueVota);
+
+            expect(ForumComment.deleteMany).toHaveBeenCalledWith({
+                forumId: expect.objectContaining({
+                    toString: expect.any(Function),
+                }),
+            });
+
+            expect.objectContaining({
+                toString: expect.any(Function),
+            });
+
             expect(result.mensagem).toMatch(/excluído com sucesso/);
         });
 
@@ -317,15 +377,12 @@ describe('forum.service', () => {
                 status: 'ATIVO',
             };
 
-            // findById retorna o fórum
             (Forum.findById as jest.Mock).mockReturnValue({
                 lean: jest.fn().mockResolvedValue(forumPendente),
             });
 
-            // findByIdAndUpdate não precisa retornar nada específico
             (Forum.findByIdAndUpdate as jest.Mock).mockResolvedValue(forumPendente);
 
-            // usuário que vai votar
             const result = await forumService.excluir(forumId, usuarioModerador);
 
             expect(result.pendente).toBe(true);
@@ -334,18 +391,29 @@ describe('forum.service', () => {
 
         it('deve lançar erro se usuário já votou', async () => {
             const forumJaVotou = { ...mockForum, votosExclusao: [{ usuarioId }] };
-            (Forum.findById as jest.Mock).mockReturnValue({ lean: jest.fn().mockResolvedValue(forumJaVotou) });
+
+            (Forum.findById as jest.Mock).mockReturnValue({
+                lean: jest.fn().mockResolvedValue(forumJaVotou),
+            });
+
             await expect(forumService.excluir(forumId, usuarioId)).rejects.toThrow(BadRequestError);
         });
 
         it('deve lançar erro se não for dono nem moderador', async () => {
             const forumOutro = { ...mockForum, donoUsuarioId: 'outro', moderadores: [] };
-            (Forum.findById as jest.Mock).mockReturnValue({ lean: jest.fn().mockResolvedValue(forumOutro) });
+
+            (Forum.findById as jest.Mock).mockReturnValue({
+                lean: jest.fn().mockResolvedValue(forumOutro),
+            });
+
             await expect(forumService.excluir(forumId, usuarioId)).rejects.toThrow(BadRequestError);
         });
 
         it('deve lançar NotFoundError se fórum não existir', async () => {
-            (Forum.findById as jest.Mock).mockReturnValue({ lean: jest.fn().mockResolvedValue(null) });
+            (Forum.findById as jest.Mock).mockReturnValue({
+                lean: jest.fn().mockResolvedValue(null),
+            });
+
             await expect(forumService.excluir(forumId, usuarioId)).rejects.toThrow(NotFoundError);
         });
     });
