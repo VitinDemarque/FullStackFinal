@@ -20,12 +20,21 @@ export async function getById(id: string) {
   return b;
 }
 
-export async function create(input: { name: string; description?: string; iconUrl?: string; ruleCode?: string }) {
+export async function create(input: { 
+  name: string; 
+  description?: string; 
+  iconUrl?: string; 
+  ruleCode?: string;
+  isTriumphant?: boolean;
+  linkedExerciseId?: string | null;
+}) {
   const b = await Badge.create({
     name: input.name,
     description: input.description ?? '',
     iconUrl: input.iconUrl ?? null,
-    ruleCode: input.ruleCode ?? null
+    ruleCode: input.ruleCode ?? null,
+    isTriumphant: Boolean(input.isTriumphant ?? false),
+    linkedExerciseId: input.linkedExerciseId ? new Types.ObjectId(input.linkedExerciseId) : null
   });
   return b.toObject();
 }

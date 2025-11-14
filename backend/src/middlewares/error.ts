@@ -48,11 +48,22 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
   }
 
   if (anyErr?.code === 11000) {
+    const keyValue = anyErr?.keyValue ?? {};
+    const duplicateField = Object.keys(keyValue)[0];
+    const duplicateValue = keyValue[duplicateField];
+    
+    let message = 'Duplicate key';
+    if (duplicateField === 'name') {
+      message = `Já existe um registro com o nome "${duplicateValue}". Por favor, escolha outro nome.`;
+    } else if (duplicateField) {
+      message = `Já existe um registro com ${duplicateField}: "${duplicateValue}".`;
+    }
+    
     return res.status(409).json({
       error: {
-        message: 'Duplicate key',
+        message,
         statusCode: 409,
-        details: anyErr?.keyValue ?? undefined,
+        details: keyValue,
       },
     });
   }
