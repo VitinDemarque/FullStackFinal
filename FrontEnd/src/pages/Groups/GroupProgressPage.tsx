@@ -316,7 +316,9 @@ const GroupProgressPage: React.FC = () => {
       });
 
     } catch (error: any) {
-      console.error('Erro ao carregar dados:', error);
+      if (import.meta.env.DEV) {
+        console.error('Erro ao carregar dados:', error);
+      }
     } finally {
       setLoading(false);
     }

@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { FaTrophy, FaMedal } from "react-icons/fa";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
 import { leaderboardService } from "@services/leaderboard.service";
 import { useFetch } from "@hooks/useFetch";
 import { useTheme } from "@contexts/ThemeContext";
+import { resolvePublicUrl } from "@services/api";
 import * as S from "@/styles/pages/Ranking/styles";
 
 export default function RankingPage() {
@@ -81,24 +81,27 @@ export default function RankingPage() {
                 ) : leaderboard && leaderboard.length > 0 ? (
                   leaderboard.map((entry) => {
                     const medal = getMedalIcon(entry.position);
+                    const avatarSrc = entry.avatarUrl
+                      ? resolvePublicUrl(entry.avatarUrl) ?? entry.avatarUrl
+                      : null;
 
                     return (
                       <S.TableRow key={entry.userId} $isDark={isDark}>
                         <S.TableCell>
-                          <S.PositionBadge position={entry.position}>
+                          <S.PositionBadge $position={entry.position}>
                             {entry.position}º
                           </S.PositionBadge>
                         </S.TableCell>
                         <S.TableCell>
                           <S.UserInfo>
-                            {entry.avatarUrl ? (
-                              <S.UserAvatarImg src={entry.avatarUrl} alt={entry.name} />
+                            {avatarSrc ? (
+                              <S.UserAvatarImg src={avatarSrc} alt={entry.name} />
                             ) : (
                               <S.UserAvatar>{entry.name.charAt(0)}</S.UserAvatar>
                             )}
-                            <Link to={`/perfil/${entry.userId}`} style={{ textDecoration: 'none' }}>
-                              <S.UserNameLink $isDark={isDark}>{entry.name}</S.UserNameLink>
-                            </Link>
+                            <S.UserNameLink to={`/perfil/${entry.userId}`} $isDark={isDark}>
+                              {entry.name}
+                            </S.UserNameLink>
                           </S.UserInfo>
                         </S.TableCell>
                         <S.TableCell>
@@ -131,17 +134,17 @@ export default function RankingPage() {
             {!loading && leaderboard && leaderboard.length > 0 && (
               <S.Pagination $isDark={isDark}>
                 <S.PaginationDot
-                  active={currentPage === 1}
+                  $active={currentPage === 1}
                   $isDark={isDark}
                   onClick={() => setCurrentPage(1)}
                 />
                 <S.PaginationDot
-                  active={currentPage === 2}
+                  $active={currentPage === 2}
                   $isDark={isDark}
                   onClick={() => setCurrentPage(2)}
                 />
                 <S.PaginationDot
-                  active={currentPage === 3}
+                  $active={currentPage === 3}
                   $isDark={isDark}
                   onClick={() => setCurrentPage(3)}
                 />

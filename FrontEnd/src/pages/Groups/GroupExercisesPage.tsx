@@ -233,7 +233,9 @@ const GroupExercisesPage: React.FC = () => {
       const groupData = await groupService.getById(id);
       setGroup(groupData);
     } catch (error: any) {
-      console.error('Erro ao carregar grupo:', error);
+      if (import.meta.env.DEV) {
+        console.error('Erro ao carregar grupo:', error);
+      }
     } finally {
       setLoading(false);
     }
@@ -254,7 +256,9 @@ const GroupExercisesPage: React.FC = () => {
       
       setExercises(groupExercises);
     } catch (error: any) {
-      console.error('Erro ao carregar exercícios do grupo:', error);
+      if (import.meta.env.DEV) {
+        console.error('Erro ao carregar exercícios do grupo:', error);
+      }
       await loadGroupExercisesFallback();
     } finally {
       setExercisesLoading(false);
@@ -274,7 +278,9 @@ const GroupExercisesPage: React.FC = () => {
       
       setExercises(groupExercises);
     } catch (error) {
-      console.error('Erro no fallback:', error);
+      if (import.meta.env.DEV) {
+        console.error('Erro no fallback:', error);
+      }
     }
   };
 
@@ -323,8 +329,10 @@ const GroupExercisesPage: React.FC = () => {
         setExerciseRankings((prev) => ({ ...prev, ...map }));
       }
     } catch (error) {
-      // silenciar erros: ranking é oculto e não deve impactar a UI
-      console.error("Falha ao pré-carregar ranking por exercício", error);
+      // Silenciar erros: ranking é oculto e não deve impactar a UI
+      if (import.meta.env.DEV) {
+        console.error("Falha ao pré-carregar ranking por exercício", error);
+      }
     } finally {
       setRankingsLoading(false);
     }

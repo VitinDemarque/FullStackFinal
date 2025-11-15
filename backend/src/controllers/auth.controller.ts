@@ -33,7 +33,7 @@ export async function refreshToken(req: Request, res: Response, next: NextFuncti
   try {
     const { refreshToken } = req.body ?? {};
     if (!refreshToken) throw new BadRequestError('Missing refreshToken');
-    const result = await AuthService.refresh(refreshToken);
+    const result = await AuthService.refreshToken(refreshToken);
     return res.status(200).json(result);
   } catch (err) {
     return next(err);

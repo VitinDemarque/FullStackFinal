@@ -473,7 +473,9 @@ const GroupDetailsPage: React.FC = () => {
       const groupData = await groupService.getById(id);
       setGroup(groupData);
     } catch (error: any) {
-      console.error('Erro ao carregar grupo:', error);
+      if (import.meta.env.DEV) {
+        console.error('Erro ao carregar grupo:', error);
+      }
     } finally {
       setLoading(false);
     }

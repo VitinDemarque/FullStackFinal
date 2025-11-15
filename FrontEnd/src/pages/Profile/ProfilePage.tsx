@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@contexts/AuthContext";
+import { useTheme } from "@contexts/ThemeContext";
 import { useAsync } from "@hooks/useAsync";
 import { userService } from "@services/user.service";
 import { api, resolvePublicUrl } from "@services/api";
 import { titlesService } from "@services/titles.service";
-import { getProgressToNextLevel, deriveLevelFromXp } from "@utils/levels";
+import { leaderboardService } from "@services/leaderboard.service";
+import { exercisesService, submissionsService, badgesService } from "@services/index";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
+import type { Exercise } from "@/types";
 import {
   FaUser,
   FaTrophy,
@@ -16,6 +19,9 @@ import {
   FaEdit,
   FaLock,
   FaFilter,
+  FaCheckCircle,
+  FaFire,
+  FaCode,
 } from "react-icons/fa";
 import * as S from "@/styles/pages/Profile/styles";
 
@@ -43,8 +49,12 @@ interface UserTitleItem {
   active?: boolean;
 }
 
+type TabType = 'completed' | 'badges' | 'titles' | 'created';
+
 export default function ProfilePage() {
   const { user, updateUser } = useAuth();
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const navigate = useNavigate();
   const {
     data: scoreboard,
@@ -58,17 +68,27 @@ export default function ProfilePage() {
   const [loadingBadges, setLoadingBadges] = useState(true);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [showImageUpload, setShowImageUpload] = useState(false);
   const [allTitles, setAllTitles] = useState<Title[]>([]);
   const [userTitles, setUserTitles] = useState<UserTitleItem[]>([]);
   const [loadingTitles, setLoadingTitles] = useState(true);
   const [titleFilter, setTitleFilter] = useState<'all' | 'earned' | 'locked'>('all');
+  const [activeTab, setActiveTab] = useState<TabType>('completed');
+  const [userRank, setUserRank] = useState<number | null>(null);
+  const [loginStreak, setLoginStreak] = useState<number>(0);
+  const [completedExercises, setCompletedExercises] = useState<Exercise[]>([]);
+  const [loadingCompleted, setLoadingCompleted] = useState(false);
+  const [createdExercises, setCreatedExercises] = useState<Exercise[]>([]);
+  const [loadingCreated, setLoadingCreated] = useState(false);
 
   useEffect(() => {
     if (user) {
       execute();
       loadBadges();
       loadTitles();
+      loadUserRank();
+      loadLoginStreak();
+      loadCompletedExercises();
+      loadCreatedExercises();
 
       if (user.avatarUrl) {
         setProfileImage(user.avatarUrl);
@@ -78,26 +98,98 @@ export default function ProfilePage() {
     }
   }, [user?.id, user?.avatarUrl]);
 
-  // Atualiza o streak de login ao abrir o perfil e recarrega o scoreboard
   useEffect(() => {
     if (!user?.id) return;
     (async () => {
       try {
-        await userService.pingLoginStreak();
+        const streakData = await userService.pingLoginStreak();
+        if (streakData) {
+          setLoginStreak(streakData.loginStreakCurrent || 0);
+        }
         await execute();
       } catch {}
     })();
   }, [user?.id]);
 
+  async function loadUserRank() {
+    try {
+      const leaderboard = await leaderboardService.getGeneralLeaderboard({ page: 1, limit: 1000 });
+      const userIndex = Array.isArray(leaderboard) ? leaderboard.findIndex((u: any) => String(u.userId || u._id || u.id) === String(user?.id)) : -1;
+      if (userIndex !== undefined && userIndex !== -1) {
+        setUserRank(userIndex + 1);
+      }
+    } catch (error) {
+      setUserRank(null);
+    }
+  }
+
+  async function loadLoginStreak() {
+    try {
+      const streakData = await userService.pingLoginStreak();
+      if (streakData) {
+        setLoginStreak(streakData.loginStreakCurrent || 0);
+      }
+    } catch (error) {
+      setLoginStreak(0);
+    }
+  }
+
+  async function loadCompletedExercises() {
+    try {
+      setLoadingCompleted(true);
+      const submissions = await submissionsService.getMySubmissions(1, 1000);
+
+      // Filtrar apenas submissões aceitas
+      const acceptedSubmissions = submissions.items?.filter(
+        (sub: any) => sub.status === 'ACCEPTED'
+      ) || [];
+
+      // Remover duplicatas (mesmo exercício pode ter múltiplas submissões)
+      const uniqueExerciseIds = Array.from(
+        new Set(acceptedSubmissions.map((sub: any) => sub.exerciseId))
+      );
+
+      // Buscar os exercícios
+      const exercisesPromises = uniqueExerciseIds.map((exerciseId: string) =>
+        exercisesService.getById(exerciseId).catch(() => null)
+      );
+
+      const exercises = await Promise.all(exercisesPromises);
+      const validExercises = exercises.filter((ex): ex is Exercise => ex !== null);
+
+      setCompletedExercises(validExercises);
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error('Erro ao carregar desafios completos:', error);
+      }
+      setCompletedExercises([]);
+    } finally {
+      setLoadingCompleted(false);
+    }
+  }
+
+  async function loadCreatedExercises() {
+    try {
+      setLoadingCreated(true);
+      const response = await exercisesService.getMine({ page: 1, limit: 1000 });
+      const exercises = response.items || [];
+      setCreatedExercises(Array.isArray(exercises) ? exercises : []);
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error('Erro ao carregar desafios criados:', error);
+      }
+      setCreatedExercises([]);
+    } finally {
+      setLoadingCreated(false);
+    }
+  }
+
   async function loadBadges() {
     try {
       setLoadingBadges(true);
 
-      const badgesResponse = await api.get("/badges");
-      const allBadgesData =
-        badgesResponse.data.items ||
-        badgesResponse.data.data ||
-        badgesResponse.data;
+      // Usar o service que normaliza os dados corretamente
+      const allBadgesData = await badgesService.getAll();
 
       const userBadgesResponse = await api.get(`/users/${user?.id}/badges`);
       const userBadgesData = userBadgesResponse.data || [];
@@ -158,123 +250,14 @@ export default function ProfilePage() {
         type: "silver",
         requirement: "10 desafios",
       },
-      {
-        _id: "3",
-        name: "50 Desafios",
-        description: "Complete 50 desafios",
-        type: "bronze",
-        requirement: "50 desafios",
-      },
-      {
-        _id: "4",
-        name: "Streak 7 dias",
-        description: "Pratique 7 dias seguidos",
-        type: "special",
-        requirement: "7 dias consecutivos",
-      },
-      {
-        _id: "5",
-        name: "100 Desafios",
-        description: "Complete 100 desafios",
-        type: "bronze",
-        requirement: "100 desafios",
-      },
-      {
-        _id: "6",
-        name: "Mestre Python",
-        description: "Domine Python",
-        type: "gold",
-        requirement: "50 desafios Python",
-      },
-      {
-        _id: "7",
-        name: "JavaScript Pro",
-        description: "Expert em JavaScript",
-        type: "silver",
-        requirement: "50 desafios JS",
-      },
-      {
-        _id: "8",
-        name: "500 XP",
-        description: "Alcance 500 XP",
-        type: "bronze",
-        requirement: "500 XP",
-      },
-      {
-        _id: "9",
-        name: "Top 100",
-        description: "Entre no top 100",
-        type: "special",
-        requirement: "Top 100 ranking",
-      },
-      {
-        _id: "10",
-        name: "1000 XP",
-        description: "Alcance 1000 XP",
-        type: "silver",
-        requirement: "1000 XP",
-      },
-      {
-        _id: "11",
-        name: "Speed Runner",
-        description: "Complete em tempo recorde",
-        type: "gold",
-        requirement: "Tempo < 5min",
-      },
-      {
-        _id: "12",
-        name: "Perfect Score",
-        description: "Nota 100% em desafio",
-        type: "silver",
-        requirement: "100% score",
-      },
-      {
-        _id: "13",
-        name: "Code Master",
-        description: "Domine as estruturas",
-        type: "bronze",
-        requirement: "30 desafios",
-      },
-      {
-        _id: "14",
-        name: "Team Player",
-        description: "Participe de grupos",
-        type: "bronze",
-        requirement: "Entre em 1 grupo",
-      },
-      {
-        _id: "15",
-        name: "Bug Hunter",
-        description: "Encontre e corrija bugs",
-        type: "bronze",
-        requirement: "10 bugs corrigidos",
-      },
-      {
-        _id: "16",
-        name: "Algorithm Expert",
-        description: "Expert em algoritmos",
-        type: "silver",
-        requirement: "20 algoritmos",
-      },
-      {
-        _id: "17",
-        name: "Database Guru",
-        description: "Mestre em bancos de dados",
-        type: "bronze",
-        requirement: "15 BD desafios",
-      },
-      {
-        _id: "18",
-        name: "API Master",
-        description: "Expert em APIs",
-        type: "gold",
-        requirement: "25 APIs criadas",
-      },
     ];
   }
 
   const earnedBadges = allBadges.filter((b: any) => userBadges.includes(b._id));
+  const activeTitle = userTitles.find((ut) => ut.active)?.title;
+  const titleName = typeof activeTitle === 'object' && activeTitle ? activeTitle.name : (typeof activeTitle === 'string' ? activeTitle : '');
 
+  // Funções para calcular progresso dos títulos
   function getTitleProgress(t: Title) {
     const earned = userTitles.some((ut) => {
       const tid = typeof ut.title === 'string' ? ut.title : (ut.title as any)?._id;
@@ -350,8 +333,6 @@ export default function ProfilePage() {
       const earnedNow = done >= needed;
       return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Falta ${falta} desafio criado` : 'Quase lá') };
     }
-
-    // Criar 5 desafios => "Arquiteto de Ideias"
     if (name === 'arquiteto de ideias') {
       const needed = 5;
       const done = created;
@@ -360,7 +341,6 @@ export default function ProfilePage() {
       const earnedNow = done >= needed;
       return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Faltam ${falta} desafios criados` : 'Quase lá') };
     }
-
     if (name === 'engenheiro de lógica') {
       const needed = 10;
       const done = created;
@@ -369,7 +349,6 @@ export default function ProfilePage() {
       const earnedNow = done >= needed;
       return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Faltam ${falta} desafios criados` : 'Quase lá') };
     }
-
     if (name === 'sensei do código') {
       const needed = 25;
       const done = created;
@@ -517,11 +496,9 @@ export default function ProfilePage() {
       return { earned: earnedNow, percent, label: earnedNow ? 'Conquistado' : (falta > 0 ? `Faltam ${falta} dias` : 'Quase lá') };
     }
 
-    // Para títulos sem métrica mensurável neste scoreboard, usar 0% até conquistar
     return { earned: false, percent: 0, label: 'Ação necessária' };
   }
 
-  // Agrupamento por categoria de ação
   function getTitleCategory(t: Title) {
     const name = (t.name || '').toLowerCase();
     if (
@@ -566,153 +543,12 @@ export default function ProfilePage() {
       name.includes('senhor das comunidades')
     ) return 'Criar Grupos';
 
-    // Login (streak / constância)
     if (
       name.includes('explorador do código') ||
       name.includes('dev constante')
     ) return 'Login';
 
     return 'Outros';
-  }
-
-  // Valor numérico de requisito por título (para ordenação)
-  function getTitleRequirementValue(t: Title): number | undefined {
-    const name = getTitleDisplayName(t).toLowerCase().trim();
-    const map: Record<string, number> = {
-      // Resolver Desafios
-      'primeiro de muitos': 1,
-      'destrava códigos': 5,
-      'dev em ascensão': 10,
-      'mão na massa': 25,
-      'ligeirinho da lógica': 50,
-      'lenda do terminal': 100,
-      // Criar Desafios
-      'criador de bugs': 1,
-      'arquiteto de ideias': 5,
-      'engenheiro de lógica': 10,
-      'sensei do código': 25,
-      // Comentários no Fórum
-      'palpiteiro de primeira viagem': 1,
-      'conselheiro de plantão': 10,
-      'guru da comunidade': 25,
-      // Tópicos do Fórum
-      'quebrador de gelo': 1,
-      'gerador de ideias': 5,
-      'debatedor nato': 10,
-      'voz do fórum': 25,
-      // Entrar em Grupos
-      'recruta do código': 1,
-      'integrador': 5,
-      'conectadão': 10,
-      // Criar Grupos
-      'fundador de equipe': 1,
-      'líder de stack': 3,
-      'gestor do caos': 5,
-      'senhor das comunidades': 10,
-      // Login consecutivo
-      'explorador do código': 1,
-      'dev constante': 7,
-      // Streaks de acertos em 24h
-      'embalado no código': 3,
-      'modo turbo': 5,
-      'imparável': 10,
-    };
-
-    if (map[name] != null) return map[name];
-    const normalized = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    if (normalized.includes('criador de bugs')) return 1; // variantes com sufixo
-    // Heurísticas por inclusão para evitar divergências de nome
-    if (normalized.includes('embalado')) return 3;
-    if (normalized.includes('modo turbo')) return 5;
-    if (normalized.includes('imparavel')) return 10;
-    return undefined;
-  }
-
-  function getTitleHint(t: Title) {
-    // Frases fixas por título (hover). Chave: nome em minúsculas
-    const requirementHints: Record<string, string> = {
-      'primeiro de muitos': 'Conclua 1 Desafio',
-      'destrava códigos': 'Conclua 5 Desafios',
-      'dev em ascensão': 'Conclua 10 Desafios',
-      'mão na massa': 'Conclua 25 Desafios',
-      'ligeirinho da lógica': 'Conclua 50 Desafios',
-      'lenda do terminal': 'Conclua 100 Desafios',
-      'criador de bugs': 'Crie 1 desafio',
-      'arquiteto de ideias': 'Criei 5 Desafio',
-      'engenheiro de lógica': 'Criei 10 Desafio',
-      'sensei do código': 'Criei 25 Desafio',
-
-      'embalado no código': '3 acertos seguidos em 24h',
-      'modo turbo': '5 acertos seguidos em 24h',
-      'imparável': '10 acertos seguidos em 24h',
-      'ligeirinho': 'Concluir um desafio em menos de 1 min',
-
-      'palpiteiro de primeira viagem': 'Comenta 1 vez no forum',
-      'conselheiro de plantão': 'Comenta 10 vezes no forum',
-      'guru da comunidade': 'Comenta 25 vezes no forum',
-
-      'quebrador de gelo': 'Criei 1 tópico',
-      'gerador de ideias': 'Criei 5 tópicos',
-      'debatedor nato': 'Criei 10 tópicos',
-      'voz do fórum': 'Criei 25 tópicos',
-
-      'recruta do código': 'Entre em 1 grupo',
-      'integrador': 'Entre em 5 grupos',
-      'conectadão': 'Entre em 10 grupos',
-
-      'fundador de equipe': 'Criei 1 grupo',
-      'líder de stack': 'Criei 3 grupos',
-      'gestor do caos': 'Criei 5 grupos',
-      'senhor das comunidades': 'Criei 10 grupos',
-
-      'explorador do código': 'Faça Login 1 dia consecutivo',
-      'dev constante': 'Faça Login 7 dias consecutivos',
-      'perfect coder': 'Conclua um desafio sem erra nada',
-    };
-
-    const earned = userTitles.some((ut) => {
-      const tid = typeof ut.title === 'string' ? ut.title : (ut.title as any)?._id;
-      return tid && String(tid) === String(t._id);
-    });
-
-    if (earned) {
-      const ut = userTitles.find((u) => {
-        const tid = typeof u.title === 'string' ? u.title : (u.title as any)?._id;
-        return tid && String(tid) === String(t._id);
-      });
-      const when = ut?.awardedAt ? new Date(ut.awardedAt).toLocaleDateString() : undefined;
-      return `✅ Conquistado${when ? ` em ${when}` : ''}`;
-    }
-
-    const solved = Number((scoreboard as any)?.solved ?? 0);
-    const created = Number((scoreboard as any)?.created ?? 0);
-
-    // Mapeamento de requisitos por título (foco no que precisa fazer)
-    const name = (t.name || '').toLowerCase().trim();
-    // Correspondência direta
-    if (requirementHints[name]) {
-      return requirementHints[name];
-    }
-
-    // Correspondência por inclusão para variantes com sufixos como "(sem querer)"
-    if (name.includes('criador de bugs')) {
-      return requirementHints['criador de bugs'];
-    }
-
-    // Padrão: usar a descrição como pista e orientar ação
-    if (t.description) {
-      return `Para ganhar: ${t.description}`;
-    }
-    return 'Para ganhar: conclua desafios, participe do fórum ou grupos.';
-  }
-
-  // Nome de exibição ajustado para casos específicos
-  function getTitleDisplayName(t: Title) {
-    const n = (t.name || '').trim();
-    if (n.toLowerCase().includes('criador de bugs')) {
-      return n.replace(/\s*\(sem querer\)\s*/i, '');
-    }
-    return n;
   }
 
   async function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
@@ -739,256 +575,365 @@ export default function ProfilePage() {
           const resolved = resolvePublicUrl(updated.avatarUrl || null);
           setProfileImage(resolved);
           updateUser({ avatarUrl: resolved || null });
-          alert("✅ Foto de perfil atualizada com sucesso!");
+          alert("Foto de perfil atualizada com sucesso!");
         } catch (err) {
-          alert("❌ Erro ao enviar a imagem ao servidor.");
+          alert("Erro ao enviar a imagem ao servidor.");
         } finally {
-          setShowImageUpload(false);
           setUploadingImage(false);
         }
       };
       reader.readAsDataURL(file);
     } catch (error) {
-      alert("❌ Erro ao processar a imagem.");
+      alert("Erro ao processar a imagem.");
       setUploadingImage(false);
-    }
-  }
-
-  async function handleRemoveImage() {
-    if (confirm("Tem certeza que deseja remover sua foto de perfil?")) {
-      try {
-        const updated = await userService.updateMe({ avatarUrl: null });
-        setProfileImage(null);
-        const resolved = resolvePublicUrl(updated.avatarUrl || null);
-        updateUser({ avatarUrl: resolved || null });
-        alert("✅ Foto de perfil removida!");
-      } catch (err) {
-        alert("❌ Erro ao remover a foto no servidor.");
-      }
     }
   }
 
   if (!user) return null;
 
-  const currentXpTotal = (user as any).xpTotal ?? 0;
-  const currentLevel = deriveLevelFromXp(currentXpTotal);
-  const { withinLevelXp, nextRequirement, percent: xpPercent } = getProgressToNextLevel(currentXpTotal, currentLevel);
-  const hasAnyBadge = userBadges.length > 0;
+  const completedRooms = (scoreboard as any)?.solved ?? 0;
+  const badgesCount = userBadges.length;
 
   return (
     <AuthenticatedLayout>
-      <S.ProfilePage>
-        <S.ProfileHero>
-          <S.EditButton onClick={() => navigate("/profile/editar")}>
-            <FaEdit /> Editar Perfil
-          </S.EditButton>
+      <S.ProfilePageContainer $isDark={isDark}>
+        <S.ProfileHeader>
+          <S.HeaderContent>
+            <S.ProfileSection>
+              <S.AvatarContainer>
+                <S.Avatar>
+                  {profileImage ? (
+                    <S.AvatarImage src={profileImage} alt="Perfil" />
+                  ) : (
+                    <FaUser />
+                  )}
+                </S.Avatar>
+                <S.AvatarEditButton
+                  onClick={() => document.getElementById("avatar-input")?.click()}
+                  title="Alterar foto"
+                >
+                  <FaEdit />
+                </S.AvatarEditButton>
+                <S.HiddenInput
+                  id="avatar-input"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                />
+              </S.AvatarContainer>
 
-          <S.AvatarContainer>
-            <S.Avatar>
-              {profileImage ? (
-                <S.AvatarImage src={profileImage} alt="Perfil" />
-              ) : (
-                <FaUser />
-              )}
-            </S.Avatar>
-            <S.AvatarEditButton
-              onClick={() => document.getElementById("avatar-input")?.click()}
-              title="Alterar foto"
+              <S.UserInfo>
+                <S.Username>
+                  {user.name}
+                  {titleName && <S.UserTitle>[{titleName}]</S.UserTitle>}
+                </S.Username>
+                <S.ActionButtons>
+                  <S.ActionButton onClick={() => navigate("/profile/editar")}>
+                    Editar Perfil
+                  </S.ActionButton>
+                </S.ActionButtons>
+                <S.SocialInfo>
+                  <span>0 Seguindo</span>
+                  <span>0 Seguidores</span>
+                </S.SocialInfo>
+              </S.UserInfo>
+            </S.ProfileSection>
+
+            <S.StatsCards>
+              <S.StatCard>
+                <S.StatIcon>
+                  <FaTrophy />
+                </S.StatIcon>
+                <S.StatValue>{userRank || 'N/A'}</S.StatValue>
+                <S.StatLabel>Rank</S.StatLabel>
+              </S.StatCard>
+              <S.StatCard>
+                <S.StatIcon>
+                  <FaMedal />
+                </S.StatIcon>
+                <S.StatValue>{badgesCount}</S.StatValue>
+                <S.StatLabel>Emblemas</S.StatLabel>
+              </S.StatCard>
+              <S.StatCard>
+                <S.StatIcon>
+                  <FaFire />
+                </S.StatIcon>
+                <S.StatValue>{loginStreak}</S.StatValue>
+                <S.StatLabel>Streak</S.StatLabel>
+              </S.StatCard>
+              <S.StatCard>
+                <S.StatIcon>
+                  <FaCheckCircle />
+                </S.StatIcon>
+                <S.StatValue>{completedRooms}</S.StatValue>
+                <S.StatLabel>Desafios Completos</S.StatLabel>
+              </S.StatCard>
+            </S.StatsCards>
+          </S.HeaderContent>
+        </S.ProfileHeader>
+
+        <S.TabsContainer $isDark={isDark}>
+          <S.Tabs>
+            <S.Tab
+              $active={activeTab === 'completed'}
+              $isDark={isDark}
+              onClick={() => setActiveTab('completed')}
             >
-              <FaEdit />
-            </S.AvatarEditButton>
-            <S.HiddenInput
-              id="avatar-input"
-              type="file"
-              accept="image/*"
-              onChange={handleImageSelect}
-            />
-          </S.AvatarContainer>
+              <FaCheckCircle /> Desafios Completos
+            </S.Tab>
+            <S.Tab
+              $active={activeTab === 'badges'}
+              $isDark={isDark}
+              onClick={() => setActiveTab('badges')}
+            >
+              <FaMedal /> Badges
+            </S.Tab>
+            <S.Tab
+              $active={activeTab === 'titles'}
+              $isDark={isDark}
+              onClick={() => setActiveTab('titles')}
+            >
+              <FaAward /> Títulos
+            </S.Tab>
+            <S.Tab
+              $active={activeTab === 'created'}
+              $isDark={isDark}
+              onClick={() => setActiveTab('created')}
+            >
+              <FaCode /> Desafios Criados
+            </S.Tab>
+          </S.Tabs>
+        </S.TabsContainer>
 
-          {showImageUpload && (
-            <S.ImageUploadOptions>
-              <S.UploadButton
-                onClick={() => document.getElementById("avatar-input")?.click()}
-                disabled={uploadingImage}
-              >
-                {uploadingImage ? "Enviando..." : "📷 Escolher Foto"}
-              </S.UploadButton>
-              {profileImage && (
-                <S.RemoveButton onClick={handleRemoveImage}>
-                  🗑️ Remover Foto
-                </S.RemoveButton>
+        <S.ContentArea $isDark={isDark}>
+          {activeTab === 'completed' && (
+            <S.CompletedContent $isDark={isDark}>
+              {loadingCompleted ? (
+                <S.LoadingBadges $isDark={isDark}>Carregando desafios completos...</S.LoadingBadges>
+              ) : completedExercises.length > 0 ? (
+                <S.ExercisesGrid>
+                  {completedExercises.map((exercise) => (
+                    <S.ExerciseCard key={exercise.id} $isDark={isDark}>
+                      <S.ExerciseCardHeader>
+                        <S.ExerciseTitle $isDark={isDark}>{exercise.title}</S.ExerciseTitle>
+                        {exercise.difficulty && (
+                          <S.DifficultyBadge $difficulty={exercise.difficulty} $isDark={isDark}>
+                            Dificuldade: {exercise.difficulty}/5
+                          </S.DifficultyBadge>
+                        )}
+                      </S.ExerciseCardHeader>
+                      {exercise.description && (
+                        <S.ExerciseDescription $isDark={isDark}>
+                          {exercise.description}
+                        </S.ExerciseDescription>
+                      )}
+                      <S.ExerciseFooter $isDark={isDark}>
+                        {exercise.baseXp && (
+                          <S.ExerciseXp $isDark={isDark}>
+                            <FaStar /> {exercise.baseXp} XP
+                          </S.ExerciseXp>
+                        )}
+                        {exercise.subject && (
+                          <S.ExerciseSubject $isDark={isDark}>
+                            {exercise.subject}
+                          </S.ExerciseSubject>
+                        )}
+                      </S.ExerciseFooter>
+                    </S.ExerciseCard>
+                  ))}
+                </S.ExercisesGrid>
+              ) : (
+                <S.EmptyState $isDark={isDark}>
+                  <p>Este usuário ainda não completou nenhum desafio.</p>
+                </S.EmptyState>
               )}
-            </S.ImageUploadOptions>
+            </S.CompletedContent>
           )}
-
-          <S.ProfileName>{user.name}</S.ProfileName>
-
-          <S.BadgeIcon>
-            <FaMedal />
-          </S.BadgeIcon>
-
-          <S.ProfileStats>
-            <S.StatItem>
-              <S.StatLabel>Nível</S.StatLabel>
-              <S.StatValue>{currentLevel}</S.StatValue>
-            </S.StatItem>
-            <S.StatItem>
-              <S.StatLabel>XP no nível</S.StatLabel>
-              <S.StatValue>{withinLevelXp}/{nextRequirement}</S.StatValue>
-            </S.StatItem>
-            <S.StatItem>
-              <S.StatLabel>XP total</S.StatLabel>
-              <S.StatValue>{currentXpTotal}</S.StatValue>
-            </S.StatItem>
-          </S.ProfileStats>
-
-          <S.XpProgressContainer>
-            <S.XpProgressBar>
-              <S.XpProgressFill $progress={xpPercent} />
-            </S.XpProgressBar>
-            <S.XpProgressPercentContainer>
-              <S.XpProgressPercent $progress={xpPercent}>
-                {Math.round(xpPercent)}%
-              </S.XpProgressPercent>
-            </S.XpProgressPercentContainer>
-          </S.XpProgressContainer>
-        </S.ProfileHero>
-
-        <S.AchievementsSection>
-          <S.SectionTitle>
-            {"<"}EMBLEMAS TRIUNFANTES{">"}
-          </S.SectionTitle>
-          <S.SectionSubtitle>
-            Somente conquistas de maior prestígio ficam aqui
-          </S.SectionSubtitle>
-
-          {loadingBadges ? (
-            <S.LoadingBadges>Carregando emblemas...</S.LoadingBadges>
-          ) : earnedBadges.length > 0 ? (
-            <S.AllBadges>
-              {earnedBadges.map((badge, index) => {
-                const icons = [FaTrophy, FaStar, FaMedal, FaAward, FaTrophy, FaStar];
-                const Icon = icons[index % icons.length];
-                const rarity = userBadgeRarity[badge._id] || 'COMMON';
-                return (
-                  <S.BadgeItem
-                    key={badge._id}
-                    isEarned={true}
-                    colorIndex={index}
-                    title={badge.name}
-                  >
-                    <Icon />
-                    <S.BadgeBase isEarned={true} />
-                  </S.BadgeItem>
-                );
-              })}
-            </S.AllBadges>
-          ) : (
-            <S.NoBadgesMessage>
-              <FaLock />
-              <p>Nenhum emblema conquistado ainda.</p>
-            </S.NoBadgesMessage>
-          )}
-        </S.AchievementsSection>
-
-        <S.AchievementsSection>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-              <S.SectionTitle>{"<"}TÍTULOS{">"}</S.SectionTitle>
-              <S.SectionSubtitle style={{ marginBottom: 0, textAlign: 'left' }}>
-                Seus títulos ficam aqui
-              </S.SectionSubtitle>
-            </div>
-            <S.FilterControls>
-              <FaFilter />
-              <S.FilterSelect
-                aria-label="Filtrar títulos"
-                value={titleFilter}
-                onChange={(e) => setTitleFilter(e.target.value as any)}
-              >
-                <option value="all">Todos</option>
-                <option value="earned">Conquistados</option>
-                <option value="locked">Bloqueados</option>
-              </S.FilterSelect>
-            </S.FilterControls>
-          </div>
-
-          {loadingTitles ? (
-            <S.LoadingBadges>Carregando títulos...</S.LoadingBadges>
-          ) : allTitles.length > 0 ? (
-            (() => {
-              const groups: Record<string, Title[]> = {};
-              for (const t of allTitles) {
-                const cat = getTitleCategory(t);
-                if (!groups[cat]) groups[cat] = [];
-                groups[cat].push(t);
-              }
-              const order = ['Criar Desafios', 'Resolver Desafios', 'Comentários no Fórum', 'Tópicos do Fórum', 'Entrar em Grupos', 'Criar Grupos', 'Login', 'Outros'];
-              return (
-                <div style={{ width: '100%' }}>
-                  {order.filter((o) => groups[o]?.length).map((cat) => {
-                    const visible = [...groups[cat]].filter((t) => {
-                      const { earned } = getTitleProgress(t);
-                      if (titleFilter === 'earned') return !!earned;
-                      if (titleFilter === 'locked') return !earned;
-                      return true; // 'all'
-                    });
-
-                    if (visible.length === 0) return null; // Oculta categorias vazias sob o filtro atual
-
+          {activeTab === 'badges' && (
+            <S.BadgesContent>
+              {loadingBadges ? (
+                <S.LoadingBadges $isDark={isDark}>Carregando emblemas...</S.LoadingBadges>
+              ) : earnedBadges.length > 0 ? (
+                <S.AllBadges>
+                  {earnedBadges.map((badge, index) => {
+                    const icons = [FaTrophy, FaStar, FaMedal, FaAward, FaTrophy, FaStar];
+                    const Icon = icons[index % icons.length];
+                    const badgeIcon = badge.icon || (badge as any).iconUrl;
+                    const resolvedIconUrl = badgeIcon ? resolvePublicUrl(badgeIcon) : null;
                     return (
-                      <div key={cat} style={{ marginBottom: '1.5rem' }}>
-                        <S.CategoryTitle>{cat}</S.CategoryTitle>
-                        <S.TitlesGrid>
-                          {visible
-                            .sort((a, b) => {
-                              const ra = getTitleRequirementValue(a);
-                              const rb = getTitleRequirementValue(b);
-                              if (Number.isFinite(ra) && Number.isFinite(rb) && ra !== rb) {
-                                return (ra as number) - (rb as number);
-                              }
-                              const pa = getTitleProgress(a).percent;
-                              const pb = getTitleProgress(b).percent;
-                              if (pb !== pa) return pb - pa;
-                              return (a.name || '').localeCompare(b.name || '');
-                            })
-                            .map((t) => {
-                              const { earned, percent, label } = getTitleProgress(t);
-                              return (
-                                <S.TitleCard key={t._id} title={getTitleHint(t)}>
-                                  {earned && <S.EarnedChip>Conquistado</S.EarnedChip>}
-                                  <S.TitleHeader>
-                                    <S.TitleName>{getTitleDisplayName(t)}</S.TitleName>
-                                    <S.TitleLabel $earned={earned}>{earned ? '✅' : '🔒'} {label}</S.TitleLabel>
-                                  </S.TitleHeader>
-                                  {t.description && (
-                                    <S.TitleDescription>{t.description}</S.TitleDescription>
-                                  )}
-                                  <S.TitleProgressWrapper>
-                                    <S.TitleProgressBar>
-                                      <S.TitleProgressFill $progress={percent} />
-                                    </S.TitleProgressBar>
-                                    <S.TitleProgressPercentContainer>
-                                      <S.TitleProgressPercent $progress={percent}>{Math.round(percent)}%</S.TitleProgressPercent>
-                                    </S.TitleProgressPercentContainer>
-                                  </S.TitleProgressWrapper>
-                                </S.TitleCard>
-                              );
-                            })}
-                        </S.TitlesGrid>
-                      </div>
+                      <S.BadgeItem
+                        key={badge._id}
+                        $isEarned={true}
+                        $colorIndex={index}
+                        title={badge.name}
+                      >
+                        {resolvedIconUrl ? (
+                          <S.BadgeImage src={resolvedIconUrl} alt={badge.name} $isDark={isDark} />
+                        ) : (
+                          <Icon />
+                        )}
+                        <S.BadgeBase $isEarned={true} />
+                        <S.BadgeName $isDark={isDark}>{badge.name}</S.BadgeName>
+                      </S.BadgeItem>
                     );
                   })}
-                </div>
-              );
-            })()
-          ) : (
-            <S.NoBadgesMessage>
-              <p>Nenhum título cadastrado.</p>
-            </S.NoBadgesMessage>
+                </S.AllBadges>
+              ) : (
+                <S.NoBadgesMessage $isDark={isDark}>
+                  <FaLock />
+                  <p>Nenhum emblema conquistado ainda.</p>
+                </S.NoBadgesMessage>
+              )}
+            </S.BadgesContent>
           )}
-        </S.AchievementsSection>
-      </S.ProfilePage>
+          {activeTab === 'titles' && (
+            <S.TitlesContent $isDark={isDark}>
+              <S.TitlesHeader>
+                <div>
+                  <S.SectionTitle $isDark={isDark}>Títulos</S.SectionTitle>
+                  <S.SectionSubtitle $isDark={isDark}>
+                    Seus títulos ficam aqui
+                  </S.SectionSubtitle>
+                </div>
+                <S.FilterControls>
+                  <FaFilter />
+                  <S.FilterSelect
+                    aria-label="Filtrar títulos"
+                    value={titleFilter}
+                    onChange={(e) => setTitleFilter(e.target.value as any)}
+                  >
+                    <option value="all">Todos</option>
+                    <option value="earned">Conquistados</option>
+                    <option value="locked">Bloqueados</option>
+                  </S.FilterSelect>
+                </S.FilterControls>
+              </S.TitlesHeader>
+
+              {loadingTitles ? (
+                <S.LoadingBadges $isDark={isDark}>Carregando títulos...</S.LoadingBadges>
+              ) : allTitles.length > 0 ? (
+                (() => {
+                  const groups: Record<string, Title[]> = {};
+                  for (const t of allTitles) {
+                    const cat = getTitleCategory(t);
+                    if (!groups[cat]) groups[cat] = [];
+                    groups[cat].push(t);
+                  }
+                  const order = ['Criar Desafios', 'Resolver Desafios', 'Comentários no Fórum', 'Tópicos do Fórum', 'Entrar em Grupos', 'Criar Grupos', 'Login', 'Outros'];
+                  return (
+                    <div style={{ width: '100%' }}>
+                      {order.filter((o) => groups[o]?.length).map((cat) => {
+                        const visible = [...groups[cat]].filter((t) => {
+                          const { earned } = getTitleProgress(t);
+                          if (titleFilter === 'earned') return !!earned;
+                          if (titleFilter === 'locked') return !earned;
+                          return true;
+                        });
+
+                        if (visible.length === 0) return null;
+
+                        return (
+                          <div key={cat} style={{ marginBottom: '1.5rem' }}>
+                            <S.CategoryTitle $isDark={isDark}>{cat}</S.CategoryTitle>
+                            <S.TitlesGrid>
+                              {visible
+                                .sort((a, b) => {
+                                  const { percent: pa } = getTitleProgress(a);
+                                  const { percent: pb } = getTitleProgress(b);
+                                  if (pb !== pa) return pb - pa;
+                                  return (a.name || '').localeCompare(b.name || '');
+                                })
+                                .map((t) => {
+                                  const { earned, percent, label } = getTitleProgress(t);
+                                  return (
+                                    <S.TitleCard key={t._id} $isDark={isDark}>
+                                      {earned && <S.EarnedChip>Conquistado</S.EarnedChip>}
+                                      <S.TitleHeader>
+                                        <S.TitleName $isDark={isDark}>{t.name}</S.TitleName>
+                                        <S.TitleLabel $earned={earned} $isDark={isDark}>
+                                          {earned ? '✅' : '🔒'} {label}
+                                        </S.TitleLabel>
+                                      </S.TitleHeader>
+                                      {t.description && (
+                                        <S.TitleDescription $isDark={isDark}>{t.description}</S.TitleDescription>
+                                      )}
+                                      <S.TitleProgressWrapper>
+                                        <S.TitleProgressBar $isDark={isDark}>
+                                          <S.TitleProgressFill $progress={percent} />
+                                        </S.TitleProgressBar>
+                                        <S.TitleProgressPercentContainer>
+                                          <S.TitleProgressPercent $progress={percent} $isDark={isDark}>
+                                            {Math.round(percent)}%
+                                          </S.TitleProgressPercent>
+                                        </S.TitleProgressPercentContainer>
+                                      </S.TitleProgressWrapper>
+                                    </S.TitleCard>
+                                  );
+                                })}
+                            </S.TitlesGrid>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()
+              ) : (
+                <S.NoBadgesMessage $isDark={isDark}>
+                  <p>Nenhum título cadastrado.</p>
+                </S.NoBadgesMessage>
+              )}
+            </S.TitlesContent>
+          )}
+              {activeTab === 'created' && (
+                <S.CompletedContent $isDark={isDark}>
+                  {loadingCreated ? (
+                    <S.LoadingBadges $isDark={isDark}>Carregando desafios criados...</S.LoadingBadges>
+                  ) : createdExercises.length > 0 ? (
+                    <S.ExercisesGrid>
+                      {createdExercises.map((exercise) => (
+                        <S.ExerciseCard key={exercise.id} $isDark={isDark}>
+                          <S.ExerciseCardHeader>
+                            <S.ExerciseTitle $isDark={isDark}>{exercise.title}</S.ExerciseTitle>
+                            {exercise.difficulty && (
+                              <S.DifficultyBadge $difficulty={exercise.difficulty} $isDark={isDark}>
+                                Dificuldade: {exercise.difficulty}/5
+                              </S.DifficultyBadge>
+                            )}
+                          </S.ExerciseCardHeader>
+                          {exercise.description && (
+                            <S.ExerciseDescription $isDark={isDark}>
+                              {exercise.description}
+                            </S.ExerciseDescription>
+                          )}
+                          <S.ExerciseFooter $isDark={isDark}>
+                            {exercise.baseXp && (
+                              <S.ExerciseXp $isDark={isDark}>
+                                <FaStar /> {exercise.baseXp} XP
+                              </S.ExerciseXp>
+                            )}
+                            {exercise.subject && (
+                              <S.ExerciseSubject $isDark={isDark}>
+                                {exercise.subject}
+                              </S.ExerciseSubject>
+                            )}
+                            {exercise.status && (
+                              <S.ExerciseSubject $isDark={isDark}>
+                                Status: {exercise.status === 'PUBLISHED' ? 'Publicado' : exercise.status === 'DRAFT' ? 'Rascunho' : 'Arquivado'}
+                              </S.ExerciseSubject>
+                            )}
+                          </S.ExerciseFooter>
+                        </S.ExerciseCard>
+                      ))}
+                    </S.ExercisesGrid>
+                  ) : (
+                    <S.EmptyState $isDark={isDark}>
+                      <p>Este usuário ainda não criou nenhum desafio.</p>
+                    </S.EmptyState>
+                  )}
+                </S.CompletedContent>
+              )}
+        </S.ContentArea>
+      </S.ProfilePageContainer>
     </AuthenticatedLayout>
   );
 }

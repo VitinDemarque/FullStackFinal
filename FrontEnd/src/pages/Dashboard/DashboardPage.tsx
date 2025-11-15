@@ -96,7 +96,9 @@ export default function DashboardPage() {
       setSelectedExercise(null);
       refetch();
     } catch (error: any) {
-      console.error('Erro ao submeter desafio:', error);
+      if (import.meta.env.DEV) {
+        console.error('Erro ao submeter desafio:', error);
+      }
       alert(`Erro ao submeter desafio: ${error.message || 'Erro desconhecido'}`);
     }
   };

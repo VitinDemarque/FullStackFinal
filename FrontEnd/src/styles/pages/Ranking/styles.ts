@@ -1,4 +1,5 @@
 import styled, { keyframes } from 'styled-components'
+import { Link } from 'react-router-dom'
 import { theme } from '../../theme'
 
 const shimmer = keyframes`
@@ -210,26 +211,26 @@ export const TableCell = styled.div`
   }
 `
 
-export const PositionBadge = styled.div<{ position: number }>`
+export const PositionBadge = styled.div<{ $position: number }>`
   min-width: 40px;
   height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: ${({ position }) =>
-        position === 1
+  background: ${({ $position }) =>
+        $position === 1
             ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)'
-            : position === 2
+            : $position === 2
                 ? 'linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%)'
-                : position === 3
+                : $position === 3
                     ? 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)'
                     : theme.colors.gray[100]};
-  color: ${({ position }) => (position <= 3 ? '#ffffff' : theme.colors.gray[700])};
+  color: ${({ $position }) => ($position <= 3 ? '#ffffff' : theme.colors.gray[700])};
   border-radius: ${theme.borderRadius.lg};
   font-weight: 700;
   font-size: 0.875rem;
-  box-shadow: ${({ position }) =>
-        position <= 3 ? '0 4px 10px rgba(0, 0, 0, 0.15)' : 'none'};
+  box-shadow: ${({ $position }) =>
+        $position <= 3 ? '0 4px 10px rgba(0, 0, 0, 0.15)' : 'none'};
 
   @media (max-width: 768px) {
     min-width: 35px;
@@ -291,7 +292,7 @@ export const UserName = styled.span<{ $isDark?: boolean }>`
   }
 `
 
-export const UserNameLink = styled.a<{ $isDark?: boolean }>`
+export const UserNameLink = styled(Link)<{ $isDark?: boolean }>`
   font-weight: 600;
   color: ${({ $isDark }) => ($isDark ? '#93c5fd' : theme.colors.primary)};
   text-decoration: none;
@@ -358,12 +359,12 @@ export const Pagination = styled.div<{ $isDark?: boolean }>`
   transition: border-color 0.3s ease;
 `
 
-export const PaginationDot = styled.button<{ active?: boolean; $isDark?: boolean }>`
-  width: ${({ active }) => (active ? '32px' : '10px')};
+export const PaginationDot = styled.button<{ $active?: boolean; $isDark?: boolean }>`
+  width: ${({ $active }) => ($active ? '32px' : '10px')};
   height: 10px;
   border-radius: ${theme.borderRadius.full};
-  background: ${({ active, $isDark }) =>
-    active
+  background: ${({ $active, $isDark }) =>
+    $active
       ? 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)'
       : $isDark
       ? '#475569'
@@ -373,8 +374,8 @@ export const PaginationDot = styled.button<{ active?: boolean; $isDark?: boolean
   transition: ${theme.transitions.all};
 
   &:hover {
-    background: ${({ active, $isDark }) =>
-      active
+    background: ${({ $active, $isDark }) =>
+      $active
         ? 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)'
         : $isDark
         ? '#64748b'

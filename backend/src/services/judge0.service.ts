@@ -53,8 +53,6 @@ export async function executarCodigo(
   };
 
   try {
-    console.log(`[Judge0] Enviando código (Linguagem: ${languageId})...`);
-
     const response = await axios.request<Judge0Response>(options);
     const result = response.data;
 
@@ -72,21 +70,16 @@ export async function executarCodigo(
     const compileOutput = decodeBase64(result.compile_output);
 
     if (stderr) {
-      console.error('[Judge0] Erro de execução:', stderr);
       return { sucesso: false, resultado: stderr };
     } else if (compileOutput) {
-      console.error('[Judge0] Erro de compilação:', compileOutput);
       return { sucesso: false, resultado: compileOutput };
     } else {
-      console.log('[Judge0] Executado com sucesso.');
       return { sucesso: true, resultado: stdout || '(Executado sem saída)' };
     }
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
-      console.error('[Judge0] Erro na API:', error.response?.data || error.message);
       return { sucesso: false, resultado: 'Erro ao contatar a API de compilação.' };
     } else {
-      console.error('[Judge0] Erro inesperado:', error.message);
       return { sucesso: false, resultado: 'Erro interno no servidor.' };
     }
   }

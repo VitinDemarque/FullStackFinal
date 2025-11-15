@@ -7,7 +7,12 @@ import { errorHandler, notFoundHandler } from './middlewares/error';
 import routes from './routes';
 
 const app = express();
-app.use(helmet());
+// Configure Helmet to allow cross-origin resource policy for uploads
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
 app.use(cors());
 // Increase JSON and URL-encoded body limits to support avatar uploads via data URL
 app.use(express.json({ limit: '8mb' }));
@@ -23,6 +28,14 @@ try {
   // eslint-disable-next-line no-console
   console.error('Failed initializing uploads directory:', err);
 }
+
+// Middleware to set CORS headers for uploads
+app.use('/uploads', (req, res, next) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  next();
+});
+
 // Serve from backend/uploads (primary) and also fallback to backend/src/uploads (legacy)
 app.use('/uploads', express.static(uploadsDir, { fallthrough: true }));
 app.use('/uploads', express.static(path.resolve(__dirname, './uploads'), { fallthrough: true }));

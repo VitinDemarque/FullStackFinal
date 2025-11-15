@@ -112,13 +112,32 @@ export function handleAuthError(error: any): string {
   return result.message
 }
 
+// Cache para evitar logs duplicados
+const errorLogCache = new Map<string, number>()
+const ERROR_LOG_THROTTLE_MS = 5000 // 5 segundos
+
 export function logError(error: any, context?: string) {
-  if (import.meta.env.DEV) {
+  if (!import.meta.env.DEV) return
+
+  // Cria uma chave única para o erro
+  const errorKey = `${context || 'Unknown'}-${error.statusCode || 0}-${error.message || 'Unknown'}`
+  const now = Date.now()
+  const lastLogTime = errorLogCache.get(errorKey)
+
+  // Só loga se não foi logado recentemente
+  if (!lastLogTime || now - lastLogTime > ERROR_LOG_THROTTLE_MS) {
+    errorLogCache.set(errorKey, now)
+    
     console.error(`[Error${context ? ` - ${context}` : ''}]:`, {
       message: error.message,
       statusCode: error.statusCode,
       details: error.details,
       timestamp: new Date().toISOString(),
     })
+
+    // Limpa cache antigo após 1 minuto
+    setTimeout(() => {
+      errorLogCache.delete(errorKey)
+    }, 60000)
   }
 }

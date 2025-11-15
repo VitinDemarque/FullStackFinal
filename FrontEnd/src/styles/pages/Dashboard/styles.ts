@@ -349,7 +349,9 @@ interface DifficultyBadgeProps {
   difficulty: 'fácil' | 'médio' | 'difícil' | 'expert' | 'master'
 }
 
-export const DifficultyBadge = styled.span<DifficultyBadgeProps>`
+export const DifficultyBadge = styled.span.withConfig({
+  shouldForwardProp: (prop) => prop !== 'difficulty'
+})<DifficultyBadgeProps>`
   padding: 0.25rem 0.75rem;
   border-radius: ${theme.borderRadius.full};
   font-size: ${theme.fontSizes.xs};

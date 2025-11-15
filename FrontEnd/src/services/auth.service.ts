@@ -40,4 +40,22 @@ export const authService = {
 
     return response
   },
+
+  async refreshToken(): Promise<{ tokens: { accessToken: string; refreshToken: string } }> {
+    const refreshToken = localStorage.getItem('refreshToken')
+    if (!refreshToken) {
+      throw new Error('No refresh token available')
+    }
+
+    const response = await apiRequest<{ tokens: { accessToken: string; refreshToken: string } }>(
+      'POST',
+      '/auth/refresh',
+      { refreshToken }
+    )
+
+    localStorage.setItem('accessToken', response.tokens.accessToken)
+    localStorage.setItem('refreshToken', response.tokens.refreshToken)
+
+    return response
+  },
 }

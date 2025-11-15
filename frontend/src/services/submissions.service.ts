@@ -37,6 +37,15 @@ const submissionsService = {
   async create(submission: CreateSubmissionRequest): Promise<Submission> {
     return apiRequest<Submission>('POST', '/submissions', submission)
   },
+
+  async getMySubmissions(page = 1, limit = 100): Promise<Paginated<Submission>> {
+    return apiRequest<Paginated<Submission>>(
+      'GET',
+      '/submissions/me',
+      undefined,
+      { params: { page, limit } }
+    )
+  },
 }
 
 export default submissionsService

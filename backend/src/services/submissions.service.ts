@@ -125,7 +125,9 @@ export async function create(input: CreateSubmissionInput) {
         $set: { lastUpdatedAt: new Date() },
       },
       { upsert: true }
-    ).catch(err => console.warn('Falha em UserStat:', err)),
+    ).catch(() => {
+      // Silently fail - stats update is not critical
+    }),
 
     ExerciseStat.updateOne(
       { exerciseId: new Types.ObjectId(exerciseId) },
@@ -135,7 +137,9 @@ export async function create(input: CreateSubmissionInput) {
         $set: { lastSolveAt: new Date() },
       },
       { upsert: true }
-    ).catch(err => console.warn('Falha em ExerciseStat:', err)),
+    ).catch(() => {
+      // Silently fail - stats update is not critical
+    }),
   ]);
 
   return sanitize(created.toObject() as ISubmission);

@@ -177,7 +177,9 @@ const Description = styled.div<{ $isDark: boolean }>`
   }
 `;
 
-const DifficultyBadge = styled.span<{ difficulty: string }>`
+const DifficultyBadge = styled.span.withConfig({
+  shouldForwardProp: (prop) => prop !== 'difficulty'
+})<{ difficulty: string }>`
   display: inline-block;
   padding: 0.4rem 1rem;
   border-radius: 50px;

@@ -91,7 +91,12 @@ export async function refreshToken(oldRefreshToken: string) {
   if (!oldRefreshToken) throw new BadRequestError('refreshToken is required');
 
   const result = verifyToken(oldRefreshToken);
-  if (!result.valid || !result.decoded) throw new UnauthorizedError('Invalid refresh token');
+  if (!result.valid || !result.decoded) {
+    if (result.expired) {
+      throw new UnauthorizedError('Refresh token expired');
+    }
+    throw new UnauthorizedError('Invalid refresh token');
+  }
 
   const payload = result.decoded;
   const user = await User.findById(payload.user_id).lean<IUser | null>();

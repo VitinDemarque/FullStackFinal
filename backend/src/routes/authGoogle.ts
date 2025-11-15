@@ -72,7 +72,11 @@ router.post('/google', async (req, res) => {
       },
     });
   } catch (err: any) {
-    console.error('[authGoogle]', err.response?.data || err.message || err);
+    // Log error but don't expose details to client
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.error('[authGoogle]', err.response?.data || err.message || err);
+    }
     return res.status(400).json({ message: 'Invalid Google token' });
   }
 });

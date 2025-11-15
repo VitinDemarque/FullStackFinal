@@ -296,7 +296,9 @@ export default function EditGroupExerciseModal({
       await onSubmit(submitData);
       handleClose();
     } catch (error) {
-      console.error('Erro ao atualizar Desafio:', error);
+      if (import.meta.env.DEV) {
+        console.error('Erro ao atualizar Desafio:', error);
+      }
     } finally {
       setIsSubmitting(false);
     }

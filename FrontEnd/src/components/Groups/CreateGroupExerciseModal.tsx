@@ -267,7 +267,9 @@ export default function CreateGroupExerciseModal({
       await onSubmit(formData);
       handleClose();
     } catch (error) {
-      console.error('Erro ao criar Desafio:', error);
+      if (import.meta.env.DEV) {
+        console.error('Erro ao criar Desafio:', error);
+      }
     } finally {
       setIsSubmitting(false);
     }
