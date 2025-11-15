@@ -323,12 +323,18 @@ export async function generateInviteLink(requestUserId: string, groupId: string)
 
   await assertModeratorOrOwner(requestUserId, groupId);
 
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+
   // Se já houver token ativo, reutiliza
   if (g.tokenConvite && g.tokenConviteExpiraEm && g.tokenConviteExpiraEm > new Date()) {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    return { 
-      link: `${frontendUrl}/grupos/${groupId}/entrar?token=${g.tokenConvite}`,
-      expiresAt: g.tokenConviteExpiraEm
+    const mobileLink = `myapp://invite/${groupId}/${g.tokenConvite}`;
+    const webLink = `${frontendUrl}/grupos/${groupId}/entrar?token=${g.tokenConvite}`;
+
+    return {
+      // o app mobile está usando result.url || result.link
+      url: mobileLink,   // usado pelo app React Native
+      link: webLink,     // opcional para web
+      expiresAt: g.tokenConviteExpiraEm,
     };
   }
 
@@ -337,13 +343,17 @@ export async function generateInviteLink(requestUserId: string, groupId: string)
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
   await Group.findByIdAndUpdate(groupId, {
-    $set: { tokenConvite: token, tokenConviteExpiraEm: expiresAt }
+    $set: { tokenConvite: token, tokenConviteExpiraEm: expiresAt },
   });
 
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-  const link = `${frontendUrl}/grupos/${groupId}/entrar?token=${token}`;
-  
-  return { link, expiresAt };
+  const mobileLink = `myapp://invite/${groupId}/${token}`;
+  const webLink = `${frontendUrl}/grupos/${groupId}/entrar?token=${token}`;
+
+  return {
+    url: mobileLink,
+    link: webLink,
+    expiresAt,
+  };
 }
 
 export async function joinByToken(userId: string, groupId: string, token: string) {
