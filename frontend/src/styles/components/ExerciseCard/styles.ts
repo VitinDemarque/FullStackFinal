@@ -1,17 +1,17 @@
 import styled, { css } from 'styled-components';
 
 export const ExerciseCard = styled.div<{ $inactive?: boolean }>`
-  background: ${({ theme }) => theme.colors.white};
+  background: var(--color-surface);
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   padding: 1.5rem;
   margin-bottom: 1rem;
-  box-shadow: ${({ theme }) => theme.shadows.sm};
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
   transition: ${({ theme }) => theme.transitions.base};
   position: relative;
 
   &:hover {
-    box-shadow: ${({ theme }) => theme.shadows.md};
+    box-shadow: var(--shadow-md);
     transform: translateY(-2px);
     z-index: 5;
   }
@@ -39,13 +39,13 @@ export const CardHeader = styled.div`
 export const CardIcon = styled.div`
   width: 48px;
   height: 48px;
-  background: ${({ theme }) => theme.colors.blue[100]};
+  background: var(--color-blue-100);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
-  color: ${({ theme }) => theme.colors.blue[600]};
+  color: var(--color-blue-600);
   flex-shrink: 0;
 `;
 
@@ -56,13 +56,13 @@ export const CardContent = styled.div`
 export const CardTitle = styled.h3`
   font-size: 1.125rem;
   font-weight: 600;
-  color: ${({ theme }) => theme.colors.gray[900]};
+  color: var(--color-text-primary);
   margin-bottom: 0.5rem;
   line-height: 1.4;
 `;
 
 export const CardDescription = styled.p`
-  color: ${({ theme }) => theme.colors.gray[600]};
+  color: var(--color-text-secondary);
   font-size: 0.95rem;
   line-height: 1.5;
 `;
@@ -73,14 +73,14 @@ export const CardStats = styled.div`
   justify-content: space-between;
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  border-top: 1px solid var(--color-border);
 `;
 
 export const StatsLeft = styled.div`
   display: flex;
   align-items: center;
   gap: 1rem;
-  color: ${({ theme }) => theme.colors.gray[500]};
+  color: var(--color-text-secondary);
   font-size: 0.875rem;
 `;
 
@@ -88,17 +88,21 @@ export const VoteCount = styled.div`
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  color: ${({ theme }) => theme.colors.gray[600]};
+  color: var(--color-text-secondary);
   font-weight: 500;
 `;
 
 export const VoteIcon = styled.span`
-  color: ${({ theme }) => theme.colors.green[500]};
-  font-size: 1rem;
+  color: var(--color-green-500);
+  display: flex;
+  align-items: center;
 `;
 
 export const CommentsCount = styled.div`
-  color: ${({ theme }) => theme.colors.gray[500]};
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 `;
 
 export const EditButton = styled.button`
@@ -129,26 +133,29 @@ export const IdBadge = styled.span`
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  background: ${({ theme }) => theme.colors.gray[100]};
-  color: ${({ theme }) => theme.colors.gray[700]};
-  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
   border-radius: ${({ theme }) => theme.borderRadius.md};
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
 `;
 
 export const CopyButton = styled.button`
-  background: ${({ theme }) => theme.colors.white};
-  color: ${({ theme }) => theme.colors.gray[700]};
-  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
   border-radius: ${({ theme }) => theme.borderRadius.sm};
   padding: 0.15rem 0.4rem;
   font-size: 0.75rem;
   cursor: pointer;
   transition: ${({ theme }) => theme.transitions.base};
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
 
   &:hover {
-    background: ${({ theme }) => theme.colors.gray[50]};
+    background: var(--color-surface-hover);
   }
 `;
 
@@ -165,14 +172,22 @@ export const InactiveOverlay = styled.div`
   z-index: 1;
 `;
 
+export const LastModified = styled.span`
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+`;
+
 export const InactiveLabel = styled.div`
   font-weight: 800;
   letter-spacing: 0.2rem;
   text-transform: uppercase;
-  color: #111827;
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(17, 24, 39, 0.2);
-  box-shadow: 0 8px 24px rgba(17, 24, 39, 0.15);
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lg);
   padding: 0.5rem 1.25rem;
   border-radius: 999px;
   font-size: 0.95rem;

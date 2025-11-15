@@ -6,14 +6,13 @@ export const Container = styled.div`
 `;
 
 export const MenuButton = styled.button`
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(17, 24, 39, 0.2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   padding: 0.5rem;
   border-radius: ${({ theme }) => theme.borderRadius.md};
   cursor: pointer;
-  font-size: 1.25rem;
-  color: #111827; /* mesma cor do texto do rótulo INATIVO */
-  box-shadow: 0 8px 24px rgba(17, 24, 39, 0.15);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-sm);
   transition: ${({ theme }) => theme.transitions.base};
   display: flex;
   align-items: center;
@@ -22,8 +21,8 @@ export const MenuButton = styled.button`
   height: 2rem;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.95);
-    color: #0f172a;
+    background: var(--color-surface-hover);
+    box-shadow: var(--shadow-md);
     transform: translateY(-1px);
   }
 `;
@@ -32,10 +31,10 @@ export const Menu = styled.div`
   position: absolute;
   top: 100%;
   right: 0;
-  background: ${({ theme }) => theme.colors.white};
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: ${({ theme }) => theme.borderRadius.md};
-  box-shadow: ${({ theme }) => theme.shadows.lg};
+  box-shadow: var(--shadow-lg);
   min-width: 160px;
   z-index: 1000;
   margin-top: 0.25rem;
@@ -55,12 +54,12 @@ export const MenuItem = styled.button.withConfig({
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: ${({ theme, danger }) => danger ? theme.colors.red[500] : theme.colors.gray[700]};
+  color: ${({ danger }) => danger ? 'var(--color-red-500)' : 'var(--color-text-primary)'};
   transition: ${({ theme }) => theme.transitions.base};
 
   &:hover {
-    background: ${({ theme, danger }) => danger ? theme.colors.red[50] : theme.colors.gray[50]};
-    color: ${({ theme, danger }) => danger ? theme.colors.red[600] : theme.colors.gray[900]};
+    background: ${({ danger }) => danger ? 'var(--color-red-50)' : 'var(--color-surface-hover)'};
+    color: ${({ danger }) => danger ? 'var(--color-red-600)' : 'var(--color-text-primary)'};
   }
 
   &:first-child {
@@ -73,13 +72,14 @@ export const MenuItem = styled.button.withConfig({
 `;
 
 export const MenuIcon = styled.span`
-  font-size: 1rem;
-  width: 1rem;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 `;
 
 export const MenuDivider = styled.div`
   height: 1px;
-  background: ${({ theme }) => theme.colors.gray[200]};
+  background: var(--color-border);
   margin: 0.25rem 0;
 `;

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { ArrowUp, MessageSquare, Copy, Check, Clock } from 'lucide-react';
 import submissionsService from '../services/submissions.service';
 import ExerciseActionsMenu from '@components/ExerciseActionsMenu';
 import * as S from '@/styles/components/ExerciseCard/styles';
@@ -61,23 +62,28 @@ export default function ExerciseCard({
       <S.CardStats>
         <S.StatsLeft>
           <S.VoteCount>
-            <S.VoteIcon>↑</S.VoteIcon>
+            <S.VoteIcon>
+              <ArrowUp size={14} />
+            </S.VoteIcon>
             {votes}
           </S.VoteCount>
-          <S.CommentsCount>{comments} respostas</S.CommentsCount>
+          <S.CommentsCount>
+            <MessageSquare size={14} />
+            {comments} respostas
+          </S.CommentsCount>
           <S.IdBadge>
             Código: <code>{publicCode ?? id}</code>
-            <S.CopyButton onClick={handleCopyId} type="button">
+            <S.CopyButton onClick={handleCopyId} type="button" title={copied ? 'Copiado!' : 'Copiar código'}>
+              {copied ? <Check size={12} /> : <Copy size={12} />}
               {copied ? 'Copiado!' : 'Copiar'}
             </S.CopyButton>
           </S.IdBadge>
         </S.StatsLeft>
 
-        <div>
-          <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>
-            Alterado a {lastModified}
-          </span>
-        </div>
+        <S.LastModified>
+          <Clock size={14} />
+          Alterado a {lastModified}
+        </S.LastModified>
 
         <S.ActionsContainer>
           <ExerciseActionsMenu

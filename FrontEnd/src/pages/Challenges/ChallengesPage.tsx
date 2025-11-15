@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaFilter } from 'react-icons/fa';
+import { Filter, Plus } from 'lucide-react';
 import AuthenticatedLayout from '@components/Layout/AuthenticatedLayout';
 import submissionsService from '../../services/submissions.service';
 import ExerciseCard from '@components/ExerciseCard';
@@ -195,7 +195,7 @@ export default function ChallengesPage() {
             Aqui é onde se encontram todos os Desafios feitos por você
           </S.Subtitle>
           <S.CreateButton onClick={handleCreateExercise}>
-            
+            <Plus size={18} />
             Criar Desafios
           </S.CreateButton>
         </S.HeroSection>
@@ -208,7 +208,7 @@ export default function ChallengesPage() {
             </S.SectionTitle>
             <div style={{ position: 'relative' }}>
               <S.FilterIconButton aria-label="Filtrar" onClick={() => setShowFilter((s) => !s)}>
-                <FaFilter />
+                <Filter size={16} />
               </S.FilterIconButton>
               {showFilter && (
                 <S.FilterMenu>

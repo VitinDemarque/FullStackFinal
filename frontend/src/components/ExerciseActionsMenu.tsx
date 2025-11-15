@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { MoreVertical, Edit, Pause, Play, Trash2 } from 'lucide-react';
 import * as S from '@/styles/components/ExerciseActionsMenu/styles';
 
 interface ExerciseActionsMenuProps {
@@ -42,26 +43,33 @@ export default function ExerciseActionsMenu({ onEdit, onDelete, onInactivate, is
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
         type="button"
+        aria-label="Menu de ações"
       >
-        ⋯
+        <MoreVertical size={18} />
       </S.MenuButton>
 
       {isOpen && (
         <S.Menu ref={menuRef}>
           <S.MenuItem onClick={() => handleAction(onEdit)}>
-            <S.MenuIcon>✏️</S.MenuIcon>
+            <S.MenuIcon>
+              <Edit size={16} />
+            </S.MenuIcon>
             Editar
           </S.MenuItem>
 
           <S.MenuItem onClick={() => handleAction(onInactivate)}>
-            <S.MenuIcon>{isActive ? '⏸️' : '▶️'}</S.MenuIcon>
+            <S.MenuIcon>
+              {isActive ? <Pause size={16} /> : <Play size={16} />}
+            </S.MenuIcon>
             {isActive ? 'Inativar' : 'Ativar'}
           </S.MenuItem>
 
           <S.MenuDivider />
 
           <S.MenuItem onClick={() => handleAction(onDelete)} danger>
-            <S.MenuIcon>🗑️</S.MenuIcon>
+            <S.MenuIcon>
+              <Trash2 size={16} />
+            </S.MenuIcon>
             Excluir
           </S.MenuItem>
         </S.Menu>

@@ -4,6 +4,7 @@ export const Container = styled.div`
   padding: 2rem;
   position: relative;
   min-height: 100vh;
+  background: var(--color-background);
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     padding: 1.5rem;
@@ -84,7 +85,7 @@ export const BackgroundShape = styled.div`
   right: -100px;
   width: 300px;
   height: 300px;
-  background: linear-gradient(135deg, ${({ theme }) => theme.colors.blue[100]} 0%, ${({ theme }) => theme.colors.blue[200]} 100%);
+  background: linear-gradient(135deg, var(--color-blue-100) 0%, var(--color-blue-200) 100%);
   border-radius: 50%;
   opacity: 0.6;
   z-index: -1;
@@ -290,7 +291,7 @@ export const YellowBackgroundShape = styled.div`
   left: -150px;
   width: 400px;
   height: 400px;
-  background: linear-gradient(135deg, ${({ theme }) => theme.colors.yellow[200]} 0%, ${({ theme }) => theme.colors.yellow[300]} 100%);
+  background: linear-gradient(135deg, var(--color-yellow-200) 0%, var(--color-yellow-300) 100%);
   border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
   opacity: 0.4;
   z-index: -1;
@@ -306,7 +307,7 @@ export const YellowBackgroundShape = styled.div`
 export const EmptyState = styled.div`
   text-align: center;
   padding: 3rem 1rem;
-  color: ${({ theme }) => theme.colors.gray[500]};
+  color: var(--color-text-secondary);
 `;
 
 export const EmptyIcon = styled.div`
@@ -318,9 +319,10 @@ export const EmptyIcon = styled.div`
 export const EmptyText = styled.p`
   font-size: 1.125rem;
   margin-bottom: 0.5rem;
+  color: var(--color-text-primary);
 `;
 
 export const EmptySubtext = styled.p`
   font-size: 0.95rem;
-  color: ${({ theme }) => theme.colors.gray[400]};
+  color: var(--color-text-secondary);
 `;
