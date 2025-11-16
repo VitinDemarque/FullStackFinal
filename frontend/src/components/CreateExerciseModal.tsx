@@ -10,6 +10,7 @@ interface CreateExerciseModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: CreateExerciseData) => Promise<void>;
+  codeTemplate?: string;
 }
 
 export interface CreateExerciseData {
@@ -25,7 +26,7 @@ export interface CreateExerciseData {
   highScoreBadgeId?: string;
 }
 
-export default function CreateExerciseModal({ isOpen, onClose, onSubmit }: CreateExerciseModalProps) {
+export default function CreateExerciseModal({ isOpen, onClose, onSubmit, codeTemplate }: CreateExerciseModalProps) {
   const { user } = useAuth();
   const { NotificationContainer } = useNotification();
   const isAdmin = user?.role === 'ADMIN';
@@ -35,7 +36,7 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit }: Creat
     description: '',
     difficulty: undefined,
     baseXp: 100,
-    codeTemplate: '// start coding...',
+    codeTemplate: codeTemplate || '// start coding...',
     isPublic: true,
     languageId: undefined,
     triumphantBadgeId: undefined,
@@ -60,9 +61,8 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit }: Creat
     e.preventDefault();
     // validação manual para garantir obrigatoriedade
     if (!formData.title.trim() || !formData.subject.trim() || !formData.description.trim() ||
-        formData.difficulty === undefined || formData.difficulty === null ||
-        formData.codeTemplate.trim().length === 0) {
-      setFormError('Preencha todos os campos obrigatórios: Título, Assunto, Descrição, Dificuldade e Template de Código.');
+        formData.difficulty === undefined || formData.difficulty === null) {
+      setFormError('Preencha todos os campos obrigatórios: Título, Assunto, Descrição e Dificuldade.');
       return;
     }
 
@@ -98,7 +98,7 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit }: Creat
       description: '',
       difficulty: undefined,
       baseXp: 100,
-      codeTemplate: '// start coding...',
+      codeTemplate: codeTemplate || '// start coding...',
       isPublic: true,
       languageId: undefined,
       triumphantBadgeId: undefined,
@@ -152,6 +152,7 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit }: Creat
           <S.CloseButton onClick={handleClose}>×</S.CloseButton>
         </S.Header>
 
+        <S.ContentGrid>
         <S.Form onSubmit={handleSubmit}>
           <S.FieldGroup>
             <S.Label htmlFor="title">Título *</S.Label>
@@ -282,17 +283,7 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit }: Creat
             </S.FieldGroup>
           </S.Row>
 
-          <S.FieldGroup>
-            <S.Label htmlFor="codeTemplate">Template de Código *</S.Label>
-            <S.CodeTextArea
-              id="codeTemplate"
-              value={formData.codeTemplate}
-              onChange={(e) => handleInputChange('codeTemplate', e.target.value)}
-              placeholder="// Digite o código inicial..."
-              rows={6}
-              required
-            />
-          </S.FieldGroup>
+          {/* Editor de Código movido para o painel ao lado */}
 
           {formError && (
             <S.FormAlert aria-live="polite">{formError}</S.FormAlert>
@@ -321,6 +312,17 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit }: Creat
             </S.SubmitButton>
           </S.ButtonGroup>
         </S.Form>
+        <S.EditorPanel>
+          <S.EditorHeader>Editor de Código</S.EditorHeader>
+          <S.CodeEditor
+            aria-label="Editor de Código"
+            placeholder="// start coding..."
+            value={formData.codeTemplate}
+            onChange={(e) => handleInputChange('codeTemplate', e.target.value)}
+            spellCheck={false}
+          />
+        </S.EditorPanel>
+        </S.ContentGrid>
 
         {isAdmin && isCreateBadgeOpen && createBadgeMode && (
           <CreateBadgeModal

@@ -17,6 +17,17 @@ export const HeroSection = styled.div`
   padding: 2rem 0;
 `;
 
+export const TopRow = styled.div`
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 2rem;
+  align-items: start;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    grid-template-columns: 1fr;
+  }
+`;
+
 export const Title = styled.h1`
   font-size: 3rem;
   font-weight: 700;
@@ -95,6 +106,43 @@ export const BackgroundShape = styled.div`
     height: 200px;
     top: -30px;
     right: -50px;
+  }
+`;
+
+export const EditorPanel = styled.div`
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  box-shadow: var(--shadow-sm);
+  padding: 0.75rem;
+  min-height: 320px;
+`;
+
+export const EditorHeader = styled.div`
+  font-weight: 600;
+  color: var(--color-text-primary);
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+`;
+
+export const EditorTextArea = styled.textarea`
+  width: 100%;
+  height: 280px;
+  margin-top: 0.75rem;
+  resize: vertical;
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  padding: 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.95rem;
+  line-height: 1.5;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-blue-400);
+    box-shadow: var(--shadow-xs);
   }
 `;
 

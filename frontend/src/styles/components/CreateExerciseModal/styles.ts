@@ -19,7 +19,7 @@ export const Modal = styled.div`
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   box-shadow: ${({ theme }) => theme.shadows['2xl']};
   width: 100%;
-  max-width: 600px;
+  max-width: 1000px;
   max-height: 90vh;
   overflow-y: auto;
 `;
@@ -55,6 +55,17 @@ export const CloseButton = styled.button`
 
 export const Form = styled.form`
   padding: 1.5rem;
+`;
+
+export const ContentGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 1rem;
+  padding: 1.5rem;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 export const FieldGroup = styled.div`
@@ -133,6 +144,43 @@ export const CodeTextArea = styled.textarea`
     outline: none;
     border-color: ${({ theme }) => theme.colors.blue[500]};
     box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.blue[100]};
+  }
+`;
+
+export const EditorPanel = styled.div`
+  background: #101316;
+  border: 1px solid ${({ theme }) => theme.colors.gray[800]};
+  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  box-shadow: ${({ theme }) => theme.shadows.md};
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+`;
+
+export const EditorHeader = styled.div`
+  color: ${({ theme }) => theme.colors.white};
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[800]};
+  background: linear-gradient(135deg, #2a2252, #3b2469);
+`;
+
+export const CodeEditor = styled.textarea`
+  width: 100%;
+  height: 100%;
+  min-height: 300px;
+  resize: vertical;
+  border: none;
+  outline: none;
+  padding: 1rem;
+  background: #1e1e1e;
+  color: #e6e6e6;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.95rem;
+  line-height: 1.5;
+
+  &::placeholder {
+    color: #9aa0a6;
   }
 `;
 

@@ -551,6 +551,70 @@ export default function ProfilePage() {
     return 'Outros';
   }
 
+  // Normaliza textos para comparação (remove acentos e deixa minúsculo)
+  function normalizeText(s?: string) {
+    return (s || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  }
+
+  // Mapeia o requisito numérico para títulos da categoria "Criar Desafios"
+  function getTitleRequiredCount(t: Title) {
+    const name = normalizeText(t.name);
+    if (name.includes('criador de bugs')) return 1;
+    if (name.includes('arquiteto de ideias')) return 5;
+    if (name.includes('engenheiro de logica')) return 10;
+    if (name.includes('sensei do codigo')) return 25;
+    // Fallback para outros títulos
+    return Number.MAX_SAFE_INTEGER;
+  }
+
+  // Mapeia o requisito numérico conforme a categoria
+  function getRequiredCountByCategory(cat: string, t: Title) {
+    const name = normalizeText(t.name);
+    switch (cat) {
+      case 'Criar Desafios':
+        return getTitleRequiredCount(t);
+      case 'Resolver Desafios':
+        if (name.includes('primeiro de muitos')) return 1;
+        if (name.includes('destrava codigos')) return 5;
+        if (name.includes('dev em ascensao')) return 10;
+        if (name.includes('mao na massa')) return 25;
+        if (name.includes('ligeirinho da logica')) return 50;
+        if (name.includes('lenda do terminal')) return 100;
+        return Number.MAX_SAFE_INTEGER;
+      case 'Comentários no Fórum':
+        if (name.includes('palpiteiro de primeira viagem')) return 1;
+        if (name.includes('conselheiro de plantao')) return 10;
+        if (name.includes('guru da comunidade')) return 25;
+        return Number.MAX_SAFE_INTEGER;
+      case 'Tópicos do Fórum':
+        if (name.includes('quebrador de gelo')) return 1;
+        if (name.includes('gerador de ideias')) return 5;
+        if (name.includes('debatedor nato')) return 10;
+        if (name.includes('voz do forum')) return 25;
+        return Number.MAX_SAFE_INTEGER;
+      case 'Entrar em Grupos':
+        if (name.includes('recruta do codigo')) return 1;
+        if (name.includes('integrador')) return 5;
+        if (name.includes('conectadao')) return 10;
+        return Number.MAX_SAFE_INTEGER;
+      case 'Criar Grupos':
+        if (name.includes('fundador de equipe')) return 1;
+        if (name.includes('lider de stack')) return 3;
+        if (name.includes('gestor do caos')) return 5;
+        if (name.includes('senhor das comunidades')) return 10;
+        return Number.MAX_SAFE_INTEGER;
+      case 'Login':
+        if (name.includes('explorador do codigo')) return 1;
+        if (name.includes('dev constante')) return 7;
+        return Number.MAX_SAFE_INTEGER;
+      default:
+        return Number.MAX_SAFE_INTEGER;
+    }
+  }
+
   async function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -838,6 +902,22 @@ export default function ProfilePage() {
                             <S.TitlesGrid>
                               {visible
                                 .sort((a, b) => {
+                                  // Para categorias conhecidas, ordenar pelo requisito crescente
+                                  if ([
+                                    'Criar Desafios',
+                                    'Resolver Desafios',
+                                    'Comentários no Fórum',
+                                    'Tópicos do Fórum',
+                                    'Entrar em Grupos',
+                                    'Criar Grupos',
+                                    'Login',
+                                  ].includes(cat)) {
+                                    const ra = getRequiredCountByCategory(cat, a);
+                                    const rb = getRequiredCountByCategory(cat, b);
+                                    if (ra !== rb) return ra - rb;
+                                    return (a.name || '').localeCompare(b.name || '');
+                                  }
+                                  // Outras categorias: manter ordenação por progresso desc e nome
                                   const { percent: pa } = getTitleProgress(a);
                                   const { percent: pb } = getTitleProgress(b);
                                   if (pb !== pa) return pb - pa;
