@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
-import { FaTimes, FaClock, FaCode, FaCheckCircle } from "react-icons/fa";
+import { useState, useEffect, useRef } from "react";
+import { FaTimes, FaClock, FaCode, FaCheckCircle, FaPlayCircle } from "react-icons/fa";
 import styled from "styled-components";
 import { useTheme } from "@contexts/ThemeContext";
+import attemptsService from "@services/attempts.service";
 
 const Overlay = styled.div<{ $isDark: boolean }>`
   position: fixed;
@@ -319,15 +320,25 @@ const Footer = styled.div<{ $isDark: boolean }>`
 const FooterInfo = styled.div<{ $isDark: boolean }>`
   color: ${({ $isDark }) => ($isDark ? "#94a3b8" : "#718096")};
   font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
   
   span {
     color: ${({ $isDark }) => ($isDark ? "#34d399" : "#48bb78")};
+  }
+
+  small {
+    color: ${({ $isDark }) => ($isDark ? "#cbd5e1" : "#4a5568")};
+    font-size: 0.8rem;
   }
 `;
 
 const ButtonGroup = styled.div`
   display: flex;
   gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 
   @media (max-width: 768px) {
     width: 100%;
@@ -335,7 +346,7 @@ const ButtonGroup = styled.div`
   }
 `;
 
-const Button = styled.button<{ variant?: "primary" | "secondary" }>`
+const Button = styled.button<{ variant?: "primary" | "secondary" | "outline" }>`
   padding: 0.75rem 2rem;
   border-radius: 50px;
   font-size: 1rem;
@@ -347,31 +358,127 @@ const Button = styled.button<{ variant?: "primary" | "secondary" }>`
   gap: 0.5rem;
   border: none;
 
-  ${({ variant }) =>
-    variant === "primary"
-      ? `
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  ${({ variant }) => {
+    switch (variant) {
+      case "primary":
+        return `
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-    }
-  `
-      : `
-    background: #e2e8f0;
-    color: #4a5568;
+          &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+          }
+        `;
+      case "outline":
+        return `
+          background: transparent;
+          border: 1px solid rgba(148, 163, 184, 0.6);
+          color: #94a3b8;
 
-    &:hover {
-      background: #cbd5e0;
+          &:hover {
+            color: #667eea;
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.08);
+          }
+        `;
+      default:
+        return `
+          background: #e2e8f0;
+          color: #4a5568;
+
+          &:hover {
+            background: #cbd5e0;
+          }
+        `;
     }
-  `}
+  }}
 
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
+  }
+`;
+
+const TestOutputContainer = styled.div<{ $isDark: boolean }>`
+  background: ${({ $isDark }) => ($isDark ? "#0f172a" : "#111827")};
+  border-top: 1px solid ${({ $isDark }) => ($isDark ? "#1e293b" : "#1f2937")};
+  padding: 1.5rem;
+  color: ${({ $isDark }) => ($isDark ? "#cbd5e1" : "#e2e8f0")};
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+`;
+
+const TestOutputHeader = styled.div`
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const TestOutputContent = styled.pre<{ $isDark: boolean }>`
+  background: ${({ $isDark }) => ($isDark ? "#111c2e" : "#1f2a3a")};
+  border: 1px solid ${({ $isDark }) => ($isDark ? "#1e2f47" : "#243044")};
+  border-radius: 12px;
+  padding: 1rem;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: ${({ $isDark }) => ($isDark ? "#e2e8f0" : "#f8fafc")};
+  white-space: pre-wrap;
+  max-height: 200px;
+  overflow: auto;
+  margin: 0;
+`;
+
+const TestOutputPlaceholder = styled.div`
+  font-size: 0.9rem;
+  color: #94a3b8;
+`;
+
+const TestOutputError = styled.div`
+  font-size: 0.85rem;
+  color: #f87171;
+  font-weight: 500;
+`;
+
+const CompletedOverlay = styled.div<{ $isDark: boolean }>`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: ${({ $isDark }) => ($isDark ? "rgba(15, 23, 42, 0.95)" : "rgba(255, 255, 255, 0.95)")};
+  z-index: 10;
+`;
+
+const CompletedMessage = styled.div`
+  text-align: center;
+  padding: 2rem;
+  color: #10b981;
+  
+  svg {
+    margin-bottom: 1rem;
+    opacity: 0.9;
+  }
+  
+  h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 0.75rem 0;
+    color: #10b981;
+  }
+  
+  p {
+    font-size: 1rem;
+    color: #6b7280;
+    margin: 0;
+    line-height: 1.6;
   }
 `;
 
@@ -384,25 +491,35 @@ interface ChallengeModalProps {
     baseXp: number;
     publicCode?: string;
     codeTemplate?: string;
+    isCompleted?: boolean;
   };
   onClose: () => void;
   onSubmit: (code: string, timeSpent: number) => void;
+  onTest: (code: string) => Promise<string>;
 }
 
 export default function ChallengeModal({
   exercise,
   onClose,
   onSubmit,
+  onTest,
 }: ChallengeModalProps) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   
-  const [code, setCode] = useState(
-    exercise.codeTemplate || "// Escreva seu código aqui\n"
-  );
+  const defaultCode = exercise.codeTemplate || "// Escreva seu código aqui\n";
+  const [code, setCode] = useState(defaultCode);
   const [timeSpent, setTimeSpent] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState<string | null>(null);
+  const [testError, setTestError] = useState<string | null>(null);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const [isLoadingAttempt, setIsLoadingAttempt] = useState(true);
+  const latestStateRef = useRef({ code: defaultCode, timeSpent: 0 });
+  const skipAutoSaveRef = useRef(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -412,6 +529,54 @@ export default function ChallengeModal({
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    latestStateRef.current = { code, timeSpent };
+  }, [code, timeSpent]);
+
+  useEffect(() => {
+    let canceled = false;
+    setIsLoadingAttempt(true);
+
+    (async () => {
+      try {
+        const attempt = await attemptsService.getCurrent(exercise.id);
+        if (!attempt || attempt.status !== "IN_PROGRESS") return;
+        if (canceled) return;
+        setCode(attempt.code || defaultCode);
+        setTimeSpent(Math.floor((attempt.timeSpentMs ?? 0) / 1000));
+        setLastSavedAt(attempt.updatedAt ? new Date(attempt.updatedAt) : null);
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.error("Erro ao carregar rascunho do desafio:", error);
+        }
+      } finally {
+        if (!canceled) {
+          setIsLoadingAttempt(false);
+        }
+      }
+    })();
+
+    return () => {
+      canceled = true;
+      if (skipAutoSaveRef.current) return;
+      const { code: latestCode, timeSpent: latestTime } = latestStateRef.current;
+      const normalizedDefault = defaultCode.trim();
+      const normalizedCurrent = (latestCode || "").trim();
+      const hasProgress =
+        (normalizedCurrent && normalizedCurrent !== normalizedDefault) || latestTime > 0;
+
+      if (!hasProgress) return;
+
+      attemptsService
+        .saveAttempt({
+          exerciseId: exercise.id,
+          code: latestCode,
+          timeSpentMs: latestTime * 1000,
+        })
+        .catch(() => {});
+    };
+  }, [exercise.id, defaultCode]);
+
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -419,13 +584,101 @@ export default function ChallengeModal({
     return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
   };
 
+  const formatSavedLabel = (date: Date) => {
+    return date.toLocaleString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      day: "2-digit",
+      month: "2-digit",
+    });
+  };
+
   const handleSubmit = async () => {
+    // Bloquear submissão se o desafio já foi concluído
+    if (exercise.isCompleted) {
+      alert('Este desafio já foi concluído. Não é possível refazê-lo.');
+      onClose();
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await onSubmit(code, timeSpent);
+      skipAutoSaveRef.current = true;
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error("Erro durante a submissão do desafio:", error);
+      }
+      return;
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleTest = async () => {
+    // Bloquear teste se o desafio já foi concluído
+    if (exercise.isCompleted) {
+      alert('Este desafio já foi concluído. Não é possível testar novamente.');
+      return;
+    }
+
+    setIsTesting(true);
+    setTestError(null);
+    try {
+      const result = await onTest(code);
+      setTestResult(result);
+    } catch (error) {
+      setTestResult(null);
+      setTestError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível testar o código. Tente novamente."
+      );
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
+  const handleSaveDraft = async (closeAfter = false) => {
+    // Bloquear salvamento se o desafio já foi concluído
+    if (exercise.isCompleted) {
+      alert('Este desafio já foi concluído. Não é possível salvar progresso.');
+      if (closeAfter) {
+        onClose();
+      }
+      return;
+    }
+
+    if (isSavingDraft) return;
+    setIsSavingDraft(true);
+    try {
+      const saved = await attemptsService.saveAttempt({
+        exerciseId: exercise.id,
+        code,
+        timeSpentMs: timeSpent * 1000,
+        status: "IN_PROGRESS",
+      });
+      const updatedDate = saved?.updatedAt ? new Date(saved.updatedAt) : new Date();
+      setLastSavedAt(updatedDate);
+      if (closeAfter) {
+        skipAutoSaveRef.current = true;
+        onClose();
+      }
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error("Erro ao salvar progresso do desafio:", error);
+      }
+      if (!closeAfter) {
+        alert("Não foi possível salvar seu progresso. Tente novamente.");
+      }
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
+
+  const handleSaveAndExit = async () => {
+    if (isSavingDraft) return;
+    await handleSaveDraft(true);
   };
 
   const lineCount = code.split("\n").length;
@@ -513,14 +766,46 @@ export default function ChallengeModal({
                   <LineNumber key={i + 1}>{i + 1}</LineNumber>
                 ))}
               </LineNumbers>
-              <CodeTextarea
-                $isDark={isDark}
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                placeholder="// Escreva seu código aqui..."
-                spellCheck={false}
-              />
+              {exercise.isCompleted ? (
+                <CompletedOverlay $isDark={isDark}>
+                  <CompletedMessage>
+                    <FaCheckCircle size={48} />
+                    <h3>Desafio Concluído!</h3>
+                    <p>Você já completou este desafio com sucesso. Não é possível refazê-lo.</p>
+                  </CompletedMessage>
+                </CompletedOverlay>
+              ) : (
+                <CodeTextarea
+                  $isDark={isDark}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  placeholder="// Escreva seu código aqui..."
+                  spellCheck={false}
+                />
+              )}
             </EditorContainer>
+            <TestOutputContainer $isDark={isDark}>
+              <TestOutputHeader>
+                <FaPlayCircle />
+                Resultado do Teste
+              </TestOutputHeader>
+              {isTesting && (
+                <TestOutputPlaceholder>
+                  Executando seu código...
+                </TestOutputPlaceholder>
+              )}
+              {!isTesting && testResult && (
+                <TestOutputContent $isDark={isDark}>
+                  {testResult}
+                </TestOutputContent>
+              )}
+              {!isTesting && !testResult && !testError && (
+                <TestOutputPlaceholder>
+                  Execute um teste para visualizar a saída do seu código.
+                </TestOutputPlaceholder>
+              )}
+              {testError && <TestOutputError>{testError}</TestOutputError>}
+            </TestOutputContainer>
           </RightPanel>
         </Content>
 
@@ -529,19 +814,45 @@ export default function ChallengeModal({
             <span style={{ fontWeight: 600 }}>
               Tempo decorrido: {formatTime(timeSpent)}
             </span>
+            <small>
+              {isLoadingAttempt
+                ? "Carregando progresso salvo..."
+                : lastSavedAt
+                ? `Último salvamento: ${formatSavedLabel(lastSavedAt)}`
+                : "Rascunho ainda não salvo"}
+            </small>
           </FooterInfo>
           <ButtonGroup>
             <Button variant="secondary" onClick={onClose}>
-              Cancelar
+              {exercise.isCompleted ? "Fechar" : "Cancelar"}
             </Button>
-            <Button
-              variant="primary"
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-            >
-              <FaCheckCircle />
-              {isSubmitting ? "Enviando..." : "Submeter Solução"}
-            </Button>
+            {!exercise.isCompleted && (
+              <>
+                <Button
+                  variant="secondary"
+                  onClick={handleSaveAndExit}
+                  disabled={isSavingDraft}
+                >
+                  {isSavingDraft ? "Salvando..." : "Salvar e sair"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleTest}
+                  disabled={isTesting}
+                >
+                  <FaPlayCircle />
+                  {isTesting ? "Testando..." : "Testar Código"}
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                >
+                  <FaCheckCircle />
+                  {isSubmitting ? "Enviando..." : "Submeter Solução"}
+                </Button>
+              </>
+            )}
           </ButtonGroup>
         </Footer>
       </ModalContainer>

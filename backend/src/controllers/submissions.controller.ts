@@ -37,6 +37,16 @@ export async function listMySubmissions(req: AuthenticatedRequest, res: Response
   }
 }
 
+export async function listMyCompletedExercises(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new BadRequestError('Missing user id');
+    const exerciseIds = await SubmissionsService.listCompletedExerciseIds(req.user.user_id);
+    return res.json({ exerciseIds });
+  } catch (err) {
+    return next(err);
+  }
+}
+
 export async function listByExercise(req: Request, res: Response, next: NextFunction) {
   try {
     const { exerciseId } = req.params;

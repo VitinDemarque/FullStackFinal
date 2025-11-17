@@ -316,22 +316,61 @@ export const RecommendationsGrid = styled.div`
   }
 `
 
-export const ExerciseCard = styled.div<{ $isDark?: boolean }>`
+export const ExerciseCard = styled.div<{ $isDark?: boolean; $isCompleted?: boolean }>`
   background: ${({ $isDark }) => ($isDark ? '#1e293b' : 'white')};
   border-radius: ${theme.borderRadius.lg};
   overflow: hidden;
   box-shadow: ${({ $isDark }) =>
     $isDark ? '0 4px 15px rgba(0, 0, 0, 0.5)' : '0 4px 15px rgba(0, 0, 0, 0.08)'};
   transition: ${theme.transitions.all};
-  border: 1px solid ${({ $isDark }) => ($isDark ? '#334155' : theme.colors.gray[200])};
+  border: 1px solid ${({ $isDark, $isCompleted }) => 
+    $isCompleted 
+      ? ($isDark ? '#10b981' : '#10b981')
+      : ($isDark ? '#334155' : theme.colors.gray[200])};
   display: flex;
   flex-direction: column;
   height: 100%;
+  position: relative;
+
+  ${({ $isCompleted }) => $isCompleted && `
+    border-width: 2px;
+  `}
 
   &:hover {
     transform: translateY(-5px);
     box-shadow: ${({ $isDark }) =>
     $isDark ? '0 8px 25px rgba(0, 0, 0, 0.7)' : '0 8px 25px rgba(0, 0, 0, 0.12)'};
+  }
+`
+
+export const CompletedBadge = styled.div`
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: ${theme.borderRadius.full};
+  font-size: ${theme.fontSizes.sm};
+  font-weight: ${theme.fontWeights.bold};
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  animation: pulse 2s ease-in-out infinite;
+
+  svg {
+    font-size: 1rem;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+    50% {
+      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.6);
+    }
   }
 `
 
@@ -459,10 +498,35 @@ export const StartButton = styled.button`
   transition: ${theme.transitions.base};
   background: ${theme.gradients.primary};
   color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+`
+
+export const CompletedButton = styled.button`
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: ${theme.borderRadius.sm};
+  font-weight: ${theme.fontWeights.semibold};
+  cursor: not-allowed;
+  transition: ${theme.transitions.base};
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  opacity: 0.9;
+
+  svg {
+    font-size: 1rem;
   }
 `
 

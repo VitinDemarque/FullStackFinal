@@ -11,6 +11,7 @@ import UserStat from '../models/UserStat.model';
 import GroupMember from '../models/GroupMember.model';
 import Group from '../models/Group.model';
 import User from '../models/User.model';
+import Submission from '../models/Submission.model';
 
 export interface ListExercisesInput {
   q?: string;
@@ -77,7 +78,16 @@ export async function list(input: Partial<ListExercisesInput>) {
     Exercise.countDocuments(where)
   ]);
 
-  const itemsSanitized = await Promise.all(items.map(ensurePublicCodeAndSanitize));
+  const itemsSanitized = await Promise.all(
+    items.map(async (item) => {
+      const sanitized = await ensurePublicCodeAndSanitize(item);
+      if (requestUserId) {
+        const completed = await checkIfCompleted(sanitized.id, requestUserId);
+        return { ...sanitized, isCompleted: completed };
+      }
+      return sanitized;
+    })
+  );
 
   return {
     items: itemsSanitized,
@@ -93,7 +103,13 @@ export async function listByAuthor(authorId: string, skip = 0, limit = 20) {
     Exercise.countDocuments(where)
   ]);
 
-  const itemsSanitized = await Promise.all(items.map(ensurePublicCodeAndSanitize));
+  const itemsSanitized = await Promise.all(
+    items.map(async (item) => {
+      const sanitized = await ensurePublicCodeAndSanitize(item);
+      const completed = await checkIfCompleted(sanitized.id, authorId);
+      return { ...sanitized, isCompleted: completed };
+    })
+  );
 
   return {
     items: itemsSanitized,
@@ -105,28 +121,36 @@ export async function getById(id: string, requestUserId?: string) {
   const ex = (await Exercise.findById(id).lean()) as any;
   if (!ex) throw new NotFoundError('Exercise not found');
 
+  let result: any;
   if (ex.isPublic && ex.status === 'PUBLISHED') {
-    return ensurePublicCodeAndSanitize(ex);
-  }
-
-  if (requestUserId) {
+    result = await ensurePublicCodeAndSanitize(ex);
+  } else if (requestUserId) {
     if (String(ex.authorUserId) === requestUserId) {
-      return sanitize(ex);
-    }
-
-    if (ex.groupId) {
+      result = sanitize(ex);
+    } else if (ex.groupId) {
       const isMember = await GroupMember.findOne({
           groupId: ex.groupId,
           userId: new Types.ObjectId(requestUserId)
       }).lean();
 
       if (isMember && ex.status === 'PUBLISHED') {
-          return ensurePublicCodeAndSanitize(ex);
+          result = await ensurePublicCodeAndSanitize(ex);
+      } else {
+        throw new NotFoundError('Exercise not found');
       }
+    } else {
+      throw new NotFoundError('Exercise not found');
     }
+  } else {
+    throw new NotFoundError('Exercise not found');
   }
 
-  throw new NotFoundError('Exercise not found');
+  if (requestUserId) {
+    const completed = await checkIfCompleted(result.id, requestUserId);
+    result.isCompleted = completed;
+  }
+
+  return result;
 }
 
 export async function create(userId: string, payload: Partial<any>) {
@@ -354,7 +378,17 @@ export async function listCommunity(input: Partial<ListCommunityExercisesInput>)
   };
 }
 
-function sanitize(e: any) {
+async function checkIfCompleted(exerciseId: string, userId?: string): Promise<boolean> {
+  if (!userId) return false;
+  const completed = await Submission.findOne({
+    exerciseId: new Types.ObjectId(exerciseId),
+    userId: new Types.ObjectId(userId),
+    status: 'ACCEPTED'
+  }).lean();
+  return !!completed;
+}
+
+function sanitize(e: any, isCompleted?: boolean) {
   return {
     id: String(e._id),
     authorUserId: String(e.authorUserId),
@@ -379,6 +413,7 @@ function sanitize(e: any) {
     highScoreWinnerScore: typeof e.highScoreWinnerScore === 'number' ? e.highScoreWinnerScore : null,
     highScoreWinnerTime: typeof e.highScoreWinnerTime === 'number' ? e.highScoreWinnerTime : null,
     highScoreAwardedAt: e.highScoreAwardedAt || null,
+    isCompleted: isCompleted ?? false,
     createdAt: e.createdAt,
     updatedAt: e.updatedAt
   };
@@ -401,28 +436,36 @@ export async function getByPublicCode(publicCode: string, requestUserId?: string
   const ex = (await Exercise.findOne({ publicCode }).lean()) as any;
   if (!ex) throw new NotFoundError('Exercise not found');
 
+  let result: any;
   if (ex.isPublic && ex.status === 'PUBLISHED') {
-    return sanitize(ex);
-  }
-
-  if (requestUserId) {
+    result = sanitize(ex);
+  } else if (requestUserId) {
     if (String(ex.authorUserId) === requestUserId) {
-      return sanitize(ex);
-    }
-
-    if (ex.groupId) {
+      result = sanitize(ex);
+    } else if (ex.groupId) {
       const isMember = await GroupMember.findOne({
           groupId: ex.groupId,
           userId: new Types.ObjectId(requestUserId)
       }).lean();
 
       if (isMember && ex.status === 'PUBLISHED') {
-          return sanitize(ex);
+          result = sanitize(ex);
+      } else {
+        throw new NotFoundError('Exercise not found');
       }
+    } else {
+      throw new NotFoundError('Exercise not found');
     }
+  } else {
+    throw new NotFoundError('Exercise not found');
   }
 
-  throw new NotFoundError('Exercise not found');
+  if (requestUserId) {
+    const completed = await checkIfCompleted(result.id, requestUserId);
+    result.isCompleted = completed;
+  }
+
+  return result;
 }
 
 async function ensurePublicCodeAndSanitize(e: any) {
@@ -431,5 +474,5 @@ async function ensurePublicCodeAndSanitize(e: any) {
     await Exercise.updateOne({ _id: e._id }, { $set: { publicCode: code } });
     e.publicCode = code;
   }
-  return sanitize(e);
+  return sanitize(e, false);
 }

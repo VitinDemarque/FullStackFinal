@@ -12,6 +12,7 @@ router.post('/', auth(), SubmissionsController.create); // body: { exerciseId, c
 /**
  * Minhas submissões (histórico)
  */
+router.get('/me/completed', auth(), SubmissionsController.listMyCompletedExercises);
 router.get('/me', auth(), SubmissionsController.listMySubmissions);
 
 /**

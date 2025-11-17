@@ -2,10 +2,16 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@contexts/AuthContext";
 import { useTheme } from "@contexts/ThemeContext";
-import { FaCode, FaTrophy, FaFire, FaStar, FaPlus, FaUsers, FaComments } from "react-icons/fa";
+import { FaCode, FaTrophy, FaFire, FaStar, FaPlus, FaUsers, FaComments, FaCheckCircle } from "react-icons/fa";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
 import ChallengeModal from "@components/ChallengeModal";
-import { exercisesService, statsService, judge0Service, submissionsService } from "@services/index";
+import {
+  exercisesService,
+  statsService,
+  judge0Service,
+  submissionsService,
+  attemptsService,
+} from "@services/index";
 import { useFetch } from "@hooks/useFetch";
 import type { Exercise } from "../../types";
 import type { DashboardStats as DashboardStatsType } from "@services/stats.service";
@@ -21,6 +27,7 @@ import * as S from "@/styles/pages/Dashboard/styles";
 interface DashboardData {
   stats: DashboardStatsType;
   publishedExercises: Exercise[];
+  completedExerciseIds: string[];
 }
 
 export default function DashboardPage() {
@@ -28,15 +35,13 @@ export default function DashboardPage() {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const navigate = useNavigate();
-  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
-    null
-  );
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
 
   const { data, loading, error, refetch } = useFetch<DashboardData>(
     async () => {
       if (!user) throw new Error("Usuário não autenticado");
 
-      const [stats, exercisesResponse] = await Promise.all([
+      const [stats, exercisesResponse, completedExerciseIds] = await Promise.all([
         statsService.getDashboardStats(user.id),
         exercisesService.getAll({
           page: 1,
@@ -44,11 +49,13 @@ export default function DashboardPage() {
           isPublic: true,
           status: "PUBLISHED",
         }),
+        submissionsService.getMyCompletedExercises().catch(() => []),
       ]);
 
       return {
         stats,
         publishedExercises: exercisesResponse.items,
+        completedExerciseIds,
       };
     },
     {
@@ -63,17 +70,51 @@ export default function DashboardPage() {
     forumsCreated: 0,
     weekProgress: 0,
   };
-  const publishedExercises = data?.publishedExercises || [];
+  
+  // Garantir que isCompleted seja definido corretamente usando completedExerciseIds
+  const completedExerciseIds = data?.completedExerciseIds || [];
+  const completedIdsSet = new Set(completedExerciseIds);
+  
+  const publishedExercises = (data?.publishedExercises || []).map(exercise => ({
+    ...exercise,
+    // Usar completedIdsSet como fonte primária, ou isCompleted do backend se ambos estiverem disponíveis
+    isCompleted: completedIdsSet.has(exercise.id) || exercise.isCompleted === true
+  }));
 
   // Cálculo consistente de nível a partir do XP total
   const currentXpTotal = (user as any)?.xpTotal ?? 0;
   const currentLevel = deriveLevelFromXp(currentXpTotal);
 
+  const JAVA_LANGUAGE_ID = 62;
+
+  const handleTestChallenge = async (code: string) => {
+    try {
+      const compileResult = await judge0Service.executeCode(code, JAVA_LANGUAGE_ID);
+
+      if (!compileResult.sucesso) {
+        throw new Error(compileResult.resultado || 'Erro na execução do código');
+      }
+
+      return compileResult.resultado;
+    } catch (error: any) {
+      if (import.meta.env.DEV) {
+        console.error('Erro ao testar desafio:', error);
+      }
+      throw new Error(error?.message || 'Erro ao testar o código');
+    }
+  };
+
   const handleSubmitChallenge = async (code: string, timeSpent: number) => {
     if (!selectedExercise || !user) return;
 
+    // Bloquear submissão se o desafio já foi concluído
+    if (selectedExercise.isCompleted) {
+      alert('Este desafio já foi concluído. Não é possível refazê-lo.');
+      setSelectedExercise(null);
+      return;
+    }
+
     try {
-      const JAVA_LANGUAGE_ID = 62;
       const compileResult = await judge0Service.executeCode(code, JAVA_LANGUAGE_ID);
 
       if (!compileResult.sucesso) {
@@ -84,7 +125,7 @@ export default function DashboardPage() {
       const score = 100;
       const timeSpentMs = timeSpent * 1000;
       
-      await submissionsService.create({
+      const submission = await submissionsService.create({
         exerciseId: selectedExercise.id,
         code: code,
         score: score,
@@ -92,14 +133,32 @@ export default function DashboardPage() {
       });
 
       alert(`Código compilado e submetido com sucesso!\n\nResultado:\n${compileResult.resultado}\n\nScore: ${score}%`);
+
+      if (submission.status === "ACCEPTED") {
+        await attemptsService.deleteAttempt(selectedExercise.id).catch(() => {});
+        // Marcar o exercício como concluído no estado local
+        setSelectedExercise({ ...selectedExercise, isCompleted: true });
+      }
       
       setSelectedExercise(null);
+      // Recarregar os exercícios para atualizar o status de conclusão
       refetch();
     } catch (error: any) {
       if (import.meta.env.DEV) {
         console.error('Erro ao submeter desafio:', error);
       }
-      alert(`Erro ao submeter desafio: ${error.message || 'Erro desconhecido'}`);
+      
+      // Se o erro for sobre desafio já concluído, fechar o modal e recarregar
+      const errorMessage = error?.message || error?.error?.message || 'Erro desconhecido';
+      if (errorMessage.includes('já foi concluído') || errorMessage.includes('não é possível refazê-lo')) {
+        alert(errorMessage);
+        setSelectedExercise(null);
+        refetch(); // Recarregar para atualizar o status
+        return;
+      }
+      
+      alert(`Erro ao submeter desafio: ${errorMessage}`);
+      throw error;
     }
   };
 
@@ -110,6 +169,7 @@ export default function DashboardPage() {
           exercise={selectedExercise}
           onClose={() => setSelectedExercise(null)}
           onSubmit={handleSubmitChallenge}
+          onTest={handleTestChallenge}
         />
       )}
       <S.DashboardPage $isDark={isDark}>
@@ -243,7 +303,13 @@ export default function DashboardPage() {
                     difficultyMap[exercise.difficulty] || "Médio";
 
                   return (
-                    <S.ExerciseCard key={exercise.id} $isDark={isDark}>
+                    <S.ExerciseCard key={exercise.id} $isDark={isDark} $isCompleted={exercise.isCompleted}>
+                      {exercise.isCompleted && (
+                        <S.CompletedBadge>
+                          <FaCheckCircle />
+                          Concluído
+                        </S.CompletedBadge>
+                      )}
                       <S.CardHeader $isDark={isDark}>
                         <S.DifficultyBadge
                           difficulty={difficultyText.toLowerCase() as any}
@@ -264,11 +330,22 @@ export default function DashboardPage() {
                         </S.CardDescription>
                       </S.CardBody>
                       <S.CardFooter>
-                        <S.StartButton
-                          onClick={() => setSelectedExercise(exercise)}
-                        >
-                          Iniciar Desafio
-                        </S.StartButton>
+                        {exercise.isCompleted ? (
+                          <S.CompletedButton disabled>
+                            <FaCheckCircle />
+                            Concluído
+                          </S.CompletedButton>
+                        ) : (
+                          <S.StartButton
+                            onClick={() => {
+                              if (!exercise.isCompleted) {
+                                setSelectedExercise(exercise);
+                              }
+                            }}
+                          >
+                            Iniciar Desafio
+                          </S.StartButton>
+                        )}
                       </S.CardFooter>
                     </S.ExerciseCard>
                   );

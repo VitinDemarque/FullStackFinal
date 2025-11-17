@@ -42,6 +42,7 @@ export interface Exercise {
   badgeRarity?: 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY'
   highScoreBadgeId?: string | null
   highScoreThreshold?: number
+  isCompleted?: boolean
   createdAt: string
   updatedAt: string
 }

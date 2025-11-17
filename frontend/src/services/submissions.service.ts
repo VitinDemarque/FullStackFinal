@@ -46,6 +46,14 @@ const submissionsService = {
       { params: { page, limit } }
     )
   },
+
+  async getMyCompletedExercises(): Promise<string[]> {
+    const response = await apiRequest<{ exerciseIds: string[] }>(
+      'GET',
+      '/submissions/me/completed'
+    )
+    return response?.exerciseIds ?? []
+  },
 }
 
 export default submissionsService

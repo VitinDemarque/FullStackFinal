@@ -13,6 +13,7 @@ import ExerciseStat from '../models/ExerciseStat.model';
 // Regras de XP
 import { calculateXp } from './xp-rules/calculator';
 import { grantTriumphantBadgesForExerciseCompletion } from './badges.service';
+import * as AttemptsService from './attempts.service';
 
 export interface CreateSubmissionInput {
   userId: string;
@@ -24,6 +25,17 @@ export interface CreateSubmissionInput {
 
 export async function create(input: CreateSubmissionInput) {
   const { userId, exerciseId, code, score, timeSpentMs } = input;
+
+  // Verificar se o usuário já completou este exercício
+  const existingAccepted = await Submission.findOne({
+    userId: new Types.ObjectId(userId),
+    exerciseId: new Types.ObjectId(exerciseId),
+    status: 'ACCEPTED'
+  }).lean();
+
+  if (existingAccepted) {
+    throw new BadRequestError('Este desafio já foi concluído. Não é possível refazê-lo.');
+  }
 
   // TIPAGEM EXPLÍCITA:
   const exercise = await Exercise.findById(exerciseId).lean<IExercise | null>();
@@ -76,6 +88,7 @@ export async function create(input: CreateSubmissionInput) {
     await creditXpAndLevelUp(userId, finalXpAwarded);
     // Conquista triunfante: concede emblemas vinculados ao exercício
     await grantTriumphantBadgesForExerciseCompletion(userId, exerciseId);
+    await AttemptsService.deleteAttempt(userId, exerciseId).catch(() => {});
 
     // Badge de pontuação alta: sempre pertence ao TOP absoluto (maior score; empate decide menor tempo)
     const highScoreBadgeId = (exercise as any).highScoreBadgeId;
@@ -175,6 +188,14 @@ export async function getById(id: string) {
   const s = await Submission.findById(id).lean<ISubmission | null>();
   if (!s) throw new NotFoundError('Submission not found');
   return sanitize(s);
+}
+
+export async function listCompletedExerciseIds(userId: string) {
+  const ids = await Submission.distinct('exerciseId', {
+    userId: new Types.ObjectId(userId),
+    status: 'ACCEPTED',
+  });
+  return ids.map((id) => String(id));
 }
 
 async function creditXpAndLevelUp(userId: string, xp: number) {

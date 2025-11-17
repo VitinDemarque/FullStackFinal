@@ -18,6 +18,7 @@ import badgesRoutes from './badges.routes';
 import titlesRoutes from './titles.routes';
 import brUniversitiesRoutes from './brUniversities.routes';
 import judge0Routes from './judge0.routes';
+import attemptsRoutes from './attempts.routes';
 
 const router = Router();
 
@@ -39,5 +40,6 @@ router.use('/badges', badgesRoutes);
 router.use('/titles', titlesRoutes);
 router.use('/br-universities', brUniversitiesRoutes);
 router.use('/execute', judge0Routes);
+router.use('/attempts', attemptsRoutes);
 
 export default router;
