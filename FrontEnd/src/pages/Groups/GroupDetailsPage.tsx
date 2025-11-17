@@ -13,6 +13,7 @@ import CreateGroupExerciseModal from "../../components/Groups/CreateGroupExercis
 import EditGroupExerciseModal, { UpdateGroupExerciseData } from "../../components/Groups/EditGroupExerciseModal";
 import { useGroupNotification } from "../../hooks/useGroupNotification";
 import GroupNotification from "../../components/Groups/GroupNotification";
+import ConfirmationModal from "@/components/ConfirmationModal";
 
 const Container = styled.div`
   max-width: 1000px;
@@ -464,6 +465,9 @@ const GroupDetailsPage: React.FC = () => {
   const [showEditExerciseModal, setShowEditExerciseModal] = useState(false);
   const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [generatingLink, setGeneratingLink] = useState(false);
+  const [confirmLeaveOpen, setConfirmLeaveOpen] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [leaveAsOwner, setLeaveAsOwner] = useState(false);
   const { notifications, removeNotification, showError, showSuccess } = useGroupNotification();
 
   const loadGroup = async () => {
@@ -569,34 +573,8 @@ const GroupDetailsPage: React.FC = () => {
     }
   };
 
-  const handleLeave = async () => {
+  const doLeaveGroup = async () => {
     if (!id || !isAuthenticated) return;
-
-    // Se o usuário for dono, avisar que sair implica excluir o grupo e executar a exclusão
-    if (isUserOwner) {
-      const confirmarExclusao = confirm(
-        "Você é o dono do grupo. Ao sair, o grupo será excluído para todos os membros.\n\nTem certeza que deseja EXCLUIR este grupo? Esta ação não pode ser desfeita."
-      );
-      if (!confirmarExclusao) return;
-
-      setActionLoading(true);
-      try {
-        await groupService.delete(id);
-        showSuccess("Grupo excluído", "O grupo foi excluído com sucesso.");
-        navigate("/grupos");
-      } catch (error: any) {
-        showError(
-          "Erro ao excluir grupo",
-          error.message || "Não foi possível excluir o grupo. Tente novamente."
-        );
-      } finally {
-        setActionLoading(false);
-      }
-      return;
-    }
-
-    if (!confirm("Tem certeza que deseja sair do grupo?")) return;
-
     setActionLoading(true);
     try {
       await groupService.leave(id);
@@ -620,11 +598,8 @@ const GroupDetailsPage: React.FC = () => {
     }
   };
 
-  const handleDelete = async () => {
+  const doDeleteGroup = async () => {
     if (!id || !isAuthenticated) return;
-
-    if (!confirm("Tem certeza que deseja excluir este grupo? Esta ação não pode ser desfeita.")) return;
-
     setActionLoading(true);
     try {
       await groupService.delete(id);
@@ -809,7 +784,7 @@ const GroupDetailsPage: React.FC = () => {
             {isAuthenticated && isUserMember && (
               <Button
                 variant="danger"
-                onClick={handleLeave}
+                onClick={() => { setLeaveAsOwner(isUserOwner); setConfirmLeaveOpen(true); }}
                 disabled={actionLoading}
               >
                 {actionLoading ? "Saindo..." : "Sair do Grupo"}
@@ -859,7 +834,7 @@ const GroupDetailsPage: React.FC = () => {
                 </LinkButton>
                 <Button
                   variant="danger"
-                  onClick={handleDelete}
+                  onClick={() => setConfirmDeleteOpen(true)}
                   disabled={actionLoading}
                 >
                   {actionLoading ? "Excluindo..." : "Excluir Grupo"}
@@ -1015,6 +990,40 @@ const GroupDetailsPage: React.FC = () => {
             )}
           </ExercisesSection>
         </Content>
+
+        {/* Confirmação: Sair do Grupo ou Excluir (se dono) */}
+        <ConfirmationModal
+          isOpen={confirmLeaveOpen}
+          onClose={() => setConfirmLeaveOpen(false)}
+          onConfirm={async () => {
+            if (leaveAsOwner) {
+              await doDeleteGroup();
+            } else {
+              await doLeaveGroup();
+            }
+          }}
+          title={leaveAsOwner ? "Excluir grupo ao sair" : "Confirmar saída do grupo"}
+          message={
+            leaveAsOwner
+              ? "Você é o dono do grupo. Ao sair, o grupo será EXCLUÍDO para todos os membros. Tem certeza que deseja excluir? Esta ação não pode ser desfeita."
+              : "Tem certeza que deseja sair do grupo? Você perderá acesso aos desafios e ao ranking deste grupo."
+          }
+          confirmText={leaveAsOwner ? "Excluir grupo" : "Sair do grupo"}
+          cancelText="Cancelar"
+          type="danger"
+        />
+
+        {/* Confirmação: Excluir Grupo */}
+        <ConfirmationModal
+          isOpen={confirmDeleteOpen}
+          onClose={() => setConfirmDeleteOpen(false)}
+          onConfirm={doDeleteGroup}
+          title="Confirmar exclusão do grupo"
+          message="Tem certeza que deseja excluir este grupo? Esta ação não pode ser desfeita."
+          confirmText="Excluir"
+          cancelText="Cancelar"
+          type="danger"
+        />
 
         <CreateGroupExerciseModal
           isOpen={showCreateExerciseModal}
