@@ -74,7 +74,7 @@ export async function list(input: Partial<ListExercisesInput>) {
   }
 
   const [items, total] = await Promise.all([
-    Exercise.find(where).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+    Exercise.find(where).populate('languageId', 'name slug').sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
     Exercise.countDocuments(where)
   ]);
 
@@ -99,7 +99,7 @@ export async function listByAuthor(authorId: string, skip = 0, limit = 20) {
   const where: FilterQuery<any> = { authorUserId: new Types.ObjectId(authorId) };
 
   const [items, total] = await Promise.all([
-    Exercise.find(where).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+    Exercise.find(where).populate('languageId', 'name slug').sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
     Exercise.countDocuments(where)
   ]);
 
@@ -118,7 +118,7 @@ export async function listByAuthor(authorId: string, skip = 0, limit = 20) {
 }
 
 export async function getById(id: string, requestUserId?: string) {
-  const ex = (await Exercise.findById(id).lean()) as any;
+  const ex = (await Exercise.findById(id).populate('languageId', 'name slug').lean()) as any;
   if (!ex) throw new NotFoundError('Exercise not found');
 
   let result: any;
@@ -197,9 +197,8 @@ export async function create(userId: string, payload: Partial<any>) {
     ? Number(payload.highScoreThreshold)
     : undefined;
 
-  const doc = await Exercise.create({
+  const exerciseData: any = {
     authorUserId: new Types.ObjectId(userId),
-    languageId: payload.languageId ? new Types.ObjectId(payload.languageId) : undefined,
     groupId: exerciseGroupId,
     title: payload.title ?? 'Untitled',
     subject: payload.subject ?? '',
@@ -214,7 +213,14 @@ export async function create(userId: string, payload: Partial<any>) {
     badgeRarity,
     highScoreBadgeId,
     highScoreThreshold
-  });
+  };
+
+  // Só adiciona languageId se foi fornecido (evita undefined)
+  if (payload.languageId) {
+    exerciseData.languageId = new Types.ObjectId(payload.languageId);
+  }
+
+  const doc = await Exercise.create(exerciseData);
 
   await UserStat.updateOne(
     { userId: new Types.ObjectId(userId) },
@@ -234,10 +240,15 @@ export async function update(userId: string, id: string, payload: Partial<any>) 
   const requester = await User.findById(userId).lean();
   const isAdmin = requester?.role === 'ADMIN';
 
-  if (payload.languageId) {
-    const lang = await Language.findById(payload.languageId).lean();
-    if (!lang) throw new NotFoundError('Language not found');
-    ex.languageId = new Types.ObjectId(payload.languageId);
+  // Permite atualizar ou remover languageId
+  if (payload.languageId !== undefined) {
+    if (payload.languageId === null || payload.languageId === '') {
+      ex.languageId = null;
+    } else {
+      const lang = await Language.findById(payload.languageId).lean();
+      if (!lang) throw new NotFoundError('Language not found');
+      ex.languageId = new Types.ObjectId(payload.languageId);
+    }
   }
 
   if (payload.title !== undefined) ex.title = payload.title;
@@ -247,6 +258,37 @@ export async function update(userId: string, id: string, payload: Partial<any>) 
   if (payload.baseXp !== undefined) ex.baseXp = Number(payload.baseXp);
   if (payload.codeTemplate !== undefined) ex.codeTemplate = String(payload.codeTemplate);
   if (payload.status !== undefined) ex.status = payload.status;
+  
+  // Validação de isPublic e groupId
+  if (payload.isPublic !== undefined) {
+    ex.isPublic = Boolean(payload.isPublic);
+    // Se tornar público, remove do grupo
+    if (ex.isPublic && ex.groupId) {
+      ex.groupId = null;
+    }
+  }
+  
+  if (payload.groupId !== undefined) {
+    if (payload.groupId === null || payload.groupId === '') {
+      ex.groupId = null;
+    } else {
+      const groupIdStr = String(payload.groupId);
+      const group = await Group.findById(groupIdStr).lean();
+      if (!group) throw new NotFoundError('Group not found');
+      
+      const membership = await GroupMember.findOne({
+        groupId: new Types.ObjectId(groupIdStr),
+        userId: new Types.ObjectId(userId)
+      }).lean();
+      
+      if (!membership) {
+        throw new ForbiddenError('You must be a member of the group to assign an exercise to it');
+      }
+      
+      ex.groupId = new Types.ObjectId(groupIdStr);
+      ex.isPublic = false; // Exercícios de grupo não podem ser públicos
+    }
+  }
   // Alterações de badges apenas por administradores
   if (isAdmin) {
     if (payload.triumphantBadgeId !== undefined) {
@@ -268,7 +310,10 @@ export async function update(userId: string, id: string, payload: Partial<any>) 
   }
 
   await ex.save();
-  return sanitize(ex.toObject());
+  
+  // Popula languageId antes de retornar
+  const populated = await Exercise.findById(ex._id).populate('languageId', 'name slug').lean();
+  return sanitize(populated || ex.toObject());
 }
 
 export async function remove(userId: string, id: string) {
@@ -324,7 +369,10 @@ export async function publish(userId: string, id: string) {
   if (String(ex.authorUserId) !== userId) throw new ForbiddenError('Only author can publish');
   ex.status = 'PUBLISHED';
   await ex.save();
-  return sanitize(ex.toObject());
+  
+  // Popula languageId antes de retornar
+  const populated = await Exercise.findById(ex._id).populate('languageId', 'name slug').lean();
+  return sanitize(populated || ex.toObject());
 }
 
 export async function unpublish(userId: string, id: string) {
@@ -333,7 +381,10 @@ export async function unpublish(userId: string, id: string) {
   if (String(ex.authorUserId) !== userId) throw new ForbiddenError('Only author can unpublish');
   ex.status = 'DRAFT';
   await ex.save();
-  return sanitize(ex.toObject());
+  
+  // Popula languageId antes de retornar
+  const populated = await Exercise.findById(ex._id).populate('languageId', 'name slug').lean();
+  return sanitize(populated || ex.toObject());
 }
 
 export async function setVisibility(userId: string, id: string, isPublic: boolean) {
@@ -347,7 +398,10 @@ export async function setVisibility(userId: string, id: string, isPublic: boolea
   
   ex.isPublic = !!isPublic;
   await ex.save();
-  return sanitize(ex.toObject());
+  
+  // Popula languageId antes de retornar
+  const populated = await Exercise.findById(ex._id).populate('languageId', 'name slug').lean();
+  return sanitize(populated || ex.toObject());
 }
 
 export async function listCommunity(input: Partial<ListCommunityExercisesInput>) {
@@ -366,7 +420,7 @@ export async function listCommunity(input: Partial<ListCommunityExercisesInput>)
   if (languageId) where.languageId = new Types.ObjectId(languageId);
 
   const [items, total] = await Promise.all([
-    Exercise.find(where).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+    Exercise.find(where).populate('languageId', 'name slug').sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
     Exercise.countDocuments(where)
   ]);
 
@@ -392,7 +446,12 @@ function sanitize(e: any, isCompleted?: boolean) {
   return {
     id: String(e._id),
     authorUserId: String(e.authorUserId),
-    languageId: e.languageId ? String(e.languageId) : null,
+    languageId: e.languageId ? (typeof e.languageId === 'object' ? String(e.languageId._id) : String(e.languageId)) : null,
+    language: e.languageId && typeof e.languageId === 'object' ? {
+      id: String(e.languageId._id),
+      name: e.languageId.name,
+      slug: e.languageId.slug
+    } : null,
     groupId: e.groupId ? String(e.groupId) : null,
     title: e.title,
     subject: e.subject,
@@ -433,7 +492,7 @@ async function generatePublicCode(): Promise<string> {
 }
 
 export async function getByPublicCode(publicCode: string, requestUserId?: string) {
-  const ex = (await Exercise.findOne({ publicCode }).lean()) as any;
+  const ex = (await Exercise.findOne({ publicCode }).populate('languageId', 'name slug').lean()) as any;
   if (!ex) throw new NotFoundError('Exercise not found');
 
   let result: any;

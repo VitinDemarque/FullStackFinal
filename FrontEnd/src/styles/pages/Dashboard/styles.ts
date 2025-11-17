@@ -319,7 +319,7 @@ export const RecommendationsGrid = styled.div`
 export const ExerciseCard = styled.div<{ $isDark?: boolean; $isCompleted?: boolean }>`
   background: ${({ $isDark }) => ($isDark ? '#1e293b' : 'white')};
   border-radius: ${theme.borderRadius.lg};
-  overflow: hidden;
+  overflow: visible;
   box-shadow: ${({ $isDark }) =>
     $isDark ? '0 4px 15px rgba(0, 0, 0, 0.5)' : '0 4px 15px rgba(0, 0, 0, 0.08)'};
   transition: ${theme.transitions.all};
@@ -376,12 +376,28 @@ export const CompletedBadge = styled.div`
 
 export const CardHeader = styled.div<{ $isDark?: boolean }>`
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   padding: 1rem 1.5rem;
+  padding-top: 1.5rem;
+  min-height: 3rem;
   background: ${({ $isDark }) => ($isDark ? '#0f172a' : theme.colors.gray[50])};
   border-bottom: 1px solid ${({ $isDark }) => ($isDark ? '#334155' : theme.colors.gray[200])};
   transition: background 0.3s ease, border-color 0.3s ease;
+  overflow: hidden;
+  border-radius: ${theme.borderRadius.lg} ${theme.borderRadius.lg} 0 0;
+  
+  @media (max-width: ${theme.breakpoints.tablet}) {
+    padding-top: 1.25rem;
+    min-height: 2.75rem;
+    padding: 0.75rem 1.25rem;
+  }
+  
+  @media (max-width: ${theme.breakpoints.mobile}) {
+    padding-top: 1rem;
+    min-height: 2.5rem;
+    padding: 0.5rem 1rem;
+  }
 `
 
 interface DifficultyBadgeProps {
@@ -391,11 +407,32 @@ interface DifficultyBadgeProps {
 export const DifficultyBadge = styled.span.withConfig({
   shouldForwardProp: (prop) => prop !== 'difficulty'
 })<DifficultyBadgeProps>`
-  padding: 0.25rem 0.75rem;
+  position: absolute;
+  top: 0.75rem;
+  left: 1rem;
+  padding: 0.4rem 1rem;
   border-radius: ${theme.borderRadius.full};
   font-size: ${theme.fontSizes.xs};
-  font-weight: ${theme.fontWeights.semibold};
+  font-weight: ${theme.fontWeights.bold};
   text-transform: uppercase;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+  
+  @media (max-width: ${theme.breakpoints.tablet}) {
+    top: 0.5rem;
+    left: 0.75rem;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.65rem;
+  }
+  
+  @media (max-width: ${theme.breakpoints.mobile}) {
+    top: 0.5rem;
+    left: 0.5rem;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.6rem;
+  }
+  
   background: ${(props) => {
     switch (props.difficulty) {
       case 'fácil':
@@ -428,6 +465,35 @@ export const DifficultyBadge = styled.span.withConfig({
   }};
 `
 
+export const LanguageBadge = styled.span`
+  position: absolute;
+  top: 0.75rem;
+  right: 6rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: ${theme.borderRadius.full};
+  font-size: ${theme.fontSizes.xs};
+  font-weight: ${theme.fontWeights.semibold};
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  white-space: nowrap;
+  
+  @media (max-width: ${theme.breakpoints.tablet}) {
+    top: 0.5rem;
+    right: 5rem;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.65rem;
+  }
+  
+  @media (max-width: ${theme.breakpoints.mobile}) {
+    top: 0.5rem;
+    right: 4.5rem;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.6rem;
+  }
+`
+
 export const XpBadge = styled.div`
   display: flex;
   align-items: center;
@@ -435,6 +501,8 @@ export const XpBadge = styled.div`
   color: ${theme.colors.secondary};
   font-weight: ${theme.fontWeights.semibold};
   font-size: ${theme.fontSizes.sm};
+  min-width: 4.5rem;
+  justify-content: flex-end;
 
   svg {
     font-size: 1rem;

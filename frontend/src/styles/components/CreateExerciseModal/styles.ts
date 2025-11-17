@@ -155,6 +155,7 @@ export const EditorPanel = styled.div`
   min-height: 360px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 `;
 
 export const EditorHeader = styled.div`

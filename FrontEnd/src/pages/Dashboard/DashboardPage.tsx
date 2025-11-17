@@ -97,10 +97,11 @@ export default function DashboardPage() {
 
       return compileResult.resultado;
     } catch (error: any) {
-      if (import.meta.env.DEV) {
-        console.error('Erro ao testar desafio:', error);
-      }
-      throw new Error(error?.message || 'Erro ao testar o código');
+      const errorMessage = error?.response?.data?.error?.details?.resultado 
+        || error?.response?.data?.error?.message 
+        || error?.message 
+        || 'Erro ao testar o código';
+      throw new Error(errorMessage);
     }
   };
 
@@ -304,6 +305,16 @@ export default function DashboardPage() {
 
                   return (
                     <S.ExerciseCard key={exercise.id} $isDark={isDark} $isCompleted={exercise.isCompleted}>
+                      <S.DifficultyBadge
+                        difficulty={difficultyText.toLowerCase() as any}
+                      >
+                        {difficultyText}
+                      </S.DifficultyBadge>
+                      {exercise.language && (
+                        <S.LanguageBadge>
+                          {exercise.language.name}
+                        </S.LanguageBadge>
+                      )}
                       {exercise.isCompleted && (
                         <S.CompletedBadge>
                           <FaCheckCircle />
@@ -311,11 +322,6 @@ export default function DashboardPage() {
                         </S.CompletedBadge>
                       )}
                       <S.CardHeader $isDark={isDark}>
-                        <S.DifficultyBadge
-                          difficulty={difficultyText.toLowerCase() as any}
-                        >
-                          {difficultyText}
-                        </S.DifficultyBadge>
                         <S.XpBadge>
                           <FaTrophy /> {exercise.baseXp} XP
                         </S.XpBadge>

@@ -10,6 +10,7 @@ import { leaderboardService } from "@services/leaderboard.service";
 import { exercisesService, submissionsService, badgesService } from "@services/index";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
 import type { Exercise } from "@/types";
+import { deriveLevelFromXp, getProgressToNextLevel } from "@utils/levels";
 import {
   FaUser,
   FaTrophy,
@@ -691,15 +692,30 @@ export default function ProfilePage() {
                   {user.name}
                   {titleName && <S.UserTitle>[{titleName}]</S.UserTitle>}
                 </S.Username>
+                <S.SocialInfo>
+                  {(() => {
+                    const xpTotal = (user as any)?.xpTotal ?? 0;
+                    const level = deriveLevelFromXp(xpTotal);
+                    const progress = getProgressToNextLevel(xpTotal, level);
+                    return (
+                      <>
+                        <S.LevelInfo>
+                          <S.LevelLabel>Nível</S.LevelLabel>
+                          <S.LevelValue>{level}</S.LevelValue>
+                        </S.LevelInfo>
+                        <S.ProgressInfo>
+                          <S.ProgressLabel>Próximo Nível</S.ProgressLabel>
+                          <S.ProgressValue>{progress.nextRequirement - progress.withinLevelXp} XP</S.ProgressValue>
+                        </S.ProgressInfo>
+                      </>
+                    );
+                  })()}
+                </S.SocialInfo>
                 <S.ActionButtons>
                   <S.ActionButton onClick={() => navigate("/profile/editar")}>
                     Editar Perfil
                   </S.ActionButton>
                 </S.ActionButtons>
-                <S.SocialInfo>
-                  <span>0 Seguindo</span>
-                  <span>0 Seguidores</span>
-                </S.SocialInfo>
               </S.UserInfo>
             </S.ProfileSection>
 

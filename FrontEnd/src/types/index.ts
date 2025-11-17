@@ -28,6 +28,11 @@ export interface Exercise {
   id: string
   authorUserId: string
   languageId?: string | null
+  language?: {
+    id: string
+    name: string
+    slug: string
+  } | null
   title: string
   subject?: string
   description?: string

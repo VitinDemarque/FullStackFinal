@@ -182,6 +182,7 @@ export const UserInfo = styled.div`
   flex-direction: column;
   gap: 0.75rem;
   flex: 1;
+  align-items: center;
 
   @media (max-width: ${theme.breakpoints.tablet}) {
     align-items: center;
@@ -269,17 +270,74 @@ export const ActionButton = styled.button`
 
 export const SocialInfo = styled.div`
   display: flex;
-  gap: 1rem;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: ${theme.fontSizes.sm};
+  gap: 1.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
 
-  @media (max-width: 480px) {
-    gap: 0.75rem;
-    font-size: ${theme.fontSizes.xs};
-    flex-wrap: wrap;
+  @media (max-width: ${theme.breakpoints.tablet}) {
     justify-content: center;
+    gap: 1rem;
   }
 `
+
+export const XpInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+`
+
+export const XpLabel = styled.span`
+  font-size: ${theme.fontSizes.sm};
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: ${theme.fontWeights.medium};
+`
+
+export const XpValue = styled.span`
+  font-size: ${theme.fontSizes.lg};
+  color: white;
+  font-weight: ${theme.fontWeights.bold};
+`
+
+export const LevelInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+`
+
+export const LevelLabel = styled.span`
+  font-size: ${theme.fontSizes.sm};
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: ${theme.fontWeights.medium};
+`
+
+export const LevelValue = styled.span`
+  font-size: ${theme.fontSizes.lg};
+  color: white;
+  font-weight: ${theme.fontWeights.bold};
+`
+
+export const ProgressInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+`
+
+export const ProgressLabel = styled.span`
+  font-size: ${theme.fontSizes.sm};
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: ${theme.fontWeights.medium};
+`
+
+export const ProgressValue = styled.span`
+  font-size: ${theme.fontSizes.lg};
+  color: white;
+  font-weight: ${theme.fontWeights.bold};
+`
+
 
 // ============================================
 // STATS CARDS
