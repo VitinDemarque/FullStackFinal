@@ -15,6 +15,11 @@ import { calculateXp } from './xp-rules/calculator';
 import { grantTriumphantBadgesForExerciseCompletion } from './badges.service';
 import * as AttemptsService from './attempts.service';
 
+// Serviços de validação e análise
+import { validateTests } from './testValidation.service';
+import { analyzeComplexityComplete } from './complexityAnalysis.service';
+import { updateHighScoreBadge } from './ranking.service';
+
 export interface CreateSubmissionInput {
   userId: string;
   exerciseId: string;
@@ -42,6 +47,11 @@ export async function create(input: CreateSubmissionInput) {
   if (!exercise) throw new NotFoundError('Exercise not found');
   if (exercise.status !== 'PUBLISHED') throw new BadRequestError('Exercise not published');
 
+  // Validar que exercício tem testes
+  if (!exercise.tests || exercise.tests.length < 2) {
+    throw new BadRequestError('Exercício deve ter pelo menos 2 testes para validação');
+  }
+
   // temporada ativa (se houver)
   const now = new Date();
   const season = await Season.findOne({
@@ -50,19 +60,44 @@ export async function create(input: CreateSubmissionInput) {
     endDate: { $gte: now }
   }).lean<ISeason | null>();
 
-  // status pela nota (exemplo)
-  const numericScore = Number(score ?? 0);
-  const status: ISubmission['status'] = numericScore >= 60 ? 'ACCEPTED' : 'REJECTED';
+  let testResults: any[] = [];
+  let testScore = 0;
+  let complexityScore = 0;
+  let complexityMetrics: any = null;
+  let bonusPoints = 0;
+  let finalScore = 0;
 
-  // XP pelo motor centralizado
+  if (code) {
+    const testValidation = await validateTests(exerciseId, code);
+    testResults = testValidation.testResults;
+    testScore = testValidation.testScore;
+
+    let languageSlug = 'java';
+    if (exercise.languageId) {
+      const Language = (await import('../models/Language.model')).default;
+      const language = await Language.findById(exercise.languageId).lean();
+      if (language) {
+        languageSlug = language.slug.toLowerCase();
+      }
+    }
+    
+    const complexityAnalysis = analyzeComplexityComplete(code, languageSlug);
+    complexityScore = complexityAnalysis.complexityScore;
+    complexityMetrics = complexityAnalysis.metrics;
+    bonusPoints = complexityAnalysis.bonusPoints;
+    finalScore = Math.min(100, testScore + bonusPoints);
+  } else {
+    finalScore = Number(score ?? 0);
+    testScore = finalScore;
+  }
+
+  const status: ISubmission['status'] = finalScore >= 60 ? 'ACCEPTED' : 'REJECTED';
   const xpAwarded = calculateXp({
     baseXp: exercise.baseXp ?? 100,
     difficulty: exercise.difficulty ?? 1,
-    score: numericScore,
+    score: finalScore,
     timeSpentMs: Number(timeSpentMs ?? 0)
   });
-
-  // multiplicador por raridade do emblema (opcional)
   const rarityMultiplierMap: Record<string, number> = {
     COMMON: 1,
     RARE: 1.1,
@@ -77,10 +112,17 @@ export async function create(input: CreateSubmissionInput) {
     exerciseId: new Types.ObjectId(exerciseId),
     seasonId: season ? new Types.ObjectId(season._id) : undefined,
     status,
-    score: numericScore,
+    score: finalScore, // Mantido para compatibilidade, mas agora usa finalScore
     timeSpentMs: Number(timeSpentMs ?? 0),
     xpAwarded: finalXpAwarded,
-    code: code ?? null
+    code: code ?? null,
+    // Novos campos para sistema de testes e complexidade
+    testResults: testResults.length > 0 ? testResults : undefined,
+    testScore: testScore,
+    complexityScore: complexityScore,
+    complexityMetrics: complexityMetrics,
+    bonusPoints: bonusPoints,
+    finalScore: finalScore
   });
 
   // se aceito, credita XP e recalcula nível
@@ -90,42 +132,14 @@ export async function create(input: CreateSubmissionInput) {
     await grantTriumphantBadgesForExerciseCompletion(userId, exerciseId);
     await AttemptsService.deleteAttempt(userId, exerciseId).catch(() => {});
 
-    // Badge de pontuação alta: sempre pertence ao TOP absoluto (maior score; empate decide menor tempo)
-    const highScoreBadgeId = (exercise as any).highScoreBadgeId;
-    if (highScoreBadgeId) {
-      const currentBestScore = Number((exercise as any).highScoreWinnerScore ?? -1);
-      const currentBestTime = Number((exercise as any).highScoreWinnerTime ?? Number.MAX_SAFE_INTEGER);
-      const currentBestUserId = (exercise as any).highScoreWinnerUserId ? String((exercise as any).highScoreWinnerUserId) : null;
-
-      const beatsCurrent =
-        numericScore > currentBestScore ||
-        (numericScore === currentBestScore && Number(timeSpentMs ?? 0) < currentBestTime);
-
-      if (currentBestUserId == null || beatsCurrent) {
-        const rarity = (exercise as any).badgeRarity || 'COMMON';
-        // atualiza vencedor
-        await Exercise.updateOne(
-          { _id: new Types.ObjectId(exerciseId) },
-          {
-            $set: {
-              highScoreAwarded: true,
-              highScoreWinnerUserId: new Types.ObjectId(userId),
-              highScoreWinnerSubmissionId: new Types.ObjectId(created._id),
-              highScoreWinnerScore: numericScore,
-              highScoreWinnerTime: Number(timeSpentMs ?? 0),
-              highScoreAwardedAt: new Date()
-            }
-          }
-        );
-
-        const { grantToUser, revokeFromUser } = await import('./badges.service');
-        // transfere: remove do anterior e concede ao novo
-        if (currentBestUserId && currentBestUserId !== String(userId)) {
-          await revokeFromUser(String(currentBestUserId), String(highScoreBadgeId));
-        }
-        await grantToUser(String(userId), String(highScoreBadgeId), `exerciseHighScore:${rarity}`);
-      }
-    }
+    // Atualizar ranking e badge de alta pontuação
+    // Usa a função centralizada do ranking service que compara:
+    // 1. Score final (maior é melhor)
+    // 2. Score de complexidade (maior é melhor - desempate)
+    // 3. Tempo gasto (menor é melhor - desempate final)
+    await updateHighScoreBadge(exerciseId).catch(() => {
+      // Silently fail - ranking update is not critical
+    });
   }
 
   // estatísticas
@@ -221,9 +235,16 @@ function sanitize(s: ISubmission) {
     exerciseId: String(s.exerciseId),
     seasonId: s.seasonId ? String(s.seasonId) : null,
     status: s.status,
-    score: s.score,
+    score: s.score, // Mantido para compatibilidade
     timeSpentMs: s.timeSpentMs ?? 0,
     xpAwarded: s.xpAwarded,
+    // Novos campos
+    testResults: s.testResults,
+    testScore: s.testScore,
+    complexityScore: s.complexityScore,
+    complexityMetrics: s.complexityMetrics,
+    bonusPoints: s.bonusPoints,
+    finalScore: s.finalScore,
     createdAt: s.createdAt
   };
 }

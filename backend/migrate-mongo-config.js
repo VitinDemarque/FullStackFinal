@@ -4,12 +4,11 @@ module.exports = {
   mongodb: {
     url: "mongodb+srv://victordeemarque7_db_user:FullStack123@fullstack.fqnvon6.mongodb.net/",
 
-    databaseName: "fullstack.fqnvon6.mongodb.net",
+    databaseName: "fullstack",
 
     options: {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-     
+      // Opções removidas: useNewUrlParser e useUnifiedTopology não são mais suportadas
+      // nas versões mais recentes do MongoDB driver
     }
   },
 

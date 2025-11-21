@@ -753,6 +753,7 @@ export default function ChallengeModal({
               {"\n"}• Teste seu código com diferentes casos
               {"\n"}• Tempo mínimo: 10 minutos
             </Description>
+
           </LeftPanel>
 
           <RightPanel $isDark={isDark}>

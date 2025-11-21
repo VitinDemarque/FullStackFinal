@@ -19,17 +19,20 @@ export const Modal = styled.div`
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   box-shadow: ${({ theme }) => theme.shadows['2xl']};
   width: 100%;
-  max-width: 1000px;
-  max-height: 90vh;
-  overflow-y: auto;
+  max-width: 1400px;
+  max-height: 95vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 `;
 
 export const Header = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.5rem;
+  padding: 1rem 1.5rem;
   border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  flex-shrink: 0;
 `;
 
 export const Title = styled.h2`
@@ -54,28 +57,51 @@ export const CloseButton = styled.button`
 `;
 
 export const Form = styled.form`
-  padding: 1.5rem;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  position: relative;
 `;
 
 export const ContentGrid = styled.div`
   display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  gap: 1rem;
-  padding: 1.5rem;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  padding: 1.25rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1rem;
   }
 `;
 
+export const FormContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+`;
+
 export const FieldGroup = styled.div`
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
 `;
 
 export const Row = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 0.75rem;
   
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     grid-template-columns: 1fr;
@@ -84,47 +110,72 @@ export const Row = styled.div`
 
 export const Label = styled.label`
   display: block;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 0.8rem;
+  font-weight: 600;
   color: ${({ theme }) => theme.colors.gray[700]};
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
+  letter-spacing: 0.01em;
 `;
 
 export const Input = styled.input`
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
-  border-radius: ${({ theme }) => theme.borderRadius.md};
+  padding: 0.5rem 0.75rem;
+  border: 1.5px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: 6px;
   font-size: 0.875rem;
-  transition: ${({ theme }) => theme.transitions.base};
+  transition: all 0.2s ease;
+  background: ${({ theme }) => theme.colors.white};
+  color: ${({ theme }) => theme.colors.gray[900]};
   
   &:focus {
     outline: none;
     border-color: ${({ theme }) => theme.colors.blue[500]};
     box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.blue[100]};
+    background: ${({ theme }) => theme.colors.white};
+  }
+  
+  &:hover:not(:disabled) {
+    border-color: ${({ theme }) => theme.colors.gray[400]};
   }
   
   &:disabled {
     background: ${({ theme }) => theme.colors.gray[100]};
     cursor: not-allowed;
+    opacity: 0.6;
+  }
+  
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.gray[400]};
   }
 `;
 
 export const TextArea = styled.textarea`
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
-  border-radius: ${({ theme }) => theme.borderRadius.md};
+  padding: 0.5rem 0.75rem;
+  border: 1.5px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: 6px;
   font-size: 0.875rem;
   font-family: inherit;
   resize: vertical;
-  min-height: 80px;
-  transition: ${({ theme }) => theme.transitions.base};
+  min-height: 60px;
+  line-height: 1.5;
+  transition: all 0.2s ease;
+  background: ${({ theme }) => theme.colors.white};
+  color: ${({ theme }) => theme.colors.gray[900]};
   
   &:focus {
     outline: none;
     border-color: ${({ theme }) => theme.colors.blue[500]};
     box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.blue[100]};
+    background: ${({ theme }) => theme.colors.white};
+  }
+  
+  &:hover:not(:disabled) {
+    border-color: ${({ theme }) => theme.colors.gray[400]};
+  }
+  
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.gray[400]};
   }
 `;
 
@@ -152,7 +203,8 @@ export const EditorPanel = styled.div`
   border: 1px solid ${({ theme }) => theme.colors.gray[800]};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   box-shadow: ${({ theme }) => theme.shadows.md};
-  min-height: 360px;
+  min-height: 400px;
+  max-height: 600px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -187,18 +239,87 @@ export const CodeEditor = styled.textarea`
 
 export const Select = styled.select`
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
-  border-radius: ${({ theme }) => theme.borderRadius.md};
+  padding: 0.5rem 0.75rem;
+  border: 1.5px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: 6px;
   font-size: 0.875rem;
   background: ${({ theme }) => theme.colors.white};
+  color: ${({ theme }) => theme.colors.gray[900]};
   cursor: pointer;
-  transition: ${({ theme }) => theme.transitions.base};
+  transition: all 0.2s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none'%3E%3Cpath d='M3.5 5.25L7 8.75L10.5 5.25' stroke='%234a5568' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2.75rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   
   &:focus {
     outline: none;
     border-color: ${({ theme }) => theme.colors.blue[500]};
-    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.blue[100]};
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.blue[100]}, 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: ${({ theme }) => theme.colors.white};
+  }
+  
+  &:hover:not(:disabled) {
+    border-color: ${({ theme }) => theme.colors.gray[400]};
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  &:active:not(:disabled) {
+    border-color: ${({ theme }) => theme.colors.blue[500]};
+  }
+  
+  &:disabled {
+    background-color: ${({ theme }) => theme.colors.gray[100]};
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  
+  /* Estilização das opções no dropdown */
+  option {
+    padding: 0.75rem 1rem;
+    background: ${({ theme }) => theme.colors.white};
+    color: ${({ theme }) => theme.colors.gray[900]};
+    font-size: 0.875rem;
+    line-height: 1.6;
+    min-height: 2.75rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    
+    /* Opção selecionada */
+    &:checked {
+      background: linear-gradient(135deg, ${({ theme }) => theme.colors.blue[50]}, ${({ theme }) => theme.colors.blue[100]}) !important;
+      color: ${({ theme }) => theme.colors.blue[900]} !important;
+      font-weight: 600;
+    }
+    
+    /* Opção desabilitada */
+    &:disabled {
+      background: ${({ theme }) => theme.colors.gray[50]};
+      color: ${({ theme }) => theme.colors.gray[400]};
+      cursor: not-allowed;
+      font-style: italic;
+    }
+  }
+  
+  /* Estilização para o primeiro option (placeholder) */
+  option[value=""] {
+    color: ${({ theme }) => theme.colors.gray[400]};
+    font-style: italic;
+    font-weight: 400;
+  }
+  
+  /* Melhorar a aparência quando o select está aberto */
+  &[open],
+  &:focus {
+    option {
+      &:hover {
+        background: ${({ theme }) => theme.colors.blue[50]} !important;
+        color: ${({ theme }) => theme.colors.blue[700]} !important;
+      }
+    }
   }
 `;
 
@@ -209,9 +330,15 @@ export const CheckboxGroup = styled.div`
 `;
 
 export const Checkbox = styled.input`
-  width: 1rem;
-  height: 1rem;
+  width: 1.125rem;
+  height: 1.125rem;
   cursor: pointer;
+  accent-color: ${({ theme }) => theme.colors.blue[500]};
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: scale(1.05);
+  }
 `;
 
 export const CheckboxLabel = styled.label`
@@ -223,54 +350,76 @@ export const CheckboxLabel = styled.label`
 
 export const ButtonGroup = styled.div`
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   justify-content: flex-end;
-  margin-top: 2rem;
-  padding-top: 1.5rem;
+  margin-top: auto;
+  padding-top: 1.25rem;
   border-top: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  flex-shrink: 0;
+  width: 100%;
   
   @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
     flex-direction: column;
+    width: 100%;
+    
+    button {
+      width: 100%;
+    }
   }
 `;
 
 export const CancelButton = styled.button`
-  padding: 0.75rem 1.5rem;
-  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
-  border-radius: ${({ theme }) => theme.borderRadius.md};
+  padding: 0.625rem 1.25rem;
+  border: 1.5px solid ${({ theme }) => theme.colors.gray[300]};
+  border-radius: 6px;
   background: ${({ theme }) => theme.colors.white};
   color: ${({ theme }) => theme.colors.gray[700]};
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: ${({ theme }) => theme.transitions.base};
+  transition: all 0.2s ease;
+  white-space: nowrap;
   
   &:hover {
     background: ${({ theme }) => theme.colors.gray[50]};
     border-color: ${({ theme }) => theme.colors.gray[400]};
+    transform: translateY(-1px);
+  }
+  
+  &:active {
+    transform: translateY(0);
   }
 `;
 
 export const SubmitButton = styled.button`
-  padding: 0.75rem 1.5rem;
+  padding: 0.625rem 1.25rem;
   border: none;
-  border-radius: ${({ theme }) => theme.borderRadius.md};
+  border-radius: 6px;
   background: ${({ theme }) => theme.colors.blue[500]};
   color: ${({ theme }) => theme.colors.white};
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: ${({ theme }) => theme.transitions.base};
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   
   &:hover:not(:disabled) {
     background: ${({ theme }) => theme.colors.blue[600]};
     transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   }
   
   &:disabled {
     background: ${({ theme }) => theme.colors.gray[400]};
     cursor: not-allowed;
     transform: none;
+    opacity: 0.6;
   }
 `;
 

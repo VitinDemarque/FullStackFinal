@@ -2,9 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@contexts/AuthContext";
 import { useTheme } from "@contexts/ThemeContext";
-import { FaCode, FaTrophy, FaFire, FaStar, FaPlus, FaUsers, FaComments, FaCheckCircle } from "react-icons/fa";
+import { FaCode, FaTrophy, FaFire, FaStar, FaPlus, FaUsers, FaComments, FaCheckCircle, FaChartLine } from "react-icons/fa";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
 import ChallengeModal from "@components/ChallengeModal";
+import RankingModal from "@components/RankingModal";
 import {
   exercisesService,
   statsService,
@@ -36,6 +37,7 @@ export default function DashboardPage() {
   const isDark = theme === "dark";
   const navigate = useNavigate();
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+  const [rankingExercise, setRankingExercise] = useState<Exercise | null>(null);
 
   const { data, loading, error, refetch } = useFetch<DashboardData>(
     async () => {
@@ -171,6 +173,13 @@ export default function DashboardPage() {
           onClose={() => setSelectedExercise(null)}
           onSubmit={handleSubmitChallenge}
           onTest={handleTestChallenge}
+        />
+      )}
+      {rankingExercise && (
+        <RankingModal
+          exerciseId={rankingExercise.id}
+          exerciseTitle={rankingExercise.title}
+          onClose={() => setRankingExercise(null)}
         />
       )}
       <S.DashboardPage $isDark={isDark}>
@@ -336,22 +345,31 @@ export default function DashboardPage() {
                         </S.CardDescription>
                       </S.CardBody>
                       <S.CardFooter>
-                        {exercise.isCompleted ? (
-                          <S.CompletedButton disabled>
-                            <FaCheckCircle />
-                            Concluído
-                          </S.CompletedButton>
-                        ) : (
-                          <S.StartButton
-                            onClick={() => {
-                              if (!exercise.isCompleted) {
-                                setSelectedExercise(exercise);
-                              }
-                            }}
+                        <S.FooterButtons>
+                          {exercise.isCompleted ? (
+                            <S.CompletedButton disabled>
+                              <FaCheckCircle />
+                              Concluído
+                            </S.CompletedButton>
+                          ) : (
+                            <S.StartButton
+                              onClick={() => {
+                                if (!exercise.isCompleted) {
+                                  setSelectedExercise(exercise);
+                                }
+                              }}
+                            >
+                              Iniciar Desafio
+                            </S.StartButton>
+                          )}
+                          <S.RankingButton
+                            onClick={() => setRankingExercise(exercise)}
+                            title="Ver Ranking"
                           >
-                            Iniciar Desafio
-                          </S.StartButton>
-                        )}
+                            <FaChartLine />
+                            Ranking
+                          </S.RankingButton>
+                        </S.FooterButtons>
                       </S.CardFooter>
                     </S.ExerciseCard>
                   );

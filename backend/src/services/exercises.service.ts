@@ -1,5 +1,5 @@
 import { FilterQuery, Types } from 'mongoose';
-import { ForbiddenError, NotFoundError } from '../utils/httpErrors';
+import { ForbiddenError, NotFoundError, BadRequestError } from '../utils/httpErrors';
 
 // Models
 import Exercise from '../models/Exercise.model';
@@ -155,7 +155,7 @@ export async function getById(id: string, requestUserId?: string) {
 
 export async function create(userId: string, payload: Partial<any>) {
   // Verifica papel do usuário para restringir campos de admin
-  const requester = await User.findById(userId).lean();
+  const requester = await User.findById(userId).lean() as any;
   const isAdmin = requester?.role === 'ADMIN';
 
   if (payload.languageId) {
@@ -220,6 +220,12 @@ export async function create(userId: string, payload: Partial<any>) {
     exerciseData.languageId = new Types.ObjectId(payload.languageId);
   }
 
+  // Validar testes se fornecidos
+  if (payload.tests !== undefined) {
+    validateTestsStructure(payload.tests);
+    exerciseData.tests = payload.tests;
+  }
+
   const doc = await Exercise.create(exerciseData);
 
   await UserStat.updateOne(
@@ -237,7 +243,7 @@ export async function update(userId: string, id: string, payload: Partial<any>) 
   if (String(ex.authorUserId) !== userId) throw new ForbiddenError('Only author can update');
 
   // Verifica papel do usuário para restringir campos de admin
-  const requester = await User.findById(userId).lean();
+  const requester = await User.findById(userId).lean() as any;
   const isAdmin = requester?.role === 'ADMIN';
 
   // Permite atualizar ou remover languageId
@@ -258,6 +264,12 @@ export async function update(userId: string, id: string, payload: Partial<any>) 
   if (payload.baseXp !== undefined) ex.baseXp = Number(payload.baseXp);
   if (payload.codeTemplate !== undefined) ex.codeTemplate = String(payload.codeTemplate);
   if (payload.status !== undefined) ex.status = payload.status;
+  
+  // Validar testes se fornecidos
+  if (payload.tests !== undefined) {
+    validateTestsStructure(payload.tests);
+    ex.tests = payload.tests;
+  }
   
   // Validação de isPublic e groupId
   if (payload.isPublic !== undefined) {
@@ -348,7 +360,7 @@ export async function remove(userId: string, id: string) {
 
   // Decrement the user's exercisesCreatedCount so deleted challenges are not counted
   try {
-    const stat = await UserStat.findOne({ userId: new Types.ObjectId(userId) }).lean();
+    const stat = await UserStat.findOne({ userId: new Types.ObjectId(userId) }).lean() as any;
     const current = stat?.exercisesCreatedCount ?? 0;
     const next = Math.max(0, current - 1);
     await UserStat.updateOne(
@@ -367,6 +379,17 @@ export async function publish(userId: string, id: string) {
   const ex = await Exercise.findById(id);
   if (!ex) throw new NotFoundError('Exercise not found');
   if (String(ex.authorUserId) !== userId) throw new ForbiddenError('Only author can publish');
+  
+  // Validar que tem pelo menos 2 testes válidos antes de publicar
+  if (!ex.tests || ex.tests.length < 2) {
+    throw new BadRequestError('Exercício deve ter pelo menos 2 testes para ser publicado');
+  }
+  
+  const invalidTests = ex.tests.filter((test: any) => !test.expectedOutput || test.expectedOutput.trim().length === 0);
+  if (invalidTests.length > 0) {
+    throw new BadRequestError('Todos os testes devem ter uma saída esperada (expectedOutput) configurada');
+  }
+  
   ex.status = 'PUBLISHED';
   await ex.save();
   
@@ -472,6 +495,7 @@ function sanitize(e: any, isCompleted?: boolean) {
     highScoreWinnerScore: typeof e.highScoreWinnerScore === 'number' ? e.highScoreWinnerScore : null,
     highScoreWinnerTime: typeof e.highScoreWinnerTime === 'number' ? e.highScoreWinnerTime : null,
     highScoreAwardedAt: e.highScoreAwardedAt || null,
+    tests: e.tests || [],
     isCompleted: isCompleted ?? false,
     createdAt: e.createdAt,
     updatedAt: e.updatedAt
@@ -525,6 +549,50 @@ export async function getByPublicCode(publicCode: string, requestUserId?: string
   }
 
   return result;
+}
+
+/**
+ * Valida a estrutura dos testes
+ * 
+ * @param tests - Array de testes a validar
+ * @throws BadRequestError se a estrutura for inválida
+ */
+function validateTestsStructure(tests: any[]): void {
+  if (!Array.isArray(tests)) {
+    throw new BadRequestError('Testes devem ser um array');
+  }
+
+  // Validar que tem pelo menos 2 testes
+  if (tests.length < 2) {
+    throw new BadRequestError('Exercício deve ter pelo menos 2 testes');
+  }
+
+  // Validar cada teste
+  for (let i = 0; i < tests.length; i++) {
+    const test = tests[i];
+    
+    if (!test || typeof test !== 'object') {
+      throw new BadRequestError(`Teste ${i + 1} deve ser um objeto`);
+    }
+
+    // expectedOutput é obrigatório
+    if (!test.expectedOutput || typeof test.expectedOutput !== 'string' || test.expectedOutput.trim().length === 0) {
+      throw new BadRequestError(`Teste ${i + 1} deve ter uma saída esperada (expectedOutput) configurada`);
+    }
+
+    // Validar tamanhos máximos
+    if (test.input && test.input.length > 10000) {
+      throw new BadRequestError(`Teste ${i + 1}: entrada (input) excede o limite de 10000 caracteres`);
+    }
+
+    if (test.expectedOutput.length > 10000) {
+      throw new BadRequestError(`Teste ${i + 1}: saída esperada (expectedOutput) excede o limite de 10000 caracteres`);
+    }
+
+    if (test.description && test.description.length > 500) {
+      throw new BadRequestError(`Teste ${i + 1}: descrição excede o limite de 500 caracteres`);
+    }
+  }
 }
 
 async function ensurePublicCodeAndSanitize(e: any) {

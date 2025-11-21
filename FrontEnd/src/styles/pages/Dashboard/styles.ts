@@ -307,12 +307,17 @@ export const ProgressText = styled.p`
 
 export const RecommendationsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1.5rem;
-  align-items: stretch;
 
   @media (max-width: ${theme.breakpoints.tablet}) {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+
+  @media (max-width: ${theme.breakpoints.mobile}) {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
 `
 
@@ -329,7 +334,7 @@ export const ExerciseCard = styled.div<{ $isDark?: boolean; $isCompleted?: boole
       : ($isDark ? '#334155' : theme.colors.gray[200])};
   display: flex;
   flex-direction: column;
-  height: 100%;
+  min-height: 280px;
   position: relative;
 
   ${({ $isCompleted }) => $isCompleted && `
@@ -337,9 +342,17 @@ export const ExerciseCard = styled.div<{ $isDark?: boolean; $isCompleted?: boole
   `}
 
   &:hover {
-    transform: translateY(-5px);
+    transform: translateY(-4px);
     box-shadow: ${({ $isDark }) =>
     $isDark ? '0 8px 25px rgba(0, 0, 0, 0.7)' : '0 8px 25px rgba(0, 0, 0, 0.12)'};
+  }
+
+  @media (max-width: ${theme.breakpoints.tablet}) {
+    min-height: 260px;
+  }
+
+  @media (max-width: ${theme.breakpoints.mobile}) {
+    min-height: 240px;
   }
 `
 
@@ -378,9 +391,8 @@ export const CardHeader = styled.div<{ $isDark?: boolean }>`
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  padding: 1rem 1.5rem;
-  padding-top: 1.5rem;
-  min-height: 3rem;
+  padding: 1.25rem 1.5rem;
+  min-height: 3.5rem;
   background: ${({ $isDark }) => ($isDark ? '#0f172a' : theme.colors.gray[50])};
   border-bottom: 1px solid ${({ $isDark }) => ($isDark ? '#334155' : theme.colors.gray[200])};
   transition: background 0.3s ease, border-color 0.3s ease;
@@ -388,15 +400,13 @@ export const CardHeader = styled.div<{ $isDark?: boolean }>`
   border-radius: ${theme.borderRadius.lg} ${theme.borderRadius.lg} 0 0;
   
   @media (max-width: ${theme.breakpoints.tablet}) {
-    padding-top: 1.25rem;
-    min-height: 2.75rem;
-    padding: 0.75rem 1.25rem;
+    padding: 1rem 1.25rem;
+    min-height: 3rem;
   }
   
   @media (max-width: ${theme.breakpoints.mobile}) {
-    padding-top: 1rem;
-    min-height: 2.5rem;
-    padding: 0.5rem 1rem;
+    padding: 0.875rem 1rem;
+    min-height: 2.75rem;
   }
 `
 
@@ -514,27 +524,58 @@ export const CardBody = styled.div`
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-height: 120px;
+
+  @media (max-width: ${theme.breakpoints.tablet}) {
+    padding: 1.25rem;
+    min-height: 100px;
+  }
+
+  @media (max-width: ${theme.breakpoints.mobile}) {
+    padding: 1rem;
+    min-height: 90px;
+  }
 `
 
 export const CardTitle = styled.h3<{ $isDark?: boolean }>`
-  font-size: ${theme.fontSizes.lg};
-  font-weight: ${theme.fontWeights.semibold};
+  font-size: ${theme.fontSizes.xl};
+  font-weight: ${theme.fontWeights.bold};
   color: ${({ $isDark }) => ($isDark ? '#f1f5f9' : theme.colors.gray[900])};
   margin-bottom: 0.75rem;
   transition: color 0.3s ease;
+  line-height: 1.3;
+
+  @media (max-width: ${theme.breakpoints.tablet}) {
+    font-size: ${theme.fontSizes.lg};
+    margin-bottom: 0.5rem;
+  }
+
+  @media (max-width: ${theme.breakpoints.mobile}) {
+    font-size: ${theme.fontSizes.base};
+  }
 `
 
 export const CardDescription = styled.p<{ $isDark?: boolean }>`
-  font-size: ${theme.fontSizes.sm};
+  font-size: ${theme.fontSizes.base};
   color: ${({ $isDark }) => ($isDark ? '#94a3b8' : theme.colors.gray[600])};
   line-height: 1.6;
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   transition: color 0.3s ease;
+  flex: 1;
+
+  @media (max-width: ${theme.breakpoints.tablet}) {
+    font-size: ${theme.fontSizes.sm};
+    -webkit-line-clamp: 2;
+  }
+
+  @media (max-width: ${theme.breakpoints.mobile}) {
+    -webkit-line-clamp: 2;
+  }
 `
 
 export const CardLanguage = styled.p`
@@ -551,17 +592,37 @@ export const CardLanguage = styled.p`
 
 export const CardFooter = styled.div`
   display: flex;
-  gap: 0.75rem;
+  flex-direction: column;
+  gap: 0.5rem;
   padding: 0 1.5rem 1.5rem;
-  margin-top: auto;
+
+  @media (max-width: ${theme.breakpoints.tablet}) {
+    padding: 0 1.25rem 1.25rem;
+  }
+
+  @media (max-width: ${theme.breakpoints.mobile}) {
+    padding: 0 1rem 1rem;
+  }
+`
+
+export const FooterButtons = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+
+  @media (max-width: ${theme.breakpoints.mobile}) {
+    flex-direction: column;
+    gap: 0.4rem;
+  }
 `
 
 export const StartButton = styled.button`
   flex: 1;
-  padding: 0.75rem;
+  padding: 0.6rem 1rem;
   border: none;
   border-radius: ${theme.borderRadius.sm};
   font-weight: ${theme.fontWeights.semibold};
+  font-size: ${theme.fontSizes.sm};
   cursor: pointer;
   transition: ${theme.transitions.base};
   background: ${theme.gradients.primary};
@@ -569,20 +630,81 @@ export const StartButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
+  white-space: nowrap;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  svg {
+    font-size: 0.875rem;
+  }
+
+  @media (max-width: ${theme.breakpoints.tablet}) {
+    padding: 0.55rem 0.9rem;
+    font-size: 0.8rem;
+  }
+
+  @media (max-width: ${theme.breakpoints.mobile}) {
+    width: 100%;
+    padding: 0.6rem 1rem;
+  }
+`
+
+export const RankingButton = styled.button`
+  flex: 1;
+  padding: 0.6rem 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: ${theme.borderRadius.sm};
+  font-weight: ${theme.fontWeights.semibold};
+  font-size: ${theme.fontSizes.sm};
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: ${theme.transitions.base};
+  white-space: nowrap;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  svg {
+    font-size: 0.875rem;
+  }
+
+  @media (max-width: ${theme.breakpoints.tablet}) {
+    padding: 0.55rem 0.9rem;
+    font-size: 0.8rem;
+  }
+
+  @media (max-width: ${theme.breakpoints.mobile}) {
+    width: 100%;
+    padding: 0.6rem 1rem;
   }
 `
 
 export const CompletedButton = styled.button`
   flex: 1;
-  padding: 0.75rem;
+  padding: 0.6rem 1rem;
   border: none;
   border-radius: ${theme.borderRadius.sm};
   font-weight: ${theme.fontWeights.semibold};
+  font-size: ${theme.fontSizes.sm};
   cursor: not-allowed;
   transition: ${theme.transitions.base};
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
@@ -590,11 +712,22 @@ export const CompletedButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   opacity: 0.9;
+  white-space: nowrap;
 
   svg {
-    font-size: 1rem;
+    font-size: 0.875rem;
+  }
+
+  @media (max-width: ${theme.breakpoints.tablet}) {
+    padding: 0.55rem 0.9rem;
+    font-size: 0.8rem;
+  }
+
+  @media (max-width: ${theme.breakpoints.mobile}) {
+    width: 100%;
+    padding: 0.6rem 1rem;
   }
 `
 
