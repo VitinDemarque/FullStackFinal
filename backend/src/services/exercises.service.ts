@@ -80,7 +80,7 @@ export async function list(input: Partial<ListExercisesInput>) {
 
   const itemsSanitized = await Promise.all(
     items.map(async (item) => {
-      const sanitized = await ensurePublicCodeAndSanitize(item);
+      const sanitized = await ensurePublicCodeAndSanitize(item, requestUserId);
       if (requestUserId) {
         const completed = await checkIfCompleted(sanitized.id, requestUserId);
         return { ...sanitized, isCompleted: completed };
@@ -105,7 +105,7 @@ export async function listByAuthor(authorId: string, skip = 0, limit = 20) {
 
   const itemsSanitized = await Promise.all(
     items.map(async (item) => {
-      const sanitized = await ensurePublicCodeAndSanitize(item);
+      const sanitized = await ensurePublicCodeAndSanitize(item, authorId);
       const completed = await checkIfCompleted(sanitized.id, authorId);
       return { ...sanitized, isCompleted: completed };
     })
@@ -123,10 +123,10 @@ export async function getById(id: string, requestUserId?: string) {
 
   let result: any;
   if (ex.isPublic && ex.status === 'PUBLISHED') {
-    result = await ensurePublicCodeAndSanitize(ex);
+    result = await ensurePublicCodeAndSanitize(ex, requestUserId);
   } else if (requestUserId) {
     if (String(ex.authorUserId) === requestUserId) {
-      result = sanitize(ex);
+      result = sanitize(ex, undefined, requestUserId);
     } else if (ex.groupId) {
       const isMember = await GroupMember.findOne({
           groupId: ex.groupId,
@@ -134,7 +134,7 @@ export async function getById(id: string, requestUserId?: string) {
       }).lean();
 
       if (isMember && ex.status === 'PUBLISHED') {
-          result = await ensurePublicCodeAndSanitize(ex);
+          result = await ensurePublicCodeAndSanitize(ex, requestUserId);
       } else {
         throw new NotFoundError('Exercise not found');
       }
@@ -241,7 +241,7 @@ export async function create(userId: string, payload: Partial<any>) {
     { upsert: true }
   );
 
-  return sanitize(doc);
+  return sanitize(doc, undefined, userId);
 }
 
 export async function update(userId: string, id: string, payload: Partial<any>) {
@@ -340,7 +340,7 @@ export async function update(userId: string, id: string, payload: Partial<any>) 
   
   // Popula languageId antes de retornar
   const populated = await Exercise.findById(ex._id).populate('languageId', 'name slug').lean();
-  return sanitize(populated || ex.toObject());
+  return sanitize(populated || ex.toObject(), undefined, userId);
 }
 
 export async function remove(userId: string, id: string) {
@@ -410,7 +410,7 @@ export async function publish(userId: string, id: string) {
   
   // Popula languageId antes de retornar
   const populated = await Exercise.findById(ex._id).populate('languageId', 'name slug').lean();
-  return sanitize(populated || ex.toObject());
+  return sanitize(populated || ex.toObject(), undefined, userId);
 }
 
 export async function unpublish(userId: string, id: string) {
@@ -422,7 +422,7 @@ export async function unpublish(userId: string, id: string) {
   
   // Popula languageId antes de retornar
   const populated = await Exercise.findById(ex._id).populate('languageId', 'name slug').lean();
-  return sanitize(populated || ex.toObject());
+  return sanitize(populated || ex.toObject(), undefined, userId);
 }
 
 export async function setVisibility(userId: string, id: string, isPublic: boolean) {
@@ -439,7 +439,7 @@ export async function setVisibility(userId: string, id: string, isPublic: boolea
   
   // Popula languageId antes de retornar
   const populated = await Exercise.findById(ex._id).populate('languageId', 'name slug').lean();
-  return sanitize(populated || ex.toObject());
+  return sanitize(populated || ex.toObject(), undefined, userId);
 }
 
 export async function listCommunity(input: Partial<ListCommunityExercisesInput>) {
@@ -462,7 +462,7 @@ export async function listCommunity(input: Partial<ListCommunityExercisesInput>)
     Exercise.countDocuments(where)
   ]);
 
-  const itemsSanitized = await Promise.all(items.map(ensurePublicCodeAndSanitize));
+  const itemsSanitized = await Promise.all(items.map(item => ensurePublicCodeAndSanitize(item, requestUserId)));
 
   return {
     items: itemsSanitized,
@@ -480,7 +480,9 @@ async function checkIfCompleted(exerciseId: string, userId?: string): Promise<bo
   return !!completed;
 }
 
-function sanitize(e: any, isCompleted?: boolean) {
+function sanitize(e: any, isCompleted?: boolean, requestUserId?: string) {
+  const isAuthor = requestUserId && String(e.authorUserId) === String(requestUserId);
+  
   return {
     id: String(e._id),
     authorUserId: String(e.authorUserId),
@@ -510,7 +512,8 @@ function sanitize(e: any, isCompleted?: boolean) {
     highScoreWinnerScore: typeof e.highScoreWinnerScore === 'number' ? e.highScoreWinnerScore : null,
     highScoreWinnerTime: typeof e.highScoreWinnerTime === 'number' ? e.highScoreWinnerTime : null,
     highScoreAwardedAt: e.highScoreAwardedAt || null,
-    tests: e.tests || [],
+    // Só retorna os testes se o usuário for o autor do exercício
+    tests: isAuthor ? (e.tests || []) : [],
     isCompleted: isCompleted ?? false,
     createdAt: e.createdAt,
     updatedAt: e.updatedAt
@@ -536,10 +539,10 @@ export async function getByPublicCode(publicCode: string, requestUserId?: string
 
   let result: any;
   if (ex.isPublic && ex.status === 'PUBLISHED') {
-    result = sanitize(ex);
+    result = sanitize(ex, undefined, requestUserId);
   } else if (requestUserId) {
     if (String(ex.authorUserId) === requestUserId) {
-      result = sanitize(ex);
+      result = sanitize(ex, undefined, requestUserId);
     } else if (ex.groupId) {
       const isMember = await GroupMember.findOne({
           groupId: ex.groupId,
@@ -547,7 +550,7 @@ export async function getByPublicCode(publicCode: string, requestUserId?: string
       }).lean();
 
       if (isMember && ex.status === 'PUBLISHED') {
-          result = sanitize(ex);
+          result = sanitize(ex, undefined, requestUserId);
       } else {
         throw new NotFoundError('Exercise not found');
       }
@@ -610,11 +613,11 @@ function validateTestsStructure(tests: any[]): void {
   }
 }
 
-async function ensurePublicCodeAndSanitize(e: any) {
+async function ensurePublicCodeAndSanitize(e: any, requestUserId?: string) {
   if (!e.publicCode) {
     const code = await generatePublicCode();
     await Exercise.updateOne({ _id: e._id }, { $set: { publicCode: code } });
     e.publicCode = code;
   }
-  return sanitize(e, false);
+  return sanitize(e, false, requestUserId);
 }

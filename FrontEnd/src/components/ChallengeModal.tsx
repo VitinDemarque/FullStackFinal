@@ -623,7 +623,13 @@ export default function ChallengeModal({
   const { theme } = useTheme();
   const isDark = theme === "dark";
   
-  const defaultCode = exercise.codeTemplate || "// Escreva seu código aqui\n";
+  // Template básico para quem está resolvendo o desafio
+  // Não usa o codeTemplate completo para evitar mostrar a solução
+  const getDefaultTemplate = () => {
+    return "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        \n        // Escreva seu código aqui\n        \n        scanner.close();\n    }\n}";
+  };
+  
+  const defaultCode = getDefaultTemplate();
   const [code, setCode] = useState(defaultCode);
   const [timeSpent, setTimeSpent] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
