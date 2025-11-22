@@ -24,7 +24,7 @@ export default function ForunsPage() {
   const [topicCounts, setTopicCounts] = useState<Record<string, number>>({})
   const [exerciseStatuses, setExerciseStatuses] = useState<Record<string, 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | null>>({})
   const [mostrarFiltro, setMostrarFiltro] = useState(false)
-  const [filtroStatus, setFiltroStatus] = useState<'todos' | 'ativos' | 'inativos'>('todos')
+  const [filtroStatus, setFiltroStatus] = useState<'todos' | 'ativos' | 'inativos'>('ativos')
   const navigate = useNavigate()
 
   const carregarForuns = async () => {

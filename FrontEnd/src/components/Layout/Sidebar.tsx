@@ -11,6 +11,7 @@ import {
 } from "react-icons/fa";
 import { useAuth } from "@contexts/AuthContext";
 import { resolvePublicUrl } from "@/services/api";
+import { deriveLevelFromXp } from "@utils/levels";
 import * as S from "@/styles/components/Sidebar/styles";
 
 export default function Sidebar() {
@@ -53,7 +54,9 @@ export default function Sidebar() {
         </S.UserAvatar>
         <S.UserDetails>
           <S.UserName>{user?.name || "Usuário"}</S.UserName>
-          <S.UserLevel>Level {user?.level || 1}</S.UserLevel>
+          <S.UserLevel>
+            Nível {deriveLevelFromXp(Number(user?.xpTotal ?? 0))}
+          </S.UserLevel>
         </S.UserDetails>
       </S.UserInfo>
 

@@ -43,6 +43,7 @@ export const ProfileHeader = styled.div`
   padding: 2rem;
   color: white;
   box-shadow: ${theme.shadows.primary};
+  position: relative;
 
   @media (max-width: ${theme.breakpoints.tablet}) {
     padding: 1.5rem 1rem;
@@ -977,6 +978,34 @@ export const EditButton = styled.button`
   @media (max-width: ${theme.breakpoints.tablet}) {
     position: static;
     margin-bottom: 2rem;
+  }
+`
+
+export const BackCircleButton = styled.button`
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  width: 40px;
+  height: 40px;
+  border-radius: ${theme.borderRadius.full};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: ${theme.transitions.base};
+  z-index: 2;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+  }
+
+  @media (max-width: ${theme.breakpoints.tablet}) {
+    width: 36px;
+    height: 36px;
   }
 `
 
