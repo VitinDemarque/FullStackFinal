@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { FaTimes, FaClock, FaCode, FaCheckCircle, FaPlayCircle } from "react-icons/fa";
+import { FaTimes, FaClock, FaCode, FaCheckCircle, FaPlayCircle, FaChevronDown, FaChevronUp } from "react-icons/fa";
 import styled from "styled-components";
 import { useTheme } from "@contexts/ThemeContext";
 import attemptsService from "@services/attempts.service";
+import ConfirmationModal from "@components/ConfirmationModal";
 
 const Overlay = styled.div<{ $isDark: boolean }>`
   position: fixed;
@@ -346,7 +347,9 @@ const ButtonGroup = styled.div`
   }
 `;
 
-const Button = styled.button<{ variant?: "primary" | "secondary" | "outline" }>`
+const Button = styled.button.withConfig({
+  shouldForwardProp: (prop) => prop !== 'variant'
+})<{ $variant?: "primary" | "secondary" | "outline" }>`
   padding: 0.75rem 2rem;
   border-radius: 50px;
   font-size: 1rem;
@@ -358,8 +361,8 @@ const Button = styled.button<{ variant?: "primary" | "secondary" | "outline" }>`
   gap: 0.5rem;
   border: none;
 
-  ${({ variant }) => {
-    switch (variant) {
+  ${({ $variant }) => {
+    switch ($variant) {
       case "primary":
         return `
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -402,15 +405,17 @@ const Button = styled.button<{ variant?: "primary" | "secondary" | "outline" }>`
   }
 `;
 
-const TestOutputContainer = styled.div<{ $isDark: boolean }>`
+const TestOutputContainer = styled.div<{ $isDark: boolean; $isMinimized: boolean }>`
   background: ${({ $isDark }) => ($isDark ? "#0f172a" : "#111827")};
   border-top: 1px solid ${({ $isDark }) => ($isDark ? "#1e293b" : "#1f2937")};
-  padding: 1.5rem;
+  padding: ${({ $isMinimized }) => ($isMinimized ? "0.75rem 1.5rem" : "1.5rem")};
   color: ${({ $isDark }) => ($isDark ? "#cbd5e1" : "#e2e8f0")};
-  min-height: 150px;
+  min-height: ${({ $isMinimized }) => ($isMinimized ? "auto" : "150px")};
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  transition: all 0.3s ease;
+  overflow: hidden;
 `;
 
 const TestOutputHeader = styled.div`
@@ -418,7 +423,64 @@ const TestOutputHeader = styled.div`
   font-size: 0.95rem;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+  
+  &:hover {
+    opacity: 0.9;
+  }
+`;
+
+const MinimizeButton = styled.button<{ $isDark: boolean }>`
+  background: transparent;
+  border: none;
+  color: ${({ $isDark }) => ($isDark ? "#cbd5e1" : "#e2e8f0")};
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: ${({ $isDark }) => ($isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)")};
+  }
+  
+  svg {
+    font-size: 0.85rem;
+  }
+`;
+
+const TestOutputContentWrapper = styled.div<{ $isMinimized: boolean }>`
+  display: ${({ $isMinimized }) => ($isMinimized ? "none" : "flex")};
+  flex-direction: column;
+  gap: 0.75rem;
+  animation: ${({ $isMinimized }) => ($isMinimized ? "fadeOut" : "fadeIn")} 0.3s ease;
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes fadeOut {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+  }
 `;
 
 const TestOutputContent = styled.pre<{ $isDark: boolean }>`
@@ -445,6 +507,60 @@ const TestOutputError = styled.div`
   font-size: 0.85rem;
   color: #f87171;
   font-weight: 500;
+`;
+
+const TestInputContainer = styled.div<{ $isDark: boolean }>`
+  padding: 0.75rem 0;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid ${({ $isDark }) => ($isDark ? "#1e293b" : "#1f2937")};
+`;
+
+const TestInputLabel = styled.label<{ $isDark: boolean }>`
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: ${({ $isDark }) => ($isDark ? "#cbd5e1" : "#4a5568")};
+  margin-bottom: 0.4rem;
+  
+  span {
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: ${({ $isDark }) => ($isDark ? "#94a3b8" : "#718096")};
+    margin-left: 0.25rem;
+  }
+`;
+
+const TestInputField = styled.textarea<{ $isDark: boolean }>`
+  width: 100%;
+  padding: 0.6rem;
+  background: ${({ $isDark }) => ($isDark ? "#1e293b" : "#ffffff")};
+  border: 1.5px solid ${({ $isDark }) => ($isDark ? "#334155" : "#e2e8f0")};
+  border-radius: 6px;
+  color: ${({ $isDark }) => ($isDark ? "#e2e8f0" : "#1a202c")};
+  font-size: 0.85rem;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+  resize: vertical;
+  min-height: 45px;
+  max-height: 80px;
+  line-height: 1.4;
+  transition: all 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px ${({ $isDark }) => ($isDark ? "rgba(102, 126, 234, 0.1)" : "rgba(102, 126, 234, 0.1)")};
+  }
+
+  &::placeholder {
+    color: ${({ $isDark }) => ($isDark ? "#64748b" : "#a0aec0")};
+  }
+`;
+
+const TestInputHint = styled.div<{ $isDark: boolean }>`
+  font-size: 0.7rem;
+  color: ${({ $isDark }) => ($isDark ? "#94a3b8" : "#718096")};
+  margin-top: 0.4rem;
+  line-height: 1.3;
 `;
 
 const CompletedOverlay = styled.div<{ $isDark: boolean }>`
@@ -495,7 +611,7 @@ interface ChallengeModalProps {
   };
   onClose: () => void;
   onSubmit: (code: string, timeSpent: number) => void;
-  onTest: (code: string) => Promise<string>;
+  onTest: (code: string, input?: string) => Promise<string>;
 }
 
 export default function ChallengeModal({
@@ -515,7 +631,10 @@ export default function ChallengeModal({
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
   const [testError, setTestError] = useState<string | null>(null);
+  const [testInput, setTestInput] = useState<string>('');
+  const [isTestOutputMinimized, setIsTestOutputMinimized] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [isLoadingAttempt, setIsLoadingAttempt] = useState(true);
   const latestStateRef = useRef({ code: defaultCode, timeSpent: 0 });
@@ -593,7 +712,7 @@ export default function ChallengeModal({
     });
   };
 
-  const handleSubmit = async () => {
+  const handleSubmitClick = () => {
     // Bloquear submissão se o desafio já foi concluído
     if (exercise.isCompleted) {
       alert('Este desafio já foi concluído. Não é possível refazê-lo.');
@@ -601,6 +720,12 @@ export default function ChallengeModal({
       return;
     }
 
+    // Mostrar modal de confirmação
+    setShowConfirmModal(true);
+  };
+
+  const handleSubmit = async () => {
+    setShowConfirmModal(false);
     setIsSubmitting(true);
     try {
       await onSubmit(code, timeSpent);
@@ -624,8 +749,12 @@ export default function ChallengeModal({
 
     setIsTesting(true);
     setTestError(null);
+    setTestResult(null);
+    setIsTestOutputMinimized(false); // Expande automaticamente ao testar
     try {
-      const result = await onTest(code);
+      // Passa a entrada de teste se fornecida
+      const inputToUse = testInput.trim() || undefined;
+      const result = await onTest(code, inputToUse);
       setTestResult(result);
     } catch (error) {
       setTestResult(null);
@@ -785,27 +914,59 @@ export default function ChallengeModal({
                 />
               )}
             </EditorContainer>
-            <TestOutputContainer $isDark={isDark}>
-              <TestOutputHeader>
-                <FaPlayCircle />
-                Resultado do Teste
+            <TestOutputContainer $isDark={isDark} $isMinimized={isTestOutputMinimized}>
+              <TestOutputHeader onClick={() => setIsTestOutputMinimized(!isTestOutputMinimized)}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <FaPlayCircle />
+                  Resultado do Teste
+                </div>
+                <MinimizeButton
+                  $isDark={isDark}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsTestOutputMinimized(!isTestOutputMinimized);
+                  }}
+                  title={isTestOutputMinimized ? "Expandir" : "Minimizar"}
+                >
+                  {isTestOutputMinimized ? <FaChevronUp /> : <FaChevronDown />}
+                </MinimizeButton>
               </TestOutputHeader>
-              {isTesting && (
-                <TestOutputPlaceholder>
-                  Executando seu código...
-                </TestOutputPlaceholder>
-              )}
-              {!isTesting && testResult && (
-                <TestOutputContent $isDark={isDark}>
-                  {testResult}
-                </TestOutputContent>
-              )}
-              {!isTesting && !testResult && !testError && (
-                <TestOutputPlaceholder>
-                  Execute um teste para visualizar a saída do seu código.
-                </TestOutputPlaceholder>
-              )}
-              {testError && <TestOutputError>{testError}</TestOutputError>}
+              <TestOutputContentWrapper $isMinimized={isTestOutputMinimized}>
+                {!exercise.isCompleted && (
+                  <TestInputContainer $isDark={isDark}>
+                    <TestInputLabel $isDark={isDark}>
+                      Entrada para Teste (stdin) <span>Opcional</span>
+                    </TestInputLabel>
+                    <TestInputField
+                      $isDark={isDark}
+                      value={testInput}
+                      onChange={(e) => setTestInput(e.target.value)}
+                      placeholder="Ex: 17 (para testar com número 17) ou deixe vazio"
+                      rows={2}
+                    />
+                    <TestInputHint $isDark={isDark}>
+                      💡 Se seu código usa Scanner/input(), digite a entrada aqui. Ex: "17" para testar com o número 17
+                    </TestInputHint>
+                  </TestInputContainer>
+                )}
+                {isTesting && (
+                  <TestOutputPlaceholder>
+                    Executando seu código...
+                  </TestOutputPlaceholder>
+                )}
+                {!isTesting && testResult && (
+                  <TestOutputContent $isDark={isDark}>
+                    {testResult}
+                  </TestOutputContent>
+                )}
+                {!isTesting && !testResult && !testError && (
+                  <TestOutputPlaceholder>
+                    Execute um teste para visualizar a saída do seu código.
+                  </TestOutputPlaceholder>
+                )}
+                {testError && <TestOutputError>{testError}</TestOutputError>}
+              </TestOutputContentWrapper>
             </TestOutputContainer>
           </RightPanel>
         </Content>
@@ -824,20 +985,20 @@ export default function ChallengeModal({
             </small>
           </FooterInfo>
           <ButtonGroup>
-            <Button variant="secondary" onClick={onClose}>
+            <Button $variant="secondary" onClick={onClose}>
               {exercise.isCompleted ? "Fechar" : "Cancelar"}
             </Button>
             {!exercise.isCompleted && (
               <>
                 <Button
-                  variant="secondary"
+                  $variant="secondary"
                   onClick={handleSaveAndExit}
                   disabled={isSavingDraft}
                 >
                   {isSavingDraft ? "Salvando..." : "Salvar e sair"}
                 </Button>
                 <Button
-                  variant="outline"
+                  $variant="outline"
                   onClick={handleTest}
                   disabled={isTesting}
                 >
@@ -845,8 +1006,8 @@ export default function ChallengeModal({
                   {isTesting ? "Testando..." : "Testar Código"}
                 </Button>
                 <Button
-                  variant="primary"
-                  onClick={handleSubmit}
+                  $variant="primary"
+                  onClick={handleSubmitClick}
                   disabled={isSubmitting}
                 >
                   <FaCheckCircle />
@@ -857,6 +1018,17 @@ export default function ChallengeModal({
           </ButtonGroup>
         </Footer>
       </ModalContainer>
+
+      <ConfirmationModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleSubmit}
+        title="Confirmar Submissão"
+        message={`Tem certeza que deseja submeter sua solução?\n\nApós a submissão, seu código será avaliado e você não poderá mais editá-lo para este desafio.\n\nTempo decorrido: ${formatTime(timeSpent)}`}
+        confirmText="Sim, Submeter"
+        cancelText="Cancelar"
+        type="warning"
+      />
     </Overlay>
   );
 }

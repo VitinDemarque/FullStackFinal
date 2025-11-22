@@ -89,9 +89,9 @@ export default function DashboardPage() {
 
   const JAVA_LANGUAGE_ID = 62;
 
-  const handleTestChallenge = async (code: string) => {
+  const handleTestChallenge = async (code: string, input?: string) => {
     try {
-      const compileResult = await judge0Service.executeCode(code, JAVA_LANGUAGE_ID);
+      const compileResult = await judge0Service.executeCode(code, JAVA_LANGUAGE_ID, input);
 
       if (!compileResult.sucesso) {
         throw new Error(compileResult.resultado || 'Erro na execução do código');
@@ -118,24 +118,27 @@ export default function DashboardPage() {
     }
 
     try {
-      const compileResult = await judge0Service.executeCode(code, JAVA_LANGUAGE_ID);
-
-      if (!compileResult.sucesso) {
-        alert(`Erro na compilação:\n\n${compileResult.resultado}`);
-        return;
-      }
-
-      const score = 100;
       const timeSpentMs = timeSpent * 1000;
       
+      // O backend valida os testes automaticamente ao criar a submissão
       const submission = await submissionsService.create({
         exerciseId: selectedExercise.id,
         code: code,
-        score: score,
         timeSpentMs: timeSpentMs,
       });
 
-      alert(`Código compilado e submetido com sucesso!\n\nResultado:\n${compileResult.resultado}\n\nScore: ${score}%`);
+      const finalScore = submission.finalScore ?? submission.testScore ?? submission.score ?? 0;
+      const scoreMessage = `Score Final: ${finalScore.toFixed(1)}%`;
+      
+      const statusMessage = submission.status === "ACCEPTED" 
+        ? "✅ Aceito! Parabéns!" 
+        : "❌ Rejeitado. Revise seu código e tente novamente.";
+
+      const testsMessage = submission.totalTests 
+        ? `\nTestes passados: ${submission.passedTests || 0}/${submission.totalTests}`
+        : '';
+
+      alert(`${statusMessage}\n\n${scoreMessage}${testsMessage}`);
 
       if (submission.status === "ACCEPTED") {
         await attemptsService.deleteAttempt(selectedExercise.id).catch(() => {});
@@ -152,7 +155,11 @@ export default function DashboardPage() {
       }
       
       // Se o erro for sobre desafio já concluído, fechar o modal e recarregar
-      const errorMessage = error?.message || error?.error?.message || 'Erro desconhecido';
+      const errorMessage = error?.response?.data?.error?.message 
+        || error?.message 
+        || error?.error?.message 
+        || 'Erro desconhecido';
+      
       if (errorMessage.includes('já foi concluído') || errorMessage.includes('não é possível refazê-lo')) {
         alert(errorMessage);
         setSelectedExercise(null);

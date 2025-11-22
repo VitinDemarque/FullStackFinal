@@ -13,6 +13,10 @@ export type Submission = {
   score: number;
   timeSpentMs?: number;
   xpAwarded?: number;
+  testScore?: number;
+  finalScore?: number;
+  passedTests?: number;
+  totalTests?: number;
   createdAt: string;
 };
 

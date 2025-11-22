@@ -379,7 +379,6 @@ export interface CreateExerciseData {
   subject: string;
   description: string;
   difficulty?: number;
-  baseXp: number;
   codeTemplate: string;
   isPublic: boolean;
   languageId?: string;
@@ -399,7 +398,6 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit, codeTem
     subject: '',
     description: '',
     difficulty: undefined,
-    baseXp: 100,
     codeTemplate: codeTemplate || '// start coding...',
     isPublic: true,
     languageId: undefined,
@@ -407,6 +405,19 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit, codeTem
     highScoreBadgeId: undefined,
     tests: [],
   });
+
+  // Função para calcular XP baseado na dificuldade
+  const getBaseXpByDifficulty = (difficulty?: number): number => {
+    if (!difficulty) return 0;
+    const xpMap: Record<number, number> = {
+      1: 50,   // Fácil
+      2: 100,  // Médio
+      3: 200,  // Difícil
+      4: 350,  // Expert
+      5: 500,  // Master
+    };
+    return xpMap[difficulty] || 0;
+  };
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
   const [badges, setBadges] = useState<Badge[]>([]);
@@ -416,6 +427,7 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit, codeTem
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
   const [testError, setTestError] = useState<string | null>(null);
+  const [testInput, setTestInput] = useState<string>('');
   const [languages, setLanguages] = useState<Language[]>([]);
   const [loadingLanguages, setLoadingLanguages] = useState(false);
   
@@ -478,7 +490,7 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit, codeTem
         subject: formData.subject,
         description: formData.description,
         difficulty: formData.difficulty,
-        baseXp: formData.baseXp,
+        // baseXp será calculado automaticamente no backend baseado na dificuldade
         codeTemplate: formData.codeTemplate,
         isPublic: formData.isPublic,
         languageId: formData.languageId,
@@ -503,7 +515,7 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit, codeTem
       subject: '',
       description: '',
       difficulty: undefined,
-      baseXp: 100,
+      // baseXp será calculado automaticamente no backend
       codeTemplate: codeTemplate || '// start coding...',
       isPublic: true,
       languageId: undefined,
@@ -514,6 +526,7 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit, codeTem
     setFormError('');
     setTestResult(null);
     setTestError(null);
+    setTestInput('');
     onClose();
   };
 
@@ -558,12 +571,37 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit, codeTem
       return;
     }
 
+    // Mapeamento de slug de linguagem para ID do Judge0
+    const LANGUAGE_JUDGE0_MAP: Record<string, number> = {
+      'java': 62,
+      'python': 71,
+      'javascript': 63,
+      'c': 50,
+      'cpp': 54,
+    };
+
+    // Determina o ID do Judge0 baseado na linguagem selecionada
+    let judge0LanguageId = JAVA_LANGUAGE_ID; // padrão: Java
+    if (formData.languageId) {
+      const selectedLanguage = languages.find(l => l.id === formData.languageId);
+      if (selectedLanguage) {
+        const slug = selectedLanguage.slug?.toLowerCase() || selectedLanguage.name?.toLowerCase();
+        judge0LanguageId = LANGUAGE_JUDGE0_MAP[slug || ''] || JAVA_LANGUAGE_ID;
+      }
+    }
+
     setIsTesting(true);
     setTestError(null);
     setTestResult(null);
     
     try {
-      const compileResult = await judge0Service.executeCode(formData.codeTemplate, JAVA_LANGUAGE_ID);
+      // Usa a entrada de teste se fornecida, senão passa undefined
+      const inputToUse = testInput.trim() || undefined;
+      const compileResult = await judge0Service.executeCode(
+        formData.codeTemplate, 
+        judge0LanguageId,
+        inputToUse
+      );
       
       if (!compileResult.sucesso) {
         throw new Error(compileResult.resultado || 'Erro na execução do código');
@@ -747,24 +785,34 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit, codeTem
                 required
               >
                 <option value="">Selecione</option>
-                <option value={1}>Fácil</option>
-                <option value={2}>Médio</option>
-                <option value={3}>Intermediário</option>
-                <option value={4}>Difícil</option>
-                <option value={5}>Profissional</option>
+                <option value={1}>Fácil (50 XP)</option>
+                <option value={2}>Médio (100 XP)</option>
+                <option value={3}>Difícil (200 XP)</option>
+                <option value={4}>Expert (350 XP)</option>
+                <option value={5}>Master (500 XP)</option>
               </S.Select>
             </S.FieldGroup>
 
             <S.FieldGroup>
-              <S.Label htmlFor="baseXp">XP Base *</S.Label>
+              <S.Label>XP Base (Automático)</S.Label>
               <S.Input
-                id="baseXp"
-                type="number"
-                min="0"
-                value={formData.baseXp}
-                onChange={(e) => handleInputChange('baseXp', parseInt(e.target.value))}
-                required
+                type="text"
+                value={formData.difficulty ? `${getBaseXpByDifficulty(formData.difficulty)} XP` : 'Selecione a dificuldade'}
+                readOnly
+                style={{ 
+                  backgroundColor: isDark ? '#1e293b' : '#f1f5f9',
+                  cursor: 'not-allowed',
+                  color: isDark ? '#94a3b8' : '#64748b'
+                }}
               />
+              <small style={{ 
+                color: isDark ? '#94a3b8' : '#64748b',
+                fontSize: '0.75rem',
+                marginTop: '0.25rem',
+                display: 'block'
+              }}>
+                O XP é calculado automaticamente baseado na dificuldade
+              </small>
             </S.FieldGroup>
           </S.Row>
 
@@ -922,6 +970,26 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit, codeTem
               {isTesting ? 'Testando...' : 'Testar Código'}
             </TestButton>
           </EditorHeaderStyled>
+          <div style={{ 
+            padding: '0.75rem 1rem', 
+            borderBottom: `1px solid ${isDark ? '#1e293b' : '#e2e8f0'}`,
+            background: isDark ? '#0f172a' : '#f8fafc'
+          }}>
+            <TestLabel style={{ marginBottom: '0.5rem', display: 'block' }}>
+              Entrada para Teste (stdin) <span style={{ fontSize: '0.7rem', fontWeight: 400, color: 'var(--color-text-secondary)' }}>Opcional</span>
+            </TestLabel>
+            <TestTextarea
+              $isDark={isDark}
+              value={testInput}
+              onChange={(e) => setTestInput(e.target.value)}
+              placeholder="Ex: 17 (para testar com número 17) ou deixe vazio"
+              rows={2}
+              style={{ width: '100%', marginBottom: 0 }}
+            />
+            <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)', marginTop: '0.25rem' }}>
+              💡 Se seu código usa Scanner, digite a entrada aqui. Ex: "17" para testar com o número 17
+            </div>
+          </div>
           <EditorContainerStyled $isDark={isDark}>
             <LineNumbers $isDark={isDark}>
               {Array.from({ length: lineCount }, (_, i) => (

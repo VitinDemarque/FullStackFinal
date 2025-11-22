@@ -197,14 +197,21 @@ export async function create(userId: string, payload: Partial<any>) {
     ? Number(payload.highScoreThreshold)
     : undefined;
 
+  // Importar função para calcular XP baseado na dificuldade
+  const { getBaseXpByDifficulty } = await import('../utils/xpByDifficulty');
+  
+  const difficulty = Number(payload.difficulty ?? 1);
+  // XP é calculado automaticamente baseado na dificuldade (não permite escolha manual)
+  const baseXp = getBaseXpByDifficulty(difficulty);
+
   const exerciseData: any = {
     authorUserId: new Types.ObjectId(userId),
     groupId: exerciseGroupId,
     title: payload.title ?? 'Untitled',
     subject: payload.subject ?? '',
     description: payload.description ?? '',
-    difficulty: Number(payload.difficulty ?? 1),
-    baseXp: Number(payload.baseXp ?? 100),
+    difficulty: difficulty,
+    baseXp: baseXp, // Calculado automaticamente
     isPublic: exerciseIsPublic,
     codeTemplate: String(payload.codeTemplate ?? '// start coding...'),
     publicCode: await generatePublicCode(),
@@ -257,11 +264,19 @@ export async function update(userId: string, id: string, payload: Partial<any>) 
     }
   }
 
+  // Importar função para calcular XP baseado na dificuldade
+  const { getBaseXpByDifficulty } = await import('../utils/xpByDifficulty');
+
   if (payload.title !== undefined) ex.title = payload.title;
   if (payload.subject !== undefined) ex.subject = payload.subject;
   if (payload.description !== undefined) ex.description = payload.description;
-  if (payload.difficulty !== undefined) ex.difficulty = Number(payload.difficulty);
-  if (payload.baseXp !== undefined) ex.baseXp = Number(payload.baseXp);
+  if (payload.difficulty !== undefined) {
+    const newDifficulty = Number(payload.difficulty);
+    ex.difficulty = newDifficulty;
+    // Recalcular XP automaticamente quando a dificuldade mudar
+    ex.baseXp = getBaseXpByDifficulty(newDifficulty);
+  }
+  // baseXp não pode mais ser definido manualmente - é calculado automaticamente
   if (payload.codeTemplate !== undefined) ex.codeTemplate = String(payload.codeTemplate);
   if (payload.status !== undefined) ex.status = payload.status;
   

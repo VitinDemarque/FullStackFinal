@@ -1,4 +1,5 @@
 import * as S from '../styles/components/ConfirmationModal/styles';
+import { useTheme } from '@contexts/ThemeContext';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -21,6 +22,9 @@ export default function ConfirmationModal({
   cancelText = 'Cancelar',
   type = 'info'
 }: ConfirmationModalProps) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   if (!isOpen) return null;
 
   const handleConfirm = () => {
@@ -30,25 +34,25 @@ export default function ConfirmationModal({
 
   return (
     <S.Overlay onClick={onClose}>
-      <S.Modal onClick={(e) => e.stopPropagation()}>
-        <S.Header>
-          <S.Icon type={type}>
+      <S.Modal $isDark={isDark} onClick={(e) => e.stopPropagation()}>
+        <S.Header $isDark={isDark}>
+          <S.Icon $type={type}>
             {type === 'danger' && '⚠️'}
             {type === 'warning' && '⚠️'}
             {type === 'info' && 'ℹ️'}
           </S.Icon>
-          <S.Title>{title}</S.Title>
+          <S.Title $isDark={isDark}>{title}</S.Title>
         </S.Header>
 
-        <S.Content>
-          <S.Message>{message}</S.Message>
+        <S.Content $isDark={isDark}>
+          <S.Message $isDark={isDark}>{message}</S.Message>
         </S.Content>
 
-        <S.Footer>
-          <S.CancelButton onClick={onClose}>
+        <S.Footer $isDark={isDark}>
+          <S.CancelButton $isDark={isDark} onClick={onClose}>
             {cancelText}
           </S.CancelButton>
-          <S.ConfirmButton onClick={handleConfirm} type={type}>
+          <S.ConfirmButton onClick={handleConfirm} $type={type}>
             {confirmText}
           </S.ConfirmButton>
         </S.Footer>

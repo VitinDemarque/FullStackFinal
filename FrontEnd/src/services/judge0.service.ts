@@ -3,6 +3,7 @@ import { apiRequest } from './api'
 export interface ExecuteCodeRequest {
   sourceCode: string
   languageId: number
+  input?: string
 }
 
 export interface ExecuteCodeResponse {
@@ -11,13 +12,14 @@ export interface ExecuteCodeResponse {
 }
 
 const judge0Service = {
-  async executeCode(sourceCode: string, languageId: number): Promise<ExecuteCodeResponse> {
+  async executeCode(sourceCode: string, languageId: number, input?: string): Promise<ExecuteCodeResponse> {
     return apiRequest<ExecuteCodeResponse>(
       'POST',
       '/execute',
       {
         sourceCode,
         languageId,
+        ...(input !== undefined && input !== null ? { input } : {}),
       } as ExecuteCodeRequest
     )
   },
