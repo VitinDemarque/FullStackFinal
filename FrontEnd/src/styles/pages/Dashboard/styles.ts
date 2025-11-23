@@ -478,10 +478,17 @@ export const DifficultyBadge = styled.span.withConfig({
   }};
 `
 
-export const LanguageBadge = styled.span`
+export const LanguageBadge = styled.span.withConfig({
+  shouldForwardProp: (prop) => prop !== '$center'
+})<{ $center?: boolean }>`
   position: absolute;
   top: 0.75rem;
-  right: 6rem;
+  ${props => props.$center ? `
+    left: 50%;
+    transform: translateX(-50%);
+  ` : `
+    right: 6rem;
+  `}
   padding: 0.35rem 0.85rem;
   border-radius: ${theme.borderRadius.full};
   font-size: ${theme.fontSizes.xs};
@@ -494,14 +501,24 @@ export const LanguageBadge = styled.span`
   
   @media (max-width: ${theme.breakpoints.tablet}) {
     top: 0.5rem;
-    right: 5rem;
+    ${props => props.$center ? `
+      left: 50%;
+      transform: translateX(-50%);
+    ` : `
+      right: 5rem;
+    `}
     padding: 0.3rem 0.75rem;
     font-size: 0.65rem;
   }
   
   @media (max-width: ${theme.breakpoints.mobile}) {
     top: 0.5rem;
-    right: 4.5rem;
+    ${props => props.$center ? `
+      left: 50%;
+      transform: translateX(-50%);
+    ` : `
+      right: 4.5rem;
+    `}
     padding: 0.25rem 0.65rem;
     font-size: 0.6rem;
   }

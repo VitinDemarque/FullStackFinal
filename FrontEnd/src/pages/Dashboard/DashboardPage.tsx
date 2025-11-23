@@ -557,9 +557,10 @@ export default function DashboardPage() {
                       </S.DifficultyBadge>
                       {exercise.language && (
                         <S.LanguageBadge
+                          $center
                           as={motion.div}
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.3, delay: 0.2 + index * 0.1 }}
                         >
                           {exercise.language.name}
