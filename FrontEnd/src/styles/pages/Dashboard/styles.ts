@@ -214,9 +214,10 @@ export const ProgressCard = styled.div<ProgressCardProps>`
   }
 
   svg {
-    font-size: 3rem;
+    width: 3rem;
+    height: 3rem;
     color: white;
-    padding: 1rem;
+    padding: 0.75rem;
     border-radius: ${theme.borderRadius.md};
     background: ${(props) => {
     switch (props.$variant) {
@@ -230,6 +231,7 @@ export const ProgressCard = styled.div<ProgressCardProps>`
         return theme.gradients.primary
     }
   }};
+    flex-shrink: 0;
   }
 `
 

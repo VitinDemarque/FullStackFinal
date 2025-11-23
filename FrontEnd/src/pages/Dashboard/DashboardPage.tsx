@@ -1,8 +1,25 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@contexts/AuthContext";
 import { useTheme } from "@contexts/ThemeContext";
-import { FaCode, FaTrophy, FaFire, FaStar, FaPlus, FaUsers, FaComments, FaCheckCircle, FaChartLine } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Code, 
+  Trophy, 
+  Flame, 
+  Star, 
+  Plus, 
+  Users, 
+  MessageSquare, 
+  CheckCircle2, 
+  TrendingUp,
+  Sparkles,
+  BookOpen,
+  Target,
+  Languages,
+  BookMarked,
+  GraduationCap
+} from "lucide-react";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
 import ChallengeModal from "@components/ChallengeModal";
 import RankingModal from "@components/RankingModal";
@@ -88,6 +105,74 @@ export default function DashboardPage() {
   const currentLevel = deriveLevelFromXp(currentXpTotal);
 
   const JAVA_LANGUAGE_ID = 62;
+
+  // Componente para animar números
+  const AnimatedNumber: React.FC<{ value: number; decimals?: number }> = ({ value, decimals = 0 }) => {
+    const [displayValue, setDisplayValue] = useState(0);
+
+    useEffect(() => {
+      const duration = 1000;
+      const steps = 60;
+      const increment = value / steps;
+      let current = 0;
+      let step = 0;
+
+      const timer = setInterval(() => {
+        step++;
+        current = Math.min(value, increment * step);
+        setDisplayValue(current);
+
+        if (step >= steps) {
+          clearInterval(timer);
+          setDisplayValue(value);
+        }
+      }, duration / steps);
+
+      return () => clearInterval(timer);
+    }, [value]);
+
+    return <>{displayValue.toFixed(decimals)}</>;
+  };
+
+  // Variantes de animação
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        duration: 0.5
+      }
+    }
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, scale: 0.9 },
+    visible: { 
+      opacity: 1, 
+      scale: 1,
+      transition: {
+        duration: 0.3
+      }
+    },
+    hover: {
+      scale: 1.05,
+      y: -4,
+      transition: {
+        duration: 0.2
+      }
+    }
+  };
 
   const handleTestChallenge = async (code: string, input?: string) => {
     try {
@@ -191,86 +276,190 @@ export default function DashboardPage() {
       )}
       <S.DashboardPage $isDark={isDark}>
         <S.DashboardContainer>
-          {error && (
-            <S.ErrorAlert>
-              <strong>Erro ao carregar dados:</strong> {error.message}
-              <button onClick={refetch}>Tentar novamente</button>
-            </S.ErrorAlert>
-          )}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <S.ErrorAlert>
+                  <strong>Erro ao carregar dados:</strong> {error.message}
+                  <button onClick={refetch}>Tentar novamente</button>
+                </S.ErrorAlert>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          <S.HeroSection>
+          <S.HeroSection
+            as={motion.section}
+            initial={{ opacity: 0, y: -30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
             <S.HeroContent>
-              <S.HeroTitle>
+              <S.HeroTitle
+                as={motion.h1}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
                 <S.Bracket>{"{"}</S.Bracket>
                 Hello World!
                 <S.Bracket>{"}"}</S.Bracket>
               </S.HeroTitle>
-              <S.HeroDescription>
+              <S.HeroDescription
+                as={motion.p}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+              >
                 Bem-vindo de volta, <strong>{user?.name}</strong>! Continue sua
                 jornada de aprendizado e conquiste novos desafios. Você está
                 indo muito bem!
               </S.HeroDescription>
-              <S.ActionButton onClick={() => navigate("/desafios")}>
-                <FaPlus />
-                Criar Desafio
-              </S.ActionButton>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <S.ActionButton onClick={() => navigate("/desafios")}>
+                  <Plus size={20} />
+                  Criar Desafio
+                </S.ActionButton>
+              </motion.div>
             </S.HeroContent>
-            <S.HeroStats>
-              <S.StatCard $variant="trophy">
-                <FaTrophy />
+            <S.HeroStats
+              as={motion.div}
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <S.StatCard 
+                $variant="trophy"
+                as={motion.div}
+                variants={itemVariants}
+                whileHover={{ scale: 1.05, y: -4 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Trophy size={32} />
                 <div>
-                  <S.StatValue>Level {currentLevel}</S.StatValue>
+                  <S.StatValue>
+                    Level <AnimatedNumber value={currentLevel} />
+                  </S.StatValue>
                   <S.StatLabel>Seu Nível</S.StatLabel>
                 </div>
               </S.StatCard>
-              <S.StatCard $variant="star">
-                <FaStar />
+              <S.StatCard 
+                $variant="star"
+                as={motion.div}
+                variants={itemVariants}
+                whileHover={{ scale: 1.05, y: -4 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Star size={32} />
                 <div>
-                  <S.StatValue>{currentXpTotal} XP</S.StatValue>
+                  <S.StatValue>
+                    <AnimatedNumber value={currentXpTotal} /> XP
+                  </S.StatValue>
                   <S.StatLabel>Experiência</S.StatLabel>
                 </div>
               </S.StatCard>
             </S.HeroStats>
           </S.HeroSection>
 
-          <S.Section>
-            <S.SectionTitle $isDark={isDark}>
-              <FaFire />
+          <S.Section
+            as={motion.section}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+          >
+            <S.SectionTitle $isDark={isDark} as={motion.h2}>
+              <Flame size={24} />
               Em Andamento
             </S.SectionTitle>
-            <S.ProgressGrid>
-              <S.ProgressCard $variant="purple">
-                <FaCode />
+            <S.ProgressGrid
+              as={motion.div}
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <S.ProgressCard 
+                $variant="purple"
+                as={motion.div}
+                variants={cardVariants}
+                whileHover="hover"
+              >
+                <Languages size={40} />
                 <S.ProgressInfo>
-                  <h3>{loading ? "..." : stats.languages}</h3>
+                  <h3>
+                    {loading ? (
+                      "..."
+                    ) : (
+                      <AnimatedNumber value={stats.languages} />
+                    )}
+                  </h3>
                   <p>Linguagens</p>
                 </S.ProgressInfo>
               </S.ProgressCard>
-              <S.ProgressCard $variant="blue">
-                <FaTrophy />
+              <S.ProgressCard 
+                $variant="blue"
+                as={motion.div}
+                variants={cardVariants}
+                whileHover="hover"
+              >
+                <Target size={40} />
                 <S.ProgressInfo>
-                  <h3>{loading ? "..." : stats.challenges}</h3>
+                  <h3>
+                    {loading ? (
+                      "..."
+                    ) : (
+                      <AnimatedNumber value={stats.challenges} />
+                    )}
+                  </h3>
                   <p>Desafios Publicados</p>
                 </S.ProgressInfo>
               </S.ProgressCard>
             </S.ProgressGrid>
           </S.Section>
 
-          <S.Section>
-            <S.SectionTitle $isDark={isDark}>
-              <FaUsers />
+          <S.Section
+            as={motion.section}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.7 }}
+          >
+            <S.SectionTitle $isDark={isDark} as={motion.h2}>
+              <Users size={24} />
               Comunidade
             </S.SectionTitle>
-            <S.SectionDescription $isDark={isDark}>
+            <S.SectionDescription 
+              $isDark={isDark}
+              as={motion.p}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.8 }}
+            >
               Participe de grupos de estudo e fóruns de discussão
             </S.SectionDescription>
-            <S.ProgressGrid>
+            <S.ProgressGrid
+              as={motion.div}
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
               <S.ProgressCard 
                 $variant="green" 
                 onClick={() => navigate("/grupos")}
                 style={{ cursor: 'pointer' }}
+                as={motion.div}
+                variants={cardVariants}
+                whileHover="hover"
+                whileTap={{ scale: 0.95 }}
               >
-                <FaUsers />
+                <GraduationCap size={40} />
                 <S.ProgressInfo>
                   <h3>Grupos</h3>
                   <p>Estude em grupo e compartilhe conhecimento</p>
@@ -280,25 +469,51 @@ export default function DashboardPage() {
                 $variant="purple" 
                 onClick={() => navigate("/foruns")}
                 style={{ cursor: 'pointer' }}
+                as={motion.div}
+                variants={cardVariants}
+                whileHover="hover"
+                whileTap={{ scale: 0.95 }}
               >
-                <FaComments />
+                <BookMarked size={40} />
                 <S.ProgressInfo>
-                  <h3>{loading ? "..." : stats.forumsCreated}</h3>
+                  <h3>
+                    {loading ? (
+                      "..."
+                    ) : (
+                      <AnimatedNumber value={stats.forumsCreated} />
+                    )}
+                  </h3>
                   <p>Fóruns Criados</p>
                 </S.ProgressInfo>
               </S.ProgressCard>
             </S.ProgressGrid>
           </S.Section>
 
-          <S.Section>
-            <S.SectionTitle $isDark={isDark}>
-              <FaCode />
+          <S.Section
+            as={motion.section}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.9 }}
+          >
+            <S.SectionTitle $isDark={isDark} as={motion.h2}>
+              <Target size={24} />
               Desafios Publicados
             </S.SectionTitle>
-            <S.SectionDescription $isDark={isDark}>
+            <S.SectionDescription 
+              $isDark={isDark}
+              as={motion.p}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 1.0 }}
+            >
               Todos os desafios disponíveis na plataforma
             </S.SectionDescription>
-            <S.RecommendationsGrid>
+            <S.RecommendationsGrid
+              as={motion.div}
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
               {loading ? (
                 Array.from({ length: 6 }).map((_, index) => (
                   <SkeletonCard key={`skeleton-${index}`}>
@@ -308,7 +523,7 @@ export default function DashboardPage() {
                   </SkeletonCard>
                 ))
               ) : publishedExercises.length > 0 ? (
-                publishedExercises.map((exercise) => {
+                publishedExercises.map((exercise, index) => {
                   const difficultyMap: Record<number, string> = {
                     1: "Fácil",
                     2: "Médio",
@@ -320,26 +535,55 @@ export default function DashboardPage() {
                     difficultyMap[exercise.difficulty] || "Médio";
 
                   return (
-                    <S.ExerciseCard key={exercise.id} $isDark={isDark} $isCompleted={exercise.isCompleted}>
+                    <S.ExerciseCard 
+                      key={exercise.id} 
+                      $isDark={isDark} 
+                      $isCompleted={exercise.isCompleted}
+                      as={motion.div}
+                      variants={cardVariants}
+                      initial="hidden"
+                      animate="visible"
+                      whileHover="hover"
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                    >
                       <S.DifficultyBadge
                         difficulty={difficultyText.toLowerCase() as any}
+                        as={motion.div}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3, delay: 0.1 + index * 0.1 }}
                       >
                         {difficultyText}
                       </S.DifficultyBadge>
                       {exercise.language && (
-                        <S.LanguageBadge>
+                        <S.LanguageBadge
+                          as={motion.div}
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.3, delay: 0.2 + index * 0.1 }}
+                        >
                           {exercise.language.name}
                         </S.LanguageBadge>
                       )}
                       {exercise.isCompleted && (
-                        <S.CompletedBadge>
-                          <FaCheckCircle />
+                        <S.CompletedBadge
+                          as={motion.div}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ duration: 0.3, delay: 0.3 + index * 0.1 }}
+                        >
+                          <CheckCircle2 size={16} />
                           Concluído
                         </S.CompletedBadge>
                       )}
                       <S.CardHeader $isDark={isDark}>
-                        <S.XpBadge>
-                          <FaTrophy /> {exercise.baseXp} XP
+                        <S.XpBadge
+                          as={motion.div}
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3, delay: 0.2 + index * 0.1 }}
+                        >
+                          <Trophy size={16} /> {exercise.baseXp} XP
                         </S.XpBadge>
                       </S.CardHeader>
                       <S.CardBody>
@@ -354,8 +598,13 @@ export default function DashboardPage() {
                       <S.CardFooter>
                         <S.FooterButtons>
                           {exercise.isCompleted ? (
-                            <S.CompletedButton disabled>
-                              <FaCheckCircle />
+                            <S.CompletedButton 
+                              disabled
+                              as={motion.button}
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <CheckCircle2 size={16} />
                               Concluído
                             </S.CompletedButton>
                           ) : (
@@ -365,6 +614,9 @@ export default function DashboardPage() {
                                   setSelectedExercise(exercise);
                                 }
                               }}
+                              as={motion.button}
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
                             >
                               Iniciar Desafio
                             </S.StartButton>
@@ -372,8 +624,11 @@ export default function DashboardPage() {
                           <S.RankingButton
                             onClick={() => setRankingExercise(exercise)}
                             title="Ver Ranking"
+                            as={motion.button}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                           >
-                            <FaChartLine />
+                            <TrendingUp size={16} />
                             Ranking
                           </S.RankingButton>
                         </S.FooterButtons>
