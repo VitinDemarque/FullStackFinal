@@ -40,7 +40,7 @@ export default function GroupRankingPage() {
   }, [groupId, currentPage]);
 
   const getMedalIcon = (position: number) => {
-    if (position === 1) return { icon: "trophy", color: "gold" } as const;
+    if (position === 1) return { icon: "medal", color: "gold" } as const;
     if (position === 2) return { icon: "medal", color: "silver" } as const;
     if (position === 3) return { icon: "medal", color: "bronze" } as const;
     return null;
@@ -147,7 +147,9 @@ export default function GroupRankingPage() {
                         <S.TableCell>
                           {medal ? (
                             <S.MedalIcon color={medal.color as any}>
-                              {medal.icon === 'trophy' ? '🏆' : '🥇'}
+                              {entry.position === 1 && '🥇'}
+                              {entry.position === 2 && '🥈'}
+                              {entry.position === 3 && '🥉'}
                             </S.MedalIcon>
                           ) : (
                             <S.XpBadge $isDark={isDark}>{entry.xpTotal}</S.XpBadge>
