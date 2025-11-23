@@ -8,8 +8,10 @@ const router = Router();
  * Estatísticas agregadas
  * - ExerciseStat (pública)
  * - UserStat (requer auth para dados sensíveis do próprio user)
+ * - PublicStats (pública - estatísticas gerais da plataforma)
  */
 router.get('/exercises', StatsController.listExerciseStats);          // ?exerciseId=...
 router.get('/users/:userId', auth(), StatsController.getUserStats);   // scoreboard do perfil
+router.get('/public', StatsController.getPublicStats);                // estatísticas públicas da plataforma
 
 export default router;

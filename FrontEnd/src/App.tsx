@@ -17,6 +17,7 @@ import ProfileEditPage from "@pages/Profile/ProfileEditPage";
 import SettingsPage from "@pages/Settings/SettingsPage";
 import NotFoundPage from "@pages/NotFound/NotFoundPage";
 import PrivateRoute from "@components/PrivateRoute";
+import ScrollToTop from "@components/ScrollToTop";
 import GroupListPage from "./pages/Groups/GroupListPage";
 import GroupCreatePage from "./pages/Groups/GroupCreatePage";
 import GroupDetailsPage from "./pages/Groups/GroupDetailsPage";
@@ -39,6 +40,7 @@ function App() {
             v7_relativeSplatPath: true,
           }}
         >
+          <ScrollToTop />
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/sobre" element={<AboutPage />} />

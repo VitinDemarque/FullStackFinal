@@ -27,3 +27,12 @@ export async function getUserStats(req: AuthenticatedRequest, res: Response, nex
     return next(err);
   }
 }
+
+export async function getPublicStats(req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await StatsService.getPublicStats();
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+}

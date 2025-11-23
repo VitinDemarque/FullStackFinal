@@ -9,6 +9,8 @@ import ForumTopic from '../models/ForumTopic.model';
 import Group from '../models/Group.model';
 import GroupMember from '../models/GroupMember.model';
 import { ISubmission } from '../models/Submission.model';
+import User from '../models/User.model';
+import Language from '../models/Language.model';
 
 export interface ListExerciseStatsInput {
   exerciseId?: string;
@@ -132,6 +134,25 @@ export async function getUserScoreboard(userId: string) {
     groupsCreated: stats.groupsCreatedCount,
     groupsJoined: stats.groupsJoinedCount,
     loginStreak: stats.loginStreakCurrent
+  };
+}
+
+/** Estatísticas públicas da plataforma */
+export async function getPublicStats() {
+  const [totalUsers, totalExercises, totalLanguages, totalGroups, totalForums] = await Promise.all([
+    User.countDocuments({}),
+    Exercise.countDocuments({ status: 'PUBLISHED', isPublic: true }),
+    Language.countDocuments({}),
+    Group.countDocuments({ visibility: 'PUBLIC' }),
+    Forum.countDocuments({ status: { $ne: 'EXCLUIDO' } })
+  ]);
+
+  return {
+    totalUsers,
+    totalExercises,
+    totalLanguages,
+    totalGroups,
+    totalForums
   };
 }
 

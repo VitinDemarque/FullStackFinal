@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight, Code, Trophy, Users, MessageSquare, TrendingUp } from "lucide-react";
 import styled from "styled-components";
 
 const CarouselSection = styled.section`
@@ -57,13 +58,11 @@ const CarouselWrapper = styled.div`
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
 `;
 
-const CarouselTrack = styled.div<{ $currentSlide: number }>`
+const CarouselTrack = styled(motion.div)<{ $currentSlide: number }>`
   display: flex;
-  transition: transform 0.5s ease-in-out;
-  transform: translateX(-${(props) => props.$currentSlide * 100}%);
 `;
 
-const Slide = styled.div`
+const Slide = styled(motion.div)`
   min-width: 100%;
   display: flex;
   align-items: center;
@@ -100,7 +99,7 @@ const SlideTitle = styled.h3`
   }
 `;
 
-const SlideIcon = styled.div<{ $color: string }>`
+const SlideIcon = styled(motion.div)<{ $color: string }>`
   width: 60px;
   height: 60px;
   border-radius: 16px;
@@ -110,28 +109,8 @@ const SlideIcon = styled.div<{ $color: string }>`
   justify-content: center;
   position: relative;
   box-shadow: 0 10px 20px ${(props) => props.$color}50;
-
-  &::before {
-    content: "";
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 16px;
-    background: ${(props) => props.$color};
-    animation: pulse 2s ease-in-out infinite;
-  }
-
-  @keyframes pulse {
-    0%,
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-    50% {
-      transform: scale(1.15);
-      opacity: 0.7;
-    }
-  }
+  color: white;
+  flex-shrink: 0;
 `;
 
 const SlideDescription = styled.p`
@@ -264,7 +243,7 @@ const CentralShape = styled.div<{ $shape: string }>`
   }
 `;
 
-const NavigationButton = styled.button`
+const NavigationButton = styled(motion.button)`
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
@@ -280,9 +259,9 @@ const NavigationButton = styled.button`
   box-shadow: var(--shadow-md);
   transition: all 0.3s ease;
   z-index: 10;
+  color: var(--color-blue-400);
 
   &:hover {
-    transform: translateY(-50%) scale(1.1);
     box-shadow: var(--shadow-lg);
     background: var(--color-surface-hover);
   }
@@ -292,18 +271,9 @@ const NavigationButton = styled.button`
     cursor: not-allowed;
   }
 
-  svg {
-    font-size: 1.2rem;
-    color: var(--color-blue-400);
-  }
-
   @media (max-width: 768px) {
     width: 40px;
     height: 40px;
-
-    svg {
-      font-size: 1rem;
-    }
   }
 `;
 
@@ -357,6 +327,7 @@ interface Feature {
   features: string[];
   color: string;
   shape: string;
+  icon: React.ComponentType<{ size?: number }>;
 }
 
 const features: Feature[] = [
@@ -373,6 +344,7 @@ const features: Feature[] = [
     ],
     color: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
     shape: "circle",
+    icon: Code,
   },
   {
     id: 2,
@@ -387,6 +359,7 @@ const features: Feature[] = [
     ],
     color: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
     shape: "square",
+    icon: Trophy,
   },
   {
     id: 3,
@@ -401,6 +374,7 @@ const features: Feature[] = [
     ],
     color: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
     shape: "hexagon",
+    icon: Users,
   },
   {
     id: 4,
@@ -415,6 +389,7 @@ const features: Feature[] = [
     ],
     color: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
     shape: "diamond",
+    icon: MessageSquare,
   },
   {
     id: 5,
@@ -429,6 +404,7 @@ const features: Feature[] = [
     ],
     color: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
     shape: "triangle",
+    icon: TrendingUp,
   },
 ];
 
@@ -456,52 +432,138 @@ export default function FeaturesCarousel() {
     return () => clearInterval(interval);
   }, [currentSlide]);
 
+  const slideVariants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? 1000 : -1000,
+      opacity: 0
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1
+    },
+    exit: (direction: number) => ({
+      zIndex: 0,
+      x: direction < 0 ? 1000 : -1000,
+      opacity: 0
+    })
+  };
+
   return (
-    <CarouselSection>
+    <CarouselSection
+      as={motion.section}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+    >
       <Container>
-        <SectionTitle>Explore Nossas Funcionalidades</SectionTitle>
-        <SectionDescription>
+        <SectionTitle
+          as={motion.h2}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          Explore Nossas Funcionalidades
+        </SectionTitle>
+        <SectionDescription
+          as={motion.p}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
           Descubra tudo o que a plataforma oferece para acelerar seu aprendizado
         </SectionDescription>
 
         <CarouselContainer>
           <CarouselWrapper>
-            <CarouselTrack $currentSlide={currentSlide}>
-              {features.map((feature) => (
-                <Slide key={feature.id}>
-                  <SlideContent>
-                    <SlideTitle>
-                      <SlideIcon $color={feature.color} />
-                      {feature.title}
-                    </SlideTitle>
-                    <SlideDescription>{feature.description}</SlideDescription>
-                    <SlideFeatures>
-                      {feature.features.map((item, index) => (
-                        <FeatureItem key={index}>{item}</FeatureItem>
-                      ))}
-                    </SlideFeatures>
-                  </SlideContent>
+            <AnimatePresence mode="wait" custom={currentSlide}>
+              <CarouselTrack
+                key={currentSlide}
+                custom={currentSlide}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{
+                  x: { type: "spring", stiffness: 300, damping: 30 },
+                  opacity: { duration: 0.2 }
+                }}
+                style={{ display: 'flex' }}
+              >
+                {features.map((feature, index) => {
+                  if (index !== currentSlide) return null;
+                  const IconComponent = feature.icon;
+                  return (
+                    <Slide key={feature.id}>
+                      <SlideContent
+                        as={motion.div}
+                        initial={{ opacity: 0, x: -50 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5, delay: 0.2 }}
+                      >
+                        <SlideTitle>
+                          <SlideIcon 
+                            $color={feature.color}
+                            whileHover={{ rotate: 360, scale: 1.1 }}
+                            transition={{ duration: 0.6 }}
+                          >
+                            <IconComponent size={32} />
+                          </SlideIcon>
+                          {feature.title}
+                        </SlideTitle>
+                        <SlideDescription>{feature.description}</SlideDescription>
+                        <SlideFeatures>
+                          {feature.features.map((item, idx) => (
+                            <FeatureItem 
+                              key={idx}
+                              as={motion.li}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ duration: 0.3, delay: 0.3 + idx * 0.1 }}
+                            >
+                              {item}
+                            </FeatureItem>
+                          ))}
+                        </SlideFeatures>
+                      </SlideContent>
 
-                  <SlideImage>
-                    <ImagePlaceholder $color={feature.color}>
-                      <DotsPattern>
-                        {Array.from({ length: 35 }).map((_, index) => (
-                          <AnimatedDot key={index} $delay={index * 0.06} />
-                        ))}
-                      </DotsPattern>
-                      <CentralShape $shape={feature.shape} />
-                    </ImagePlaceholder>
-                  </SlideImage>
-                </Slide>
-              ))}
-            </CarouselTrack>
+                      <SlideImage
+                        as={motion.div}
+                        initial={{ opacity: 0, x: 50 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5, delay: 0.2 }}
+                      >
+                        <ImagePlaceholder $color={feature.color}>
+                          <DotsPattern>
+                            {Array.from({ length: 35 }).map((_, idx) => (
+                              <AnimatedDot key={idx} $delay={idx * 0.06} />
+                            ))}
+                          </DotsPattern>
+                          <CentralShape $shape={feature.shape} />
+                        </ImagePlaceholder>
+                      </SlideImage>
+                    </Slide>
+                  );
+                })}
+              </CarouselTrack>
+            </AnimatePresence>
           </CarouselWrapper>
 
-          <PrevButton onClick={prevSlide} aria-label="Slide anterior">
-            <FaChevronLeft />
+          <PrevButton 
+            onClick={prevSlide} 
+            aria-label="Slide anterior"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <ChevronLeft size={24} />
           </PrevButton>
-          <NextButton onClick={nextSlide} aria-label="Próximo slide">
-            <FaChevronRight />
+          <NextButton 
+            onClick={nextSlide} 
+            aria-label="Próximo slide"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <ChevronRight size={24} />
           </NextButton>
         </CarouselContainer>
 
@@ -512,6 +574,9 @@ export default function FeaturesCarousel() {
               $active={currentSlide === index}
               onClick={() => goToSlide(index)}
               aria-label={`Ir para slide ${index + 1}`}
+              as={motion.button}
+              whileHover={{ scale: 1.2 }}
+              whileTap={{ scale: 0.9 }}
             />
           ))}
         </DotsContainer>

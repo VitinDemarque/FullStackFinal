@@ -122,11 +122,20 @@ export const Avatar = styled.div`
   border: 4px solid var(--color-surface);
   box-shadow: var(--shadow-md);
   transition: border-color 0.3s ease;
+  overflow: hidden;
+  position: relative;
 
   svg {
     color: ${({ theme }) => theme.colors.white};
     font-size: 1.5rem;
   }
+`;
+
+export const AvatarImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 `;
 
 export const TestimonialInfo = styled.div`

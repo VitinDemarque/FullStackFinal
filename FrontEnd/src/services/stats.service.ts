@@ -18,6 +18,14 @@ export interface UserProgress {
   streak: number
 }
 
+export interface PublicStats {
+  totalUsers: number
+  totalExercises: number
+  totalLanguages: number
+  totalGroups: number
+  totalForums: number
+}
+
 export const statsService = {
   async getDashboardStats(userId: string): Promise<DashboardStats> {
     try {
@@ -63,6 +71,21 @@ export const statsService = {
         successRate: 0,
         averageScore: 0,
         streak: 0,
+      }
+    }
+  },
+
+  async getPublicStats(): Promise<PublicStats> {
+    try {
+      const response = await apiRequest<PublicStats>('GET', '/stats/public')
+      return response
+    } catch (error) {
+      return {
+        totalUsers: 0,
+        totalExercises: 0,
+        totalLanguages: 0,
+        totalGroups: 0,
+        totalForums: 0,
       }
     }
   },

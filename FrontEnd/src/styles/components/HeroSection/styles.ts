@@ -113,24 +113,49 @@ export const GoogleButtonAction = styled.button`
   gap: 0.75rem;
   background: var(--color-surface);
   border: 2px solid var(--color-border);
-  padding: 0.75rem 1.5rem;
+  padding: 1rem 2rem;
   border-radius: ${({ theme }) => theme.borderRadius.lg};
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 1rem;
   color: var(--color-text-primary);
   text-decoration: none;
   transition: all 0.3s ease;
   box-shadow: var(--shadow-md);
   width: fit-content;
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+  }
+
+  &:hover::before {
+    left: 100%;
+  }
 
   svg {
-    font-size: 1.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    flex-shrink: 0;
+  }
+
+  span {
+    flex: 1;
   }
 
   &:hover {
     background: var(--color-surface-hover);
     box-shadow: var(--shadow-lg);
     border-color: var(--color-blue-400);
+    transform: translateY(-2px);
   }
 
   &:disabled {
@@ -149,7 +174,22 @@ export const Stats = styled.div`
   }
 `;
 
-export const StatItem = styled.div``;
+export const StatItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 1rem;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  cursor: default;
+
+  .dark & {
+    background: rgba(255, 255, 255, 0.05);
+  }
+`;
 
 export const StatValue = styled.p`
   font-size: 2rem;
