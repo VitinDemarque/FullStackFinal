@@ -245,12 +245,14 @@ const GroupEditPage: React.FC = () => {
   return (
     <AuthenticatedLayout>
     <Container>
-      {notifications.map((notification) => (
+      {notifications.map((notification, index) => (
         <GroupNotification
           key={notification.id}
           variant={notification.variant}
           title={notification.title}
           message={notification.message}
+          duration={3000}
+          offsetY={20 + index * 84}
           onClose={() => removeNotification(notification.id)}
         />
       ))}

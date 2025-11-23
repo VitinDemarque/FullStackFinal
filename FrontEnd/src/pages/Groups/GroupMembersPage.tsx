@@ -224,6 +224,69 @@ const BackButton = styled.button`
   }
 `;
 
+const ConfirmOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
+`;
+
+const ConfirmModal = styled.div`
+  background: var(--color-surface);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.25rem 1.5rem;
+  color: var(--color-text-primary);
+`;
+
+const ConfirmTitle = styled.h2`
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const ConfirmMessage = styled.p`
+  margin: 0 0 1rem 0;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+`;
+
+const ConfirmActions = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+`;
+
+const ConfirmCancelButton = styled.button`
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  cursor: pointer;
+`;
+
+const ConfirmDangerButton = styled.button`
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-red-600);
+  background: var(--color-red-600);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+`;
+
 const GroupMembersPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -235,6 +298,7 @@ const GroupMembersPage: React.FC = () => {
   const [memberNames, setMemberNames] = useState<Record<string, string>>({});
   const [memberAvatars, setMemberAvatars] = useState<Record<string, string | null>>({});
   const { notifications, removeNotification, showError, showSuccess } = useGroupNotification();
+  const [confirmTarget, setConfirmTarget] = useState<{ userId: string; userName: string } | null>(null);
 
   const loadGroup = async () => {
     if (!id) return;
@@ -275,7 +339,7 @@ const GroupMembersPage: React.FC = () => {
                 const user = await userService.getById(uid);
                 return [uid, user.name, user.avatarUrl ?? null] as const;
               } catch {
-                return [uid, `Usuário ${uid}`, null] as const;
+                return [uid, `Usuário`, null] as const;
               }
             }
           })
@@ -337,14 +401,11 @@ const GroupMembersPage: React.FC = () => {
     targetUserName: string
   ) => {
     if (!id || !canManageMembers) return;
-
-    if (!confirm(`Tem certeza que deseja remover ${targetUserName} do grupo?`))
-      return;
-
     setActionLoading(targetUserId);
     try {
       await groupService.removeMember(id, targetUserId);
       showSuccess("Membro removido", "O membro foi removido do grupo com sucesso.");
+      setConfirmTarget(null);
       loadGroup();
     } catch (error: any) {
       showError("Erro ao remover membro", error.message || "Não foi possível remover o membro. Tente novamente.");
@@ -388,12 +449,30 @@ const GroupMembersPage: React.FC = () => {
   return (
     <AuthenticatedLayout>
       <Container>
-        {notifications.map((notification) => (
+        {confirmTarget && (
+          <ConfirmOverlay>
+            <ConfirmModal role="dialog" aria-modal="true">
+              <ConfirmTitle>Remover membro</ConfirmTitle>
+              <ConfirmMessage>
+                Tem certeza que deseja remover {confirmTarget.userName} do grupo? Esta ação não pode ser desfeita.
+              </ConfirmMessage>
+              <ConfirmActions>
+                <ConfirmCancelButton onClick={() => setConfirmTarget(null)}>Cancelar</ConfirmCancelButton>
+                <ConfirmDangerButton onClick={() => handleRemoveMember(confirmTarget.userId, confirmTarget.userName)}>
+                  Remover membro
+                </ConfirmDangerButton>
+              </ConfirmActions>
+            </ConfirmModal>
+          </ConfirmOverlay>
+        )}
+        {notifications.map((notification, index) => (
           <GroupNotification
             key={notification.id}
             variant={notification.variant}
             title={notification.title}
             message={notification.message}
+            duration={3000}
+            offsetY={20 + index * 84}
             onClose={() => removeNotification(notification.id)}
           />
         ))}
@@ -482,12 +561,23 @@ const GroupMembersPage: React.FC = () => {
 
                           <ActionButton
                             variant="danger"
-                            onClick={() =>
-                              handleRemoveMember(
-                                member.userId,
-                                memberNames[member.userId] || `Usuário ${member.userId}`
-                              )
-                            }
+                            onClick={async () => {
+                              let name = memberNames[member.userId];
+                              if (!name || /^Usuário(\s|$)/.test(name)) {
+                                try {
+                                  const profile = await userService.getPublicProfile(member.userId);
+                                  name = profile?.user?.name || name;
+                                } catch {
+                                  try {
+                                    const u = await userService.getById(member.userId);
+                                    name = u?.name || name;
+                                  } catch {
+                                    name = name || 'Usuário';
+                                  }
+                                }
+                              }
+                              setConfirmTarget({ userId: member.userId, userName: name || 'Usuário' });
+                            }}
                             disabled={actionLoading === member.userId}
                           >
                             {actionLoading === member.userId

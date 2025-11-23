@@ -25,10 +25,10 @@ const slideOut = keyframes`
 `;
 
 const NotificationContainer = styled.div.withConfig({
-  shouldForwardProp: (prop) => !['variant', 'isVisible'].includes(prop),
-})<{ variant: 'success' | 'error' | 'info' | 'warning'; isVisible: boolean }>`
+  shouldForwardProp: (prop) => !['variant', 'isVisible', 'offsetY'].includes(prop),
+})<{ variant: 'success' | 'error' | 'info' | 'warning'; isVisible: boolean; offsetY?: number }>`
   position: fixed;
-  top: 20px;
+  top: ${props => (props.offsetY ?? 20)}px;
   right: 20px;
   z-index: 10000;
   min-width: 320px;
@@ -177,14 +177,16 @@ export interface GroupNotificationProps {
   message?: string;
   duration?: number;
   onClose?: () => void;
+  offsetY?: number;
 }
 
 export default function GroupNotification({
   variant,
   title,
   message,
-  duration = 5000,
-  onClose
+  duration = 3000,
+  onClose,
+  offsetY
 }: GroupNotificationProps) {
   const [isVisible, setIsVisible] = useState(true);
 
@@ -222,7 +224,7 @@ export default function GroupNotification({
   };
 
   return (
-    <NotificationContainer variant={variant} isVisible={isVisible}>
+    <NotificationContainer variant={variant} isVisible={isVisible} offsetY={offsetY}>
       <IconContainer variant={variant}>
         {getIcon()}
       </IconContainer>
