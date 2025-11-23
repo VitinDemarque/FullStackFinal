@@ -156,18 +156,22 @@ export function analyzeComplexity(
  * Calcula score de complexidade (0-100)
  * 
  * Quanto menor a complexidade, maior o score
+ * Fórmula ajustada para maior sensibilidade e precisão
  * 
  * @param metrics - Métricas de complexidade
  * @returns Score de 0 a 100
  */
 export function calculateComplexityScore(metrics: IComplexityMetrics): number {
+  // Fórmula ajustada para maior sensibilidade
+  // Penalidades mais granulares para diferenciar melhor códigos similares
   const penalty = 
-    (metrics.cyclomaticComplexity * 2) +
-    (metrics.linesOfCode / 10) +
-    (metrics.maxNestingDepth * 5) +
-    (metrics.hasRecursion ? 10 : 0);
+    (metrics.cyclomaticComplexity * 3) +           // Aumentado de 2 para 3
+    (metrics.linesOfCode / 8) +                      // Aumentado de 10 para 8 (mais sensível)
+    (metrics.maxNestingDepth * 6) +                  // Aumentado de 5 para 6
+    (metrics.hasRecursion ? 15 : 0);                 // Aumentado de 10 para 15
 
   const score = Math.max(0, Math.min(100, 100 - penalty));
+  // Mantém 2 casas decimais para maior precisão
   return Math.round(score * 100) / 100;
 }
 
@@ -176,12 +180,14 @@ export function calculateComplexityScore(metrics: IComplexityMetrics): number {
  * 
  * Bônus máximo: 20 pontos
  * Fórmula: (complexityScore / 100) × 20
+ * Mantém precisão de 2 casas decimais para diferenciar códigos similares
  * 
  * @param complexityScore - Score de complexidade (0-100)
  * @returns Pontos de bônus (0-20)
  */
 export function calculateBonusPoints(complexityScore: number): number {
   const bonus = (complexityScore / 100) * 20;
+  // Mantém 2 casas decimais para maior precisão e diferenciação
   return Math.round(bonus * 100) / 100;
 }
 

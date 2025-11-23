@@ -72,6 +72,7 @@ export async function create(input: CreateSubmissionInput) {
     testResults = testValidation.testResults;
     testScore = testValidation.testScore;
 
+    // Calcula complexidade sempre (para armazenar e feedback)
     let languageSlug = 'java';
     if (exercise.languageId) {
       const Language = (await import('../models/Language.model')).default;
@@ -84,8 +85,16 @@ export async function create(input: CreateSubmissionInput) {
     const complexityAnalysis = analyzeComplexityComplete(code, languageSlug);
     complexityScore = complexityAnalysis.complexityScore;
     complexityMetrics = complexityAnalysis.metrics;
-    bonusPoints = complexityAnalysis.bonusPoints;
-    finalScore = Math.min(100, testScore + bonusPoints);
+
+    // Bônus de complexidade é aplicado APENAS se o código passar em 100% dos testes (testScore = 100)
+    // Se não passar em todos os testes, não recebe bônus mesmo que o código seja simples
+    if (testScore === 100) {
+      bonusPoints = complexityAnalysis.bonusPoints;
+      finalScore = Math.min(100, testScore + bonusPoints);
+    } else {
+      bonusPoints = 0; // Não recebe bônus se não passou em 100% dos testes
+      finalScore = testScore; // Score final = apenas score dos testes
+    }
   } else {
     finalScore = Number(score ?? 0);
     testScore = finalScore;
