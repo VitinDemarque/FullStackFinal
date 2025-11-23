@@ -227,6 +227,8 @@ export default function ChallengesPage() {
             </S.EmptyState>
           ) : exercises.length > 0 ? (
             exercises
+              // Esconde desafios que pertencem a grupos nesta visão de "Meus Desafios"
+              .filter((exercise) => !('groupId' in exercise) || !exercise.groupId)
               .filter((exercise) => {
                 if (filterStatus === 'todos') return true;
                 const isActive = exercise.status === 'PUBLISHED';
@@ -236,7 +238,7 @@ export default function ChallengesPage() {
               <ExerciseCard
                 key={exercise.id}
                 id={exercise.id}
-                publicCode={exercise.publicCode}
+                publicCode={exercise.publicCode ?? undefined}
                 title={exercise.title}
                 description={exercise.description || 'Sem descrição'}
                 icon={getExerciseIcon(exercise)}

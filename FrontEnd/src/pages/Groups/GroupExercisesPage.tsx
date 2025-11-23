@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+
 import { Group } from "../../types/group.types";
 import { Exercise } from "../../types";
 import { ThemedButton } from "../../styles/themed-components";
@@ -10,7 +11,8 @@ import { leaderboardService, type LeaderboardEntry } from "../../services/leader
 import styled from "styled-components";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
 import ExerciseCard from "@components/ExerciseCard";
-import CreateGroupExerciseModal from "../../components/Groups/CreateGroupExerciseModal";
+import CreateExerciseModal, { CreateExerciseData } from "@/components/CreateExerciseModal";
+
 import EditGroupExerciseModal, { UpdateGroupExerciseData } from "../../components/Groups/EditGroupExerciseModal";
 import { useGroupNotification } from "../../hooks/useGroupNotification";
 import GroupNotification from "../../components/Groups/GroupNotification";
@@ -213,7 +215,6 @@ const GroupExercisesPage: React.FC = () => {
   const [actionLoading, setActionLoading] = useState(false);
   // Ranking oculto por desafio: mantemos em memória, sem exibir na UI
   const [exerciseRankings, setExerciseRankings] = useState<Record<string, LeaderboardEntry[]>>({});
-  const [rankingsLoading, setRankingsLoading] = useState(false);
   
   const [filters, setFilters] = useState({
     difficulty: 'all',
@@ -225,6 +226,23 @@ const GroupExercisesPage: React.FC = () => {
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [showEditExerciseModal, setShowEditExerciseModal] = useState(false);
   const { notifications, removeNotification, showError, showSuccess } = useGroupNotification();
+
+  useEffect(() => {
+    if (!showCreateExerciseModal) return;
+
+    const checkbox = document.getElementById('isPublic') as HTMLInputElement | null;
+    if (!checkbox) return;
+
+    const checkboxGroup = checkbox.parentElement?.parentElement as HTMLElement | null;
+    if (!checkboxGroup) return;
+
+    const previousDisplay = checkboxGroup.style.display;
+    checkboxGroup.style.display = 'none';
+
+    return () => {
+      checkboxGroup.style.display = previousDisplay;
+    };
+  }, [showCreateExerciseModal]);
 
   const loadGroup = async () => {
     if (!id) return;
@@ -308,7 +326,6 @@ const GroupExercisesPage: React.FC = () => {
 
   const preloadExerciseRankings = async (exerciseIds: string[]) => {
     try {
-      setRankingsLoading(true);
       const results = await Promise.allSettled(
         exerciseIds.map((id) =>
           leaderboardService
@@ -333,8 +350,6 @@ const GroupExercisesPage: React.FC = () => {
       if (import.meta.env.DEV) {
         console.error("Falha ao pré-carregar ranking por exercício", error);
       }
-    } finally {
-      setRankingsLoading(false);
     }
   };
 
@@ -351,15 +366,17 @@ const GroupExercisesPage: React.FC = () => {
     return true;
   });
 
-  const handleCreateExercise = async (exerciseData: any) => {
+  const handleCreateExercise = async (exerciseData: CreateExerciseData) => {
     if (!id || !user) return;
 
     try {
       setActionLoading(true);
       const exerciseWithGroup = {
         ...exerciseData,
-        groupId: id
-      };
+        groupId: id,
+        authorUserId: user.id,
+        isPublic: false,
+      } as any;
       const created = await exercisesService.create(exerciseWithGroup);
       // Publica automaticamente para aparecer na lista do grupo
       await exercisesService.publish(created.id);
@@ -409,6 +426,33 @@ const GroupExercisesPage: React.FC = () => {
       loadGroupExercises();
     } catch (error: any) {
       showError('Erro ao excluir Desafio', error.message || 'Não foi possível excluir o desafio. Tente novamente.');
+    }
+  };
+
+  const handleInactivateExercise = async (exerciseId: string) => {
+    const exercise = exercises.find(ex => ex.id === exerciseId);
+    if (!exercise) return;
+
+    const newStatus = exercise.status === 'PUBLISHED' ? 'ARCHIVED' : 'PUBLISHED';
+    const action = newStatus === 'ARCHIVED' ? 'inativar' : 'ativar';
+
+    if (!confirm(`Tem certeza que deseja ${action} o Desafio "${exercise.title}"?`)) return;
+
+    try {
+      setActionLoading(true);
+      await exercisesService.update(exerciseId, { status: newStatus });
+      showSuccess(
+        newStatus === 'ARCHIVED' ? 'Desafio inativado!' : 'Desafio ativado!',
+        `O desafio foi ${newStatus === 'ARCHIVED' ? 'inativado' : 'ativado'} com sucesso.`
+      );
+      await loadGroupExercises();
+    } catch (error: any) {
+      showError(
+        `Erro ao ${action} Desafio`,
+        error.message || `Não foi possível ${action} o desafio. Tente novamente.`
+      );
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -491,7 +535,9 @@ const GroupExercisesPage: React.FC = () => {
           />
         ))}
         
-        <BackButton to={`/grupos/${id}`}>← Voltar para o Grupo</BackButton>
+        <BackButton to={`/grupos/${id}`}>
+          ← Voltar para o Grupo
+        </BackButton>
         
         <Header>
           <TitleSection>
@@ -585,7 +631,7 @@ const GroupExercisesPage: React.FC = () => {
                 <ExerciseCard
                   key={exercise.id}
                   id={exercise.id}
-                  publicCode={exercise.publicCode}
+                  publicCode={exercise.publicCode ?? undefined}
                   title={exercise.title}
                   description={exercise.description || ''}
                   icon="💻"
@@ -595,7 +641,7 @@ const GroupExercisesPage: React.FC = () => {
                   status={exercise.status}
                   onEdit={() => handleEditExercise(exercise.id)}
                   onDelete={() => handleDeleteExercise(exercise.id)}
-                  onInactivate={() => {}}
+                  onInactivate={() => handleInactivateExercise(exercise.id)}
                 />
               ))}
             </ExercisesGrid>
@@ -617,12 +663,10 @@ const GroupExercisesPage: React.FC = () => {
           </EmptyState>
         )}
 
-        <CreateGroupExerciseModal
+        <CreateExerciseModal
           isOpen={showCreateExerciseModal}
           onClose={() => setShowCreateExerciseModal(false)}
           onSubmit={handleCreateExercise}
-          groupId={id!}
-          groupName={group.name}
         />
 
         <EditGroupExerciseModal

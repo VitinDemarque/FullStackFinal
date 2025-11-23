@@ -49,6 +49,33 @@ export default function GroupRankingPage() {
   return (
     <AuthenticatedLayout>
       <S.RankingPage $isDark={isDark}>
+        <div
+          style={{
+            maxWidth: '1000px',
+            margin: '0 auto',
+            padding: '1.5rem 1.5rem 0',
+          }}
+        >
+          <Link
+            to={`/grupos/${groupId}`}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              color: 'var(--color-text-secondary)',
+              textDecoration: 'none',
+              padding: '0.5rem 1rem',
+              borderRadius: '6px',
+              background: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              marginBottom: '1.5rem',
+              fontSize: '0.875rem',
+            }}
+          >
+            ← Voltar para o Grupo
+          </Link>
+        </div>
+
         <S.HeroSection>
           <S.HeroContent>
             <S.HeroTitle>Ranking do Grupo</S.HeroTitle>
@@ -97,10 +124,11 @@ export default function GroupRankingPage() {
                     return (
                       <S.TableRow key={entry.userId} $isDark={isDark}>
                         <S.TableCell>
-                          <S.PositionBadge position={entry.position}>
+                          <S.PositionBadge $position={entry.position}>
                             {entry.position}º
                           </S.PositionBadge>
                         </S.TableCell>
+
                         <S.TableCell>
                           <S.UserInfo>
                             {entry.avatarUrl ? (
@@ -108,9 +136,9 @@ export default function GroupRankingPage() {
                             ) : (
                               <S.UserAvatar>{entry.name?.charAt(0)}</S.UserAvatar>
                             )}
-                            <Link to={`/perfil/${entry.userId}`} style={{ textDecoration: 'none' }}>
-                              <S.UserNameLink $isDark={isDark}>{entry.name}</S.UserNameLink>
-                            </Link>
+                            <S.UserNameLink to={`/perfil/${entry.userId}`} $isDark={isDark}>
+                              {entry.name}
+                            </S.UserNameLink>
                           </S.UserInfo>
                         </S.TableCell>
                         <S.TableCell>
@@ -143,20 +171,21 @@ export default function GroupRankingPage() {
             {!loading && leaderboard && leaderboard.length > 0 && (
               <S.Pagination $isDark={isDark}>
                 <S.PaginationDot
-                  active={currentPage === 1}
+                  $active={currentPage === 1}
                   $isDark={isDark}
                   onClick={() => setCurrentPage(1)}
                 />
                 <S.PaginationDot
-                  active={currentPage === 2}
+                  $active={currentPage === 2}
                   $isDark={isDark}
                   onClick={() => setCurrentPage(2)}
                 />
                 <S.PaginationDot
-                  active={currentPage === 3}
+                  $active={currentPage === 3}
                   $isDark={isDark}
                   onClick={() => setCurrentPage(3)}
                 />
+
               </S.Pagination>
             )}
           </S.MainContent>
