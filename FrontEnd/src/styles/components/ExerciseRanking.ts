@@ -1,102 +1,108 @@
 import styled from 'styled-components'
+import { theme } from '../theme'
 
-export const RankingContainer = styled.div`
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-top: 1.5rem;
+export const RankingContainer = styled.div<{ $isDark?: boolean }>`
+  background: ${({ $isDark }) => ($isDark ? '#1e293b' : '#ffffff')};
+  border-radius: 16px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid ${({ $isDark }) => ($isDark ? '#334155' : theme.colors.gray[200])};
 `
 
-export const RankingHeader = styled.div`
+export const RankingHeader = styled.div<{ $isDark?: boolean }>`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--color-border);
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid ${({ $isDark }) => ($isDark ? '#334155' : theme.colors.gray[200])};
+  background: ${({ $isDark }) => ($isDark ? '#0f172a' : theme.colors.gray[50])};
 
   h3 {
     margin: 0;
     font-size: 1.25rem;
     font-weight: 600;
-    color: var(--color-text);
+    color: ${({ $isDark }) => ($isDark ? '#f8fafc' : theme.colors.gray[900])};
   }
 `
 
-export const TotalEntries = styled.span`
+export const TotalEntries = styled.span<{ $isDark?: boolean }>`
   font-size: 0.875rem;
-  color: var(--color-text-secondary);
+  color: ${({ $isDark }) => ($isDark ? '#94a3b8' : theme.colors.gray[600])};
+  font-weight: 500;
 `
 
-export const MyPositionBadge = styled.div`
+export const MyPositionBadge = styled.div<{ $isDark?: boolean }>`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background: var(--color-primary-light);
-  border: 1px solid var(--color-primary);
-  border-radius: 8px;
-  margin-bottom: 1rem;
+  padding: 0.75rem 1.25rem;
+  background: ${({ $isDark }) => ($isDark ? 'rgba(102, 126, 234, 0.1)' : 'rgba(102, 126, 234, 0.05)')};
+  border: 1px solid ${({ $isDark }) => ($isDark ? 'rgba(102, 126, 234, 0.3)' : 'rgba(102, 126, 234, 0.2)')};
+  border-radius: 12px;
+  margin: 1.5rem 2rem;
   font-size: 0.875rem;
-  color: var(--color-text);
+  color: ${({ $isDark }) => ($isDark ? '#cbd5e1' : theme.colors.gray[700])};
 
   strong {
-    color: var(--color-primary);
-    font-weight: 600;
+    color: ${theme.colors.primary};
+    font-weight: 700;
   }
 `
 
 export const RankingList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0;
 `
 
-export const RankingEntry = styled.div<{ $isCurrentUser?: boolean; $isTopThree?: boolean }>`
+export const RankingEntry = styled.div<{ $isCurrentUser?: boolean; $isTopThree?: boolean; $isDark?: boolean }>`
   display: grid;
-  grid-template-columns: auto 1fr auto auto;
-  gap: 1rem;
+  grid-template-columns: 80px 1fr 140px 140px;
+  gap: 1.5rem;
   align-items: center;
-  padding: 1rem;
-  background: ${(props) =>
-    props.$isCurrentUser
-      ? 'var(--color-primary-light)'
-      : props.$isTopThree
-      ? 'var(--color-surface-elevated)'
-      : 'var(--color-surface)'};
-  border: 1px solid
-    ${(props) =>
-      props.$isCurrentUser
-        ? 'var(--color-primary)'
-        : props.$isTopThree
-        ? 'var(--color-border-hover)'
-        : 'var(--color-border)'};
-  border-radius: 8px;
+  padding: 1.25rem 2rem;
+  background: ${(props) => {
+    if (props.$isCurrentUser) {
+      return props.$isDark ? 'rgba(102, 126, 234, 0.08)' : 'rgba(102, 126, 234, 0.03)';
+    }
+    if (props.$isTopThree) {
+      return props.$isDark ? '#1e293b' : '#ffffff';
+    }
+    return props.$isDark ? '#1e293b' : '#ffffff';
+  }};
+  border-bottom: 1px solid ${({ $isDark }) => ($isDark ? '#334155' : theme.colors.gray[100])};
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: var(--color-primary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background: ${({ $isDark }) => ($isDark ? '#334155' : theme.colors.gray[50])};
+  }
+
+  &:last-child {
+    border-bottom: none;
   }
 `
 
 export const PositionCell = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  min-width: 60px;
+  gap: 0.75rem;
 `
 
 export const PositionIcon = styled.span`
   font-size: 1.25rem;
+  display: flex;
+  align-items: center;
 `
 
-export const PositionNumber = styled.span`
-  font-weight: 600;
+export const PositionNumber = styled.span<{ $isDark?: boolean; $position?: number }>`
+  font-weight: 700;
   font-size: 1rem;
-  color: var(--color-text);
+  color: ${({ $position, $isDark }) => {
+    if ($position === 1) return '#fbbf24';
+    if ($position === 2) return '#cbd5e1';
+    if ($position === 3) return '#f97316';
+    return $isDark ? '#cbd5e1' : theme.colors.gray[700];
+  }};
 `
 
 export const UserCell = styled.div`
@@ -105,40 +111,42 @@ export const UserCell = styled.div`
   min-width: 0;
 `
 
-export const UserName = styled.div`
-  font-weight: 500;
-  color: var(--color-text);
+export const UserName = styled.div<{ $isDark?: boolean }>`
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: ${({ $isDark }) => ($isDark ? '#f8fafc' : theme.colors.gray[900])};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 `
 
 export const YouBadge = styled.span`
-  color: var(--color-primary);
+  color: ${theme.colors.primary};
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
+  margin-left: 0.5rem;
 `
 
 export const ScoreCell = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  min-width: 120px;
+  gap: 0.25rem;
 `
 
-export const ScoreValue = styled.div`
-  font-size: 1.25rem;
+export const ScoreValue = styled.div<{ $isDark?: boolean }>`
+  font-size: 1.1rem;
   font-weight: 700;
-  color: var(--color-primary);
+  color: ${theme.colors.primary};
 `
 
-export const ScoreBreakdown = styled.div`
+export const ScoreBreakdown = styled.div<{ $isDark?: boolean }>`
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.125rem;
   font-size: 0.75rem;
-  color: var(--color-text-secondary);
-  margin-top: 0.25rem;
+  color: ${({ $isDark }) => ($isDark ? '#94a3b8' : theme.colors.gray[500])};
+  text-align: right;
 
   span {
     white-space: nowrap;
@@ -147,41 +155,47 @@ export const ScoreBreakdown = styled.div`
 
 export const MetricsCell = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  min-width: 100px;
+  flex-direction: row;
+  gap: 1rem;
+  align-items: center;
+  justify-content: flex-end;
 `
 
-export const Metric = styled.div`
+export const Metric = styled.div<{ $isDark?: boolean }>`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.375rem;
   font-size: 0.875rem;
-  color: var(--color-text-secondary);
+  color: ${({ $isDark }) => ($isDark ? '#94a3b8' : theme.colors.gray[600])};
+  font-weight: 500;
 
   svg {
     font-size: 0.875rem;
+    color: ${({ $isDark }) => ($isDark ? '#64748b' : theme.colors.gray[400])};
   }
 `
 
-export const LoadingMessage = styled.div`
-  padding: 2rem;
+export const LoadingMessage = styled.div<{ $isDark?: boolean }>`
+  padding: 3rem;
   text-align: center;
-  color: var(--color-text-secondary);
+  color: ${({ $isDark }) => ($isDark ? '#94a3b8' : theme.colors.gray[500])};
+  font-size: 0.95rem;
 `
 
-export const ErrorMessage = styled.div`
-  padding: 2rem;
+export const ErrorMessage = styled.div<{ $isDark?: boolean }>`
+  padding: 1.5rem 2rem;
+  margin: 1.5rem 2rem;
   text-align: center;
-  color: var(--color-error);
-  background: var(--color-error-light);
-  border: 1px solid var(--color-error);
-  border-radius: 8px;
+  color: ${theme.colors.red[500]};
+  background: ${({ $isDark }) => ($isDark ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.05)')};
+  border: 1px solid ${({ $isDark }) => ($isDark ? 'rgba(239, 68, 68, 0.3)' : 'rgba(239, 68, 68, 0.2)')};
+  border-radius: 12px;
+  font-size: 0.95rem;
 `
 
-export const EmptyMessage = styled.div`
-  padding: 2rem;
+export const EmptyMessage = styled.div<{ $isDark?: boolean }>`
+  padding: 3rem;
   text-align: center;
-  color: var(--color-text-secondary);
+  color: ${({ $isDark }) => ($isDark ? '#94a3b8' : theme.colors.gray[500])};
+  font-size: 0.95rem;
 `
-
