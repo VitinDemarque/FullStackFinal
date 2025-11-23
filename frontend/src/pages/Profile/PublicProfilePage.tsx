@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import AuthenticatedLayout from '@components/Layout/AuthenticatedLayout'
 import { useTheme } from '@contexts/ThemeContext'
+import { useAuth } from '@contexts/AuthContext'
 import { useFetch } from '@hooks/useFetch'
 import { userService } from '@services/user.service'
 import { leaderboardService } from '@services/leaderboard.service'
@@ -17,6 +18,7 @@ export default function PublicProfilePage() {
   const navigate = useNavigate()
   const { theme } = useTheme()
   const isDark = theme === 'dark'
+  const { user: viewer } = useAuth()
 
   const { data: profile, loading } = useFetch(
     () => userService.getPublicProfile(id as string),
@@ -33,6 +35,16 @@ export default function PublicProfilePage() {
   const visitedUserId = useMemo(() => {
     return String(profile?.user?.id ?? (profile as any)?.user?._id ?? '')
   }, [profile?.user?.id, (profile as any)?.user?._id])
+
+  const isPrivateProfile = useMemo(() => {
+    try {
+      const visibility = localStorage.getItem(`userPrivacy:${visitedUserId}`) || 'public'
+      const viewerId = String(viewer?.id ?? viewer?._id ?? '')
+      return visibility === 'private' && viewerId !== visitedUserId
+    } catch {
+      return false
+    }
+  }, [visitedUserId, viewer?.id, viewer?._id])
 
   const rawExercises = useMemo(() => {
     const ex: any = (profile as any)?.exercises
@@ -224,6 +236,42 @@ export default function PublicProfilePage() {
       setLoadingTitles(false)
     }
   }, [profile?.titles, allTitles])
+
+  if (isPrivateProfile) {
+    return (
+      <AuthenticatedLayout>
+        <S.ProfilePageContainer $isDark={isDark}>
+          <S.ProfileHeader>
+            <S.BackCircleButton onClick={() => navigate(-1)}>
+              <FaArrowLeft />
+            </S.BackCircleButton>
+            <S.HeaderContent>
+              <S.ProfileSection>
+                <S.AvatarContainer>
+                  <S.Avatar>
+                    {user?.avatarUrl ? (
+                      <S.AvatarImage src={resolvePublicUrl(user.avatarUrl)!} alt={user?.name ?? ''} />
+                    ) : (
+                      <span>{user?.name?.charAt(0) ?? '?'}</span>
+                    )}
+                  </S.Avatar>
+                </S.AvatarContainer>
+                <S.UserInfo>
+                  <S.Username>{user?.name ?? 'Usuário'}</S.Username>
+                </S.UserInfo>
+              </S.ProfileSection>
+            </S.HeaderContent>
+          </S.ProfileHeader>
+          <S.ContentArea $isDark={isDark}>
+            <S.EmptyState $isDark={isDark}>
+              <FaLock />
+              <p>Este perfil é privado.</p>
+            </S.EmptyState>
+          </S.ContentArea>
+        </S.ProfilePageContainer>
+      </AuthenticatedLayout>
+    )
+  }
 
   return (
     <AuthenticatedLayout>

@@ -16,7 +16,7 @@ export default function SettingsPage() {
   const { settings, isLoading, updateSettings, saveSettings } = useUserSettings()
   const { addNotification, NotificationContainer } = useNotification()
   const navigate = useNavigate()
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
 
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false)
   const [deleting, setDeleting] = React.useState(false)
@@ -60,6 +60,12 @@ export default function SettingsPage() {
   const handleSaveSettings = async () => {
     const success = await saveSettings()
     if (success) {
+      try {
+        const id = user?.id || user?._id || null
+        if (id) {
+          localStorage.setItem(`userPrivacy:${id}`,(settings.privacy.profileVisibility || 'public'))
+        }
+      } catch {}
       addNotification('Configurações salvas com sucesso!', 'success')
     } else {
       addNotification('Erro ao salvar configurações. Tente novamente.', 'error')
@@ -257,7 +263,6 @@ export default function SettingsPage() {
                   onChange={(e) => handlePrivacyChange('profileVisibility', e.target.value)}
                 >
                   <option value="public">Público</option>
-                  <option value="friends">Apenas Amigos</option>
                   <option value="private">Privado</option>
                 </S.Select>
               </S.SettingItem>
