@@ -15,7 +15,7 @@ export const Overlay = styled.div`
 `;
 
 export const Modal = styled.div`
-  background: ${({ theme }) => theme.colors.white};
+  background: var(--color-surface);
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   box-shadow: ${({ theme }) => theme.shadows['2xl']};
   width: 100%;
@@ -24,6 +24,7 @@ export const Modal = styled.div`
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  border: 1px solid var(--color-border);
 `;
 
 export const Header = styled.div`
@@ -31,14 +32,14 @@ export const Header = styled.div`
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
 `;
 
 export const Title = styled.h2`
   font-size: 1.25rem;
   font-weight: 600;
-  color: ${({ theme }) => theme.colors.gray[900]};
+  color: var(--color-text-primary);
   margin: 0;
 `;
 
@@ -46,13 +47,13 @@ export const CloseButton = styled.button`
   background: none;
   border: none;
   font-size: 1.5rem;
-  color: ${({ theme }) => theme.colors.gray[500]};
+  color: var(--color-text-secondary);
   cursor: pointer;
   padding: 0.25rem;
   line-height: 1;
   
   &:hover {
-    color: ${({ theme }) => theme.colors.gray[700]};
+    color: var(--color-text-primary);
   }
 `;
 
@@ -112,7 +113,7 @@ export const Label = styled.label`
   display: block;
   font-size: 0.8rem;
   font-weight: 600;
-  color: ${({ theme }) => theme.colors.gray[700]};
+  color: var(--color-text-secondary);
   margin-bottom: 0.4rem;
   letter-spacing: 0.01em;
 `;
@@ -120,39 +121,39 @@ export const Label = styled.label`
 export const Input = styled.input`
   width: 100%;
   padding: 0.5rem 0.75rem;
-  border: 1.5px solid ${({ theme }) => theme.colors.gray[300]};
+  border: 1.5px solid var(--color-border);
   border-radius: 6px;
   font-size: 0.875rem;
   transition: all 0.2s ease;
-  background: ${({ theme }) => theme.colors.white};
-  color: ${({ theme }) => theme.colors.gray[900]};
+  background: var(--color-surface);
+  color: var(--color-text-primary);
   
   &:focus {
     outline: none;
-    border-color: ${({ theme }) => theme.colors.blue[500]};
-    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.blue[100]};
-    background: ${({ theme }) => theme.colors.white};
+    border-color: var(--color-blue-500);
+    box-shadow: 0 0 0 3px var(--color-blue-100);
+    background: var(--color-surface-hover);
   }
   
   &:hover:not(:disabled) {
-    border-color: ${({ theme }) => theme.colors.gray[400]};
+    border-color: var(--color-border);
   }
   
   &:disabled {
-    background: ${({ theme }) => theme.colors.gray[100]};
+    background: var(--color-surface-hover);
     cursor: not-allowed;
     opacity: 0.6;
   }
   
   &::placeholder {
-    color: ${({ theme }) => theme.colors.gray[400]};
+    color: var(--color-text-light);
   }
 `;
 
 export const TextArea = styled.textarea`
   width: 100%;
   padding: 0.5rem 0.75rem;
-  border: 1.5px solid ${({ theme }) => theme.colors.gray[300]};
+  border: 1.5px solid var(--color-border);
   border-radius: 6px;
   font-size: 0.875rem;
   font-family: inherit;
@@ -160,47 +161,47 @@ export const TextArea = styled.textarea`
   min-height: 60px;
   line-height: 1.5;
   transition: all 0.2s ease;
-  background: ${({ theme }) => theme.colors.white};
-  color: ${({ theme }) => theme.colors.gray[900]};
+  background: var(--color-surface);
+  color: var(--color-text-primary);
   
   &:focus {
     outline: none;
-    border-color: ${({ theme }) => theme.colors.blue[500]};
-    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.blue[100]};
-    background: ${({ theme }) => theme.colors.white};
+    border-color: var(--color-blue-500);
+    box-shadow: 0 0 0 3px var(--color-blue-100);
+    background: var(--color-surface-hover);
   }
   
   &:hover:not(:disabled) {
-    border-color: ${({ theme }) => theme.colors.gray[400]};
+    border-color: var(--color-border);
   }
   
   &::placeholder {
-    color: ${({ theme }) => theme.colors.gray[400]};
+    color: var(--color-text-light);
   }
 `;
 
 export const CodeTextArea = styled.textarea`
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border: 1px solid var(--color-border);
   border-radius: ${({ theme }) => theme.borderRadius.md};
   font-size: 0.875rem;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   resize: vertical;
   min-height: 120px;
-  background: ${({ theme }) => theme.colors.gray[50]};
+  background: var(--color-surface);
   transition: ${({ theme }) => theme.transitions.base};
   
   &:focus {
     outline: none;
-    border-color: ${({ theme }) => theme.colors.blue[500]};
-    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.blue[100]};
+    border-color: var(--color-blue-500);
+    box-shadow: 0 0 0 3px var(--color-blue-100);
   }
 `;
 
 export const EditorPanel = styled.div`
-  background: #101316;
-  border: 1px solid ${({ theme }) => theme.colors.gray[800]};
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   box-shadow: ${({ theme }) => theme.shadows.md};
   min-height: 400px;
@@ -211,11 +212,11 @@ export const EditorPanel = styled.div`
 `;
 
 export const EditorHeader = styled.div`
-  color: ${({ theme }) => theme.colors.white};
+  color: var(--color-text-primary);
   font-weight: 600;
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[800]};
-  background: linear-gradient(135deg, #2a2252, #3b2469);
+  border-bottom: 1px solid var(--color-border);
+  background: ${({ theme }) => theme.gradients.purple};
 `;
 
 export const CodeEditor = styled.textarea`
@@ -226,29 +227,29 @@ export const CodeEditor = styled.textarea`
   border: none;
   outline: none;
   padding: 1rem;
-  background: #1e1e1e;
-  color: #e6e6e6;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: 0.95rem;
   line-height: 1.5;
 
   &::placeholder {
-    color: #9aa0a6;
+    color: var(--color-text-secondary);
   }
 `;
 
 export const Select = styled.select`
   width: 100%;
   padding: 0.5rem 0.75rem;
-  border: 1.5px solid ${({ theme }) => theme.colors.gray[300]};
+  border: 1.5px solid var(--color-border);
   border-radius: 6px;
   font-size: 0.875rem;
-  background: ${({ theme }) => theme.colors.white};
-  color: ${({ theme }) => theme.colors.gray[900]};
+  background: var(--color-surface);
+  color: var(--color-text-primary);
   cursor: pointer;
   transition: all 0.2s ease;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none'%3E%3Cpath d='M3.5 5.25L7 8.75L10.5 5.25' stroke='%234a5568' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none'%3E%3Cpath d='M3.5 5.25L7 8.75L10.5 5.25' stroke='%2394a3b8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
   padding-right: 2.75rem;
@@ -256,22 +257,22 @@ export const Select = styled.select`
   
   &:focus {
     outline: none;
-    border-color: ${({ theme }) => theme.colors.blue[500]};
-    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.blue[100]}, 0 2px 4px rgba(0, 0, 0, 0.1);
-    background-color: ${({ theme }) => theme.colors.white};
+    border-color: var(--color-blue-500);
+    box-shadow: 0 0 0 3px var(--color-blue-100), 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: var(--color-surface-hover);
   }
   
   &:hover:not(:disabled) {
-    border-color: ${({ theme }) => theme.colors.gray[400]};
+    border-color: var(--color-border);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
   
   &:active:not(:disabled) {
-    border-color: ${({ theme }) => theme.colors.blue[500]};
+    border-color: var(--color-blue-500);
   }
   
   &:disabled {
-    background-color: ${({ theme }) => theme.colors.gray[100]};
+    background-color: var(--color-surface-hover);
     cursor: not-allowed;
     opacity: 0.6;
   }
@@ -279,8 +280,8 @@ export const Select = styled.select`
   /* Estilização das opções no dropdown */
   option {
     padding: 0.75rem 1rem;
-    background: ${({ theme }) => theme.colors.white};
-    color: ${({ theme }) => theme.colors.gray[900]};
+    background: var(--color-surface);
+    color: var(--color-text-primary);
     font-size: 0.875rem;
     line-height: 1.6;
     min-height: 2.75rem;
@@ -290,15 +291,15 @@ export const Select = styled.select`
     
     /* Opção selecionada */
     &:checked {
-      background: linear-gradient(135deg, ${({ theme }) => theme.colors.blue[50]}, ${({ theme }) => theme.colors.blue[100]}) !important;
-      color: ${({ theme }) => theme.colors.blue[900]} !important;
+      background: linear-gradient(135deg, var(--color-blue-50), var(--color-blue-100)) !important;
+      color: var(--color-blue-900) !important;
       font-weight: 600;
     }
     
     /* Opção desabilitada */
     &:disabled {
-      background: ${({ theme }) => theme.colors.gray[50]};
-      color: ${({ theme }) => theme.colors.gray[400]};
+      background: var(--color-surface-hover);
+      color: var(--color-text-light);
       cursor: not-allowed;
       font-style: italic;
     }
@@ -306,7 +307,7 @@ export const Select = styled.select`
   
   /* Estilização para o primeiro option (placeholder) */
   option[value=""] {
-    color: ${({ theme }) => theme.colors.gray[400]};
+    color: var(--color-text-light);
     font-style: italic;
     font-weight: 400;
   }
@@ -316,8 +317,8 @@ export const Select = styled.select`
   &:focus {
     option {
       &:hover {
-        background: ${({ theme }) => theme.colors.blue[50]} !important;
-        color: ${({ theme }) => theme.colors.blue[700]} !important;
+        background: var(--color-blue-50) !important;
+        color: var(--color-blue-700) !important;
       }
     }
   }
@@ -333,7 +334,7 @@ export const Checkbox = styled.input`
   width: 1.125rem;
   height: 1.125rem;
   cursor: pointer;
-  accent-color: ${({ theme }) => theme.colors.blue[500]};
+  accent-color: var(--color-blue-500);
   transition: all 0.2s ease;
   
   &:hover {
@@ -343,7 +344,7 @@ export const Checkbox = styled.input`
 
 export const CheckboxLabel = styled.label`
   font-size: 0.875rem;
-  color: ${({ theme }) => theme.colors.gray[700]};
+  color: var(--color-text-secondary);
   cursor: pointer;
   user-select: none;
 `;
@@ -354,7 +355,7 @@ export const ButtonGroup = styled.div`
   justify-content: flex-end;
   margin-top: auto;
   padding-top: 1.25rem;
-  border-top: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  border-top: 1px solid var(--color-border);
   flex-shrink: 0;
   width: 100%;
   
@@ -370,10 +371,10 @@ export const ButtonGroup = styled.div`
 
 export const CancelButton = styled.button`
   padding: 0.625rem 1.25rem;
-  border: 1.5px solid ${({ theme }) => theme.colors.gray[300]};
+  border: 1.5px solid var(--color-border);
   border-radius: 6px;
-  background: ${({ theme }) => theme.colors.white};
-  color: ${({ theme }) => theme.colors.gray[700]};
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
@@ -381,8 +382,8 @@ export const CancelButton = styled.button`
   white-space: nowrap;
   
   &:hover {
-    background: ${({ theme }) => theme.colors.gray[50]};
-    border-color: ${({ theme }) => theme.colors.gray[400]};
+    background: var(--color-surface-hover);
+    border-color: var(--color-border);
     transform: translateY(-1px);
   }
   
@@ -395,8 +396,8 @@ export const SubmitButton = styled.button`
   padding: 0.625rem 1.25rem;
   border: none;
   border-radius: 6px;
-  background: ${({ theme }) => theme.colors.blue[500]};
-  color: ${({ theme }) => theme.colors.white};
+  background: var(--color-blue-500);
+  color: white;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
@@ -405,7 +406,7 @@ export const SubmitButton = styled.button`
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   
   &:hover:not(:disabled) {
-    background: ${({ theme }) => theme.colors.blue[600]};
+    background: var(--color-blue-600);
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
@@ -416,7 +417,7 @@ export const SubmitButton = styled.button`
   }
   
   &:disabled {
-    background: ${({ theme }) => theme.colors.gray[400]};
+    background: var(--color-gray-400);
     cursor: not-allowed;
     transform: none;
     opacity: 0.6;
@@ -437,9 +438,9 @@ export const AddBadgeButton = styled.button`
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
-  border: 1px solid ${({ theme }) => theme.colors.blue[400]};
-  background: linear-gradient(135deg, ${({ theme }) => theme.colors.blue[500]}, ${({ theme }) => theme.colors.blue[600]});
-  color: ${({ theme }) => theme.colors.white};
+  border: 1px solid var(--color-blue-400);
+  background: linear-gradient(135deg, var(--color-blue-500), var(--color-blue-600));
+  color: white;
   box-shadow: ${({ theme }) => theme.shadows.md};
   cursor: pointer;
   transition: ${({ theme }) => theme.transitions.base};
@@ -455,7 +456,7 @@ export const AddBadgeButton = styled.button`
   }
 
   &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.colors.blue[200]};
+    outline: 3px solid var(--color-blue-200);
     outline-offset: 2px;
   }
 `;
@@ -465,24 +466,24 @@ export const UploadArea = styled.button<{ $hasImage?: boolean }>`
   width: 96px;
   height: 96px;
   border-radius: ${({ theme }) => theme.borderRadius.lg};
-  border: 2px dashed ${({ theme }) => theme.colors.gray[300]};
-  background: ${({ theme }) => theme.colors.white};
+  border: 2px dashed var(--color-border);
+  background: var(--color-surface);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: ${({ theme }) => theme.colors.gray[500]};
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: ${({ theme }) => theme.transitions.base};
   overflow: hidden;
 
   ${({ $hasImage, theme }) => $hasImage ? `
     border-style: solid;
-    border-color: ${theme.colors.gray[200]};
+    border-color: var(--color-border);
     box-shadow: ${theme.shadows.md};
   ` : ''}
 
   &:hover {
-    border-color: ${({ theme }) => theme.colors.blue[500]};
+    border-color: var(--color-blue-500);
     box-shadow: ${({ theme }) => theme.shadows.md};
     transform: translateY(-1px);
   }
@@ -496,7 +497,7 @@ export const IconPreview = styled.img`
 
 export const UploadHint = styled.small`
   display: block;
-  color: ${({ theme }) => theme.colors.gray[500]};
+  color: var(--color-text-secondary);
   margin-top: 0.5rem;
 `;
 
@@ -504,9 +505,9 @@ export const UploadHint = styled.small`
 export const FormAlert = styled.div`
   margin-top: 1rem;
   padding: 0.75rem 1rem;
-  border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+  border: 1px solid var(--color-border);
   border-radius: ${({ theme }) => theme.borderRadius.md};
-  background: ${({ theme }) => theme.colors.gray[100]};
-  color: ${({ theme }) => theme.colors.gray[700]};
+  background: var(--color-surface-hover);
+  color: var(--color-text-secondary);
   font-size: 0.875rem;
 `;

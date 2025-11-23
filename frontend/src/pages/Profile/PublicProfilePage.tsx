@@ -128,17 +128,31 @@ export default function PublicProfilePage() {
 
   useFetch(
     async () => {
-      const uid = String(user?.id ?? user?._id ?? id ?? '')
+      const uid = String(user?.id ?? (user as any)?._id ?? id ?? '')
       if (!uid) return null
       let page = 1
       const limit = 100
       while (page <= 200) {
         try {
           const resp = await leaderboardService.getGeneralLeaderboard({ page, limit }) as any
-          const entries = Array.isArray(resp?.items) ? resp.items : (Array.isArray(resp?.data) ? resp.data : resp)
+          const entries = Array.isArray(resp?.items)
+            ? resp.items
+            : Array.isArray(resp?.data)
+            ? resp.data
+            : Array.isArray(resp)
+            ? resp
+            : []
           if (!entries || entries.length === 0) break
-          const found = entries.find((e: any) => String(e.userId) === uid)
-          if (found) return found.position
+          const found = entries.find((e: any) => {
+            const candidateIds = [e.userId, e.id, e._id, e.user?.id, e.user?._id]
+              .filter(Boolean)
+              .map((v: any) => String(v))
+            return candidateIds.includes(uid)
+          })
+          if (found) {
+            const pos = Number(found.position ?? found.rank ?? found.pos ?? NaN)
+            if (!Number.isNaN(pos)) return pos
+          }
           if (entries.length < limit) break
           page++
         } catch {
@@ -159,12 +173,12 @@ export default function PublicProfilePage() {
     async function fetchTitles() {
       try {
         setLoadingTitles(true)
-        if (!user?.id && !user?._id) {
+        if (!user?.id && !(user as any)?._id) {
           setAllTitles([])
           setEarnedTitles([])
           return
         }
-        const uid = String(user.id ?? user._id ?? id)
+        const uid = String(user.id ?? (user as any)._id ?? id)
         const [allResp, userTitles] = await Promise.all([
           titlesService.listAll().catch(() => ({ items: [] })),
           titlesService.getUserTitles(uid).catch(() => [])
@@ -208,7 +222,7 @@ export default function PublicProfilePage() {
     }
     fetchTitles()
     return () => { mounted = false }
-  }, [user?.id, user?._id])
+  }, [user?.id, (user as any)?._id])
 
   useEffect(() => {
     const raw = (profile as any)?.titles || (profile as any)?.user?.titles
