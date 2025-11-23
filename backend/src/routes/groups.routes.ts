@@ -7,7 +7,7 @@ const router = Router();
 /**
  * CRUD de grupos
  */
-router.get('/', GroupsController.listPublic);        // listar públicos
+router.get('/', auth({ optional: true }), GroupsController.listPublic);        // listar públicos (autenticação opcional)
 router.get('/my', auth(), GroupsController.listMyGroups); // listar grupos do usuário (públicos e privados)
 router.get('/:id', auth(), GroupsController.getById);
 

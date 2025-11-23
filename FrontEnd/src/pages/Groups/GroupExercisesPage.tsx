@@ -1,21 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-
+import { useTheme } from "@contexts/ThemeContext";
+import { FaTrophy, FaCheckCircle, FaChartLine } from "react-icons/fa";
 import { Group } from "../../types/group.types";
 import { Exercise } from "../../types";
 import { ThemedButton } from "../../styles/themed-components";
 import { groupService } from "../../services/group.service";
 import { exercisesService } from "../../services/exercises.service";
 import { leaderboardService, type LeaderboardEntry } from "../../services/leaderboard.service";
+import { judge0Service, submissionsService } from "@services/index";
 import styled from "styled-components";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
-import ExerciseCard from "@components/ExerciseCard";
+import ChallengeModal from "@components/ChallengeModal";
 import CreateExerciseModal, { CreateExerciseData } from "@/components/CreateExerciseModal";
-
 import EditGroupExerciseModal, { UpdateGroupExerciseData } from "../../components/Groups/EditGroupExerciseModal";
+import ExerciseActionsMenu from "@components/ExerciseActionsMenu";
 import { useGroupNotification } from "../../hooks/useGroupNotification";
 import GroupNotification from "../../components/Groups/GroupNotification";
+import * as S from "@/styles/pages/Dashboard/styles";
 
 const Container = styled.div`
   max-width: 1200px;
@@ -207,9 +210,12 @@ const ResultsCount = styled.div`
 const GroupExercisesPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   const [group, setGroup] = useState<Group | null>(null);
   const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [completedExerciseIds, setCompletedExerciseIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [exercisesLoading, setExercisesLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -225,7 +231,10 @@ const GroupExercisesPage: React.FC = () => {
   const [showCreateExerciseModal, setShowCreateExerciseModal] = useState(false);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [showEditExerciseModal, setShowEditExerciseModal] = useState(false);
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const { notifications, removeNotification, showError, showSuccess } = useGroupNotification();
+
+  const JAVA_LANGUAGE_ID = 62;
 
   useEffect(() => {
     if (!showCreateExerciseModal) return;
@@ -311,6 +320,87 @@ const GroupExercisesPage: React.FC = () => {
       loadGroupExercises();
     }
   }, [group]);
+
+  useEffect(() => {
+    if (user) {
+      submissionsService.getMyCompletedExercises()
+        .then(setCompletedExerciseIds)
+        .catch(() => setCompletedExerciseIds([]));
+    }
+  }, [user]);
+
+  const handleTestChallenge = async (code: string, input?: string) => {
+    try {
+      const compileResult = await judge0Service.executeCode(code, JAVA_LANGUAGE_ID, input);
+
+      if (!compileResult.sucesso) {
+        throw new Error(compileResult.resultado || 'Erro na execução do código');
+      }
+
+      return compileResult.resultado;
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.error?.details?.resultado 
+        || error?.response?.data?.error?.message 
+        || error?.message 
+        || 'Erro ao testar o código';
+      throw new Error(errorMessage);
+    }
+  };
+
+  const handleSubmitChallenge = async (code: string, timeSpent: number) => {
+    if (!selectedExercise || !user) return;
+
+    // Bloquear submissão se o desafio já foi concluído
+    if (selectedExercise.isCompleted) {
+      showError('Desafio já concluído', 'Este desafio já foi concluído. Não é possível refazê-lo.');
+      setSelectedExercise(null);
+      return;
+    }
+
+    try {
+      const timeSpentMs = timeSpent * 1000;
+      
+      // O backend valida os testes automaticamente ao criar a submissão
+      const submission = await submissionsService.create({
+        exerciseId: selectedExercise.id,
+        code: code,
+        timeSpentMs: timeSpentMs,
+      });
+
+      const finalScore = submission.finalScore ?? submission.testScore ?? submission.score ?? 0;
+      const scoreMessage = `Score Final: ${finalScore.toFixed(1)}%`;
+      
+      const statusMessage = submission.status === "ACCEPTED" 
+        ? "✅ Aceito! Parabéns!" 
+        : "❌ Rejeitado. Revise seu código e tente novamente.";
+
+      const testsMessage = submission.totalTests 
+        ? `\nTestes passados: ${submission.passedTests || 0}/${submission.totalTests}`
+        : '';
+
+      if (submission.status === "ACCEPTED") {
+        showSuccess(
+          'Desafio concluído!', 
+          `Parabéns! Você ganhou ${submission.xpAwarded || 0} XP!\n${scoreMessage}${testsMessage}`
+        );
+        setSelectedExercise(null);
+        await loadGroupExercises();
+        // Recarregar desafios concluídos
+        if (user) {
+          submissionsService.getMyCompletedExercises()
+            .then(setCompletedExerciseIds)
+            .catch(() => {});
+        }
+      } else {
+        showError('Desafio não passou', `${statusMessage}\n${scoreMessage}${testsMessage}`);
+      }
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.error?.message 
+        || error?.message 
+        || 'Erro ao submeter desafio';
+      showError('Erro ao submeter desafio', errorMessage);
+    }
+  };
 
   // Pré-carrega ranking oculto por exercício sem alterar a UI
   useEffect(() => {
@@ -626,25 +716,143 @@ const GroupExercisesPage: React.FC = () => {
             <ResultsCount>
               Mostrando {filteredExercises.length} de {exercises.length} exercícios
             </ResultsCount>
-            <ExercisesGrid>
-              {filteredExercises.map((exercise) => (
-                <ExerciseCard
-                  key={exercise.id}
-                  id={exercise.id}
-                  publicCode={exercise.publicCode ?? undefined}
-                  title={exercise.title}
-                  description={exercise.description || ''}
-                  icon="💻"
-                  votes={0}
-                  comments={0}
-                  lastModified={new Date(exercise.updatedAt || exercise.createdAt).toLocaleDateString('pt-BR')}
-                  status={exercise.status}
-                  onEdit={() => handleEditExercise(exercise.id)}
-                  onDelete={() => handleDeleteExercise(exercise.id)}
-                  onInactivate={() => handleInactivateExercise(exercise.id)}
-                />
-              ))}
-            </ExercisesGrid>
+            <S.RecommendationsGrid>
+              {filteredExercises.map((exercise) => {
+                const completedIdsSet = new Set(completedExerciseIds);
+                const isCompleted = completedIdsSet.has(exercise.id) || exercise.isCompleted === true;
+                
+                const difficultyMap: Record<number, string> = {
+                  1: "Fácil",
+                  2: "Médio",
+                  3: "Difícil",
+                  4: "Expert",
+                  5: "Master",
+                };
+                const difficultyText = difficultyMap[exercise.difficulty] || "Médio";
+
+                // Verificação mais robusta do dono
+                const exerciseAuthorId = exercise.authorUserId ? String(exercise.authorUserId) : null;
+                const currentUserId = user?.id ? String(user.id) : null;
+                const isOwner = exerciseAuthorId && currentUserId && exerciseAuthorId === currentUserId;
+                
+                return (
+                  <S.ExerciseCard key={exercise.id} $isDark={isDark} $isCompleted={isCompleted}>
+                    {exercise.language && (
+                      <S.LanguageBadge style={isOwner ? { 
+                        right: '4rem', 
+                        top: '50%', 
+                        transform: 'translateY(-50%)',
+                        position: 'absolute'
+                      } : { 
+                        top: '50%', 
+                        transform: 'translateY(-50%)',
+                        position: 'absolute'
+                      }}>
+                        {exercise.language.name}
+                      </S.LanguageBadge>
+                    )}
+                    {isCompleted && (
+                      <S.CompletedBadge>
+                        <FaCheckCircle />
+                        Concluído
+                      </S.CompletedBadge>
+                    )}
+                    <S.CardHeader 
+                      $isDark={isDark} 
+                      style={{ 
+                        display: 'flex',
+                        flexDirection: 'row',
+                        justifyContent: 'space-between', 
+                        alignItems: 'center', 
+                        gap: '0.75rem',
+                        position: 'relative',
+                        paddingTop: '1.25rem'
+                      }}
+                    >
+                      <S.DifficultyBadge 
+                        difficulty={difficultyText.toLowerCase() as any}
+                        style={{ position: 'relative', top: 'auto', left: 'auto', margin: 0 }}
+                      >
+                        {difficultyText}
+                      </S.DifficultyBadge>
+                      <div style={{ 
+                        display: 'flex', 
+                        flexDirection: 'row', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        gap: '0.75rem',
+                        marginLeft: 'auto'
+                      }}>
+                        <S.XpBadge style={{ 
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          display: 'flex',
+                          margin: 0
+                        }}>
+                          <FaTrophy /> {exercise.baseXp || 0} XP
+                        </S.XpBadge>
+                        {isOwner && (
+                          <div 
+                            onClick={(e) => e.stopPropagation()}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            style={{ 
+                              display: 'flex', 
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              position: 'relative',
+                              flexShrink: 0,
+                              visibility: 'visible',
+                              opacity: 1,
+                              minWidth: '32px',
+                              minHeight: '32px',
+                              margin: 0,
+                              zIndex: 10000
+                            }}
+                          >
+                            <ExerciseActionsMenu
+                              onEdit={() => handleEditExercise(exercise.id)}
+                              onDelete={() => handleDeleteExercise(exercise.id)}
+                              onInactivate={() => handleInactivateExercise(exercise.id)}
+                              isActive={exercise.status === 'PUBLISHED'}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </S.CardHeader>
+                    <S.CardBody>
+                      <S.CardTitle $isDark={isDark}>
+                        {exercise.title}
+                      </S.CardTitle>
+                      <S.CardDescription $isDark={isDark}>
+                        {exercise.description || "Resolva este desafio e ganhe experiência"}
+                      </S.CardDescription>
+                    </S.CardBody>
+                    <S.CardFooter>
+                      <S.FooterButtons>
+                        {isCompleted ? (
+                          <S.CompletedButton disabled>
+                            <FaCheckCircle />
+                            Concluído
+                          </S.CompletedButton>
+                        ) : exercise.status === 'PUBLISHED' ? (
+                          <S.StartButton
+                            onClick={() => {
+                              setSelectedExercise({ ...exercise, isCompleted });
+                            }}
+                          >
+                            Iniciar Desafio
+                          </S.StartButton>
+                        ) : (
+                          <S.StartButton disabled style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                            Desafio Indisponível
+                          </S.StartButton>
+                        )}
+                      </S.FooterButtons>
+                    </S.CardFooter>
+                  </S.ExerciseCard>
+                );
+              })}
+            </S.RecommendationsGrid>
           </>
         ) : (
           <EmptyState>
@@ -681,6 +889,15 @@ const GroupExercisesPage: React.FC = () => {
           groupName={group.name}
           userRole={getUserRole()}
         />
+
+        {selectedExercise && (
+          <ChallengeModal
+            exercise={selectedExercise}
+            onClose={() => setSelectedExercise(null)}
+            onTest={handleTestChallenge}
+            onSubmit={handleSubmitChallenge}
+          />
+        )}
       </Container>
     </AuthenticatedLayout>
   );

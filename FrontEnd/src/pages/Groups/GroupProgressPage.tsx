@@ -4,14 +4,31 @@ import { useAuth } from "../../contexts/AuthContext";
 import { Group } from "../../types/group.types";
 import { Exercise } from "../../types";
 import { groupService } from "../../services/group.service";
-import { exercisesService } from "../../services/exercises.service";
+import { leaderboardService } from "../../services/leaderboard.service";
+import submissionsService from "../../services/submissions.service";
+import { motion } from "framer-motion";
+import { 
+  CheckCircle2, 
+  Clock, 
+  Trophy, 
+  TrendingUp, 
+  BarChart3, 
+  ArrowLeft,
+  Target,
+  Award,
+  Zap
+} from "lucide-react";
 import styled from "styled-components";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
 
 const Container = styled.div`
   max-width: 1200px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 2rem;
+  
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
 `;
 
 const BackButton = styled(Link)`
@@ -20,76 +37,111 @@ const BackButton = styled(Link)`
   gap: 0.5rem;
   color: var(--color-text-secondary);
   text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
+  padding: 0.75rem 1.25rem;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   margin-bottom: 2rem;
   transition: all 0.3s ease;
   font-size: 0.875rem;
+  font-weight: 500;
 
   &:hover {
     background: var(--color-surface-hover);
-    border-color: var(--color-border);
-    color: var(--color-text-primary);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    transform: translateX(-4px);
   }
 `;
 
 const Header = styled.div`
-  margin-bottom: 32px;
+  margin-bottom: 2.5rem;
 `;
 
-const Title = styled.h1`
+const Title = styled(motion.h1)`
   color: var(--color-text-primary);
-  margin: 0 0 8px 0;
-  font-size: 2rem;
+  margin: 0 0 0.5rem 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  
+  @media (max-width: 768px) {
+    font-size: 2rem;
+  }
 `;
 
 const GroupInfo = styled.div`
   color: var(--color-text-secondary);
   font-size: 1.125rem;
+  font-weight: 500;
 `;
 
-const DashboardGrid = styled.div`
+const StatsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 24px;
-  margin-bottom: 32px;
-`;
-
-const StatCard = styled.div`
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-  }
-`;
-
-const StatCardLarge = styled(StatCard)`
-  grid-column: span 2;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
   
   @media (max-width: 768px) {
-    grid-column: span 1;
+    grid-template-columns: 1fr;
   }
 `;
 
-const StatValue = styled.div`
-  font-size: 2.5rem;
-  font-weight: bold;
+const StatCard = styled(motion.div)<{ $gradient?: string }>`
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  padding: 1.75rem;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: ${({ $gradient }) => $gradient || 'var(--gradient-primary)'};
+  }
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--color-primary);
+  }
+`;
+
+const StatIcon = styled.div<{ $color?: string }>`
+  width: 3rem;
+  height: 3rem;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  background: ${({ $color }) => $color || 'var(--gradient-primary)'};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  color: white;
+`;
+
+const StatValue = styled(motion.div)`
+  font-size: 2.75rem;
+  font-weight: 700;
   color: var(--color-text-primary);
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
+  line-height: 1;
 `;
 
 const StatLabel = styled.div`
   font-size: 1rem;
   color: var(--color-text-secondary);
-  margin-bottom: 12px;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
 `;
 
 const StatDescription = styled.div`
@@ -99,99 +151,184 @@ const StatDescription = styled.div`
 
 const ProgressBar = styled.div`
   width: 100%;
-  height: 8px;
+  height: 10px;
   background: var(--color-gray-200);
-  border-radius: 4px;
+  border-radius: 5px;
   overflow: hidden;
-  margin: 12px 0;
+  margin: 1rem 0;
 `;
 
-const ProgressFill = styled.div<{ percentage: number; color?: string }>`
-  width: ${props => props.percentage}%;
+const ProgressFill = styled(motion.div)<{ $percentage: number; $color?: string }>`
   height: 100%;
-  background: ${props => props.color || 'var(--color-blue-500)'};
-  border-radius: 4px;
-  transition: width 0.3s ease;
+  background: ${({ $color }) => $color || 'var(--gradient-green)'};
+  border-radius: 5px;
 `;
 
-const Section = styled.div`
+const SummaryCard = styled(motion.div)`
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 24px;
+  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-sm);
+  
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+  }
+`;
+
+const SummaryHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+`;
+
+const SummaryTitle = styled.h2`
+  color: var(--color-text-primary);
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+`;
+
+const SummaryGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const SummaryItem = styled(motion.div)`
+  text-align: center;
+  padding: 1.25rem;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  background: var(--color-surface-hover);
+  border: 1px solid var(--color-border);
+`;
+
+const SummaryValue = styled.div<{ $color?: string }>`
+  font-size: 2rem;
+  font-weight: 700;
+  color: ${({ $color }) => $color || 'var(--color-primary)'};
+  margin-bottom: 0.5rem;
+`;
+
+const SummaryLabel = styled.div`
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+`;
+
+const Section = styled(motion.div)`
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+  }
 `;
 
 const SectionTitle = styled.h2`
   color: var(--color-text-primary);
-  margin: 0 0 20px 0;
+  margin: 0 0 1.5rem 0;
   font-size: 1.5rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 `;
 
 const ExercisesList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 1rem;
 `;
 
-const ExerciseItem = styled.div`
+const ExerciseItem = styled(motion.div)`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
+  padding: 1.25rem;
   border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
   transition: all 0.2s ease;
+  background: var(--color-surface);
 
   &:hover {
     background: var(--color-surface-hover);
+    border-color: var(--color-primary);
+    transform: translateX(4px);
   }
 `;
 
 const ExerciseInfo = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 1rem;
+  flex: 1;
 `;
 
-const ExerciseIcon = styled.div`
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  background: var(--color-blue-100);
+const ExerciseIcon = styled.div<{ $status: string }>`
+  width: 3rem;
+  height: 3rem;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  background: ${({ $status }) => {
+    if ($status === 'completed') return 'var(--gradient-green)';
+    if ($status === 'in-progress') return 'var(--gradient-yellow)';
+    return 'var(--color-gray-200)';
+  }};
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  color: white;
+  flex-shrink: 0;
 `;
 
 const ExerciseDetails = styled.div`
   display: flex;
   flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
 `;
 
 const ExerciseName = styled.div`
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-text-primary);
+  font-size: 1rem;
 `;
 
 const ExerciseMeta = styled.div`
   font-size: 0.875rem;
   color: var(--color-text-secondary);
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 `;
 
-const ExerciseStatus = styled.div<{ status: string }>`
-  padding: 6px 12px;
+const ExerciseStatus = styled.div<{ $status: string }>`
+  padding: 0.5rem 1rem;
   border-radius: 20px;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 
-  ${props => {
-    switch (props.status) {
+  ${({ $status }) => {
+    switch ($status) {
       case 'completed':
         return `
-          background: var(--color-green-100);
-          color: var(--color-green-700);
+          background: var(--color-success-bg);
+          color: var(--color-success-text);
         `;
       case 'in-progress':
         return `
@@ -209,11 +346,30 @@ const ExerciseStatus = styled.div<{ status: string }>`
   }}
 `;
 
+const StartButton = styled(Link)`
+  padding: 0.625rem 1.25rem;
+  background: var(--gradient-primary);
+  color: white;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+`;
+
 const LoadingContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 200px;
+  height: 400px;
 `;
 
 const Spinner = styled.div`
@@ -224,8 +380,8 @@ const Spinner = styled.div`
 const ErrorMessage = styled.div`
   background: var(--color-danger-bg);
   color: var(--color-danger-text);
-  padding: 20px;
-  border-radius: 8px;
+  padding: 1.5rem;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
   text-align: center;
   border: 1px solid var(--color-red-400);
 `;
@@ -248,6 +404,34 @@ interface ExerciseProgress {
   xpEarned?: number;
 }
 
+// Componente para animar números
+const AnimatedNumber: React.FC<{ value: number; decimals?: number }> = ({ value, decimals = 0 }) => {
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    const duration = 1000;
+    const steps = 60;
+    const increment = value / steps;
+    let current = 0;
+    let step = 0;
+
+    const timer = setInterval(() => {
+      step++;
+      current = Math.min(value, increment * step);
+      setDisplayValue(current);
+
+      if (step >= steps) {
+        clearInterval(timer);
+        setDisplayValue(value);
+      }
+    }, duration / steps);
+
+    return () => clearInterval(timer);
+  }, [value]);
+
+  return <>{displayValue.toFixed(decimals)}</>;
+};
+
 const GroupProgressPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
@@ -261,26 +445,40 @@ const GroupProgressPage: React.FC = () => {
     if (!id || !user) return;
 
     try {
+      // Buscar dados do grupo
       const groupData = await groupService.getById(id);
       setGroup(groupData);
 
-      const exercisesResponse = await exercisesService.getAll({ limit: 100 });
-      const groupExercises = exercisesResponse.items
-        .filter(ex => ex.groupId === id)
-        .map(exercise => ({
-          ...exercise,
-          languageId: exercise.languageId || null
-        }));
+      // Buscar exercícios do grupo
+      const exercisesResponse = await groupService.listExercises(id, 1, 100);
+      const groupExercises = exercisesResponse.items || [];
 
-      const mockProgress: ExerciseProgress[] = groupExercises.map(exercise => {
-        const randomStatus = Math.random();
+      // Buscar submissões do usuário
+      const submissionsResponse = await submissionsService.getMySubmissions(1, 1000);
+      const userSubmissions = submissionsResponse.items || [];
+
+      // Buscar exercícios concluídos
+      const completedExerciseIds = await submissionsService.getMyCompletedExercises();
+
+      // Buscar ranking do grupo
+      const groupRanking = await leaderboardService.getByGroup(id, { limit: 1000 });
+      const userRank = groupRanking.findIndex(entry => entry.userId === user.id) + 1;
+
+      // Calcular progresso de cada exercício
+      const exerciseProgress: ExerciseProgress[] = groupExercises.map(exercise => {
+        const submission = userSubmissions.find(
+          s => s.exerciseId === exercise.id && s.status === 'ACCEPTED'
+        );
+        const isCompleted = completedExerciseIds.includes(exercise.id);
+        const hasAttempts = userSubmissions.some(s => s.exerciseId === exercise.id);
+
         let status: 'completed' | 'in-progress' | 'not-started' = 'not-started';
         let xpEarned: number | undefined;
 
-        if (randomStatus > 0.7) {
+        if (isCompleted && submission) {
           status = 'completed';
-          xpEarned = exercise.baseXp * (0.8 + Math.random() * 0.4);
-        } else if (randomStatus > 0.3) {
+          xpEarned = submission.xpAwarded || exercise.baseXp || 0;
+        } else if (hasAttempts) {
           status = 'in-progress';
         }
 
@@ -288,19 +486,20 @@ const GroupProgressPage: React.FC = () => {
           exercise,
           status,
           xpEarned,
-          submittedAt: status !== 'not-started' ? new Date() : undefined
+          submittedAt: submission ? new Date(submission.createdAt) : undefined
         };
       });
 
-      setProgress(mockProgress);
+      setProgress(exerciseProgress);
 
-      const completed = mockProgress.filter(p => p.status === 'completed').length;
-      const inProgress = mockProgress.filter(p => p.status === 'in-progress').length;
-      const totalXp = mockProgress
+      // Calcular estatísticas
+      const completed = exerciseProgress.filter(p => p.status === 'completed').length;
+      const inProgress = exerciseProgress.filter(p => p.status === 'in-progress').length;
+      const totalXp = exerciseProgress
         .filter(p => p.status === 'completed')
         .reduce((sum, p) => sum + (p.xpEarned || 0), 0);
       const averageDifficulty = groupExercises.length > 0 
-        ? groupExercises.reduce((sum, ex) => sum + ex.difficulty, 0) / groupExercises.length
+        ? groupExercises.reduce((sum, ex) => sum + (ex.difficulty || 0), 0) / groupExercises.length
         : 0;
       const completionRate = groupExercises.length > 0 ? (completed / groupExercises.length) * 100 : 0;
 
@@ -311,8 +510,8 @@ const GroupProgressPage: React.FC = () => {
         totalXp,
         averageDifficulty,
         completionRate,
-        memberCount: groupData.members?.length || 0,
-        rankInGroup: Math.floor(Math.random() * (groupData.members?.length || 1)) + 1
+        memberCount: groupRanking.length || groupData.members?.length || 0,
+        rankInGroup: userRank || undefined
       });
 
     } catch (error: any) {
@@ -352,139 +551,274 @@ const GroupProgressPage: React.FC = () => {
     );
   }
 
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
   return (
     <AuthenticatedLayout>
       <Container>
-        <BackButton to={`/grupos/${id}`}>← Voltar para o Grupo</BackButton>
+        <BackButton to={`/grupos/${id}`}>
+          <ArrowLeft size={18} />
+          Voltar para o Grupo
+        </BackButton>
         
         <Header>
-          <Title>Meu Progresso no Grupo</Title>
+          <Title
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            Meu Progresso no Grupo
+          </Title>
           <GroupInfo>{group.name}</GroupInfo>
         </Header>
 
-        <DashboardGrid>
-          <StatCard>
-            <StatValue>{stats.completedExercises}/{stats.totalExercises}</StatValue>
+        <StatsGrid
+          as={motion.div}
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <StatCard
+            variants={cardVariants}
+            $gradient="var(--gradient-green)"
+          >
+            <StatIcon $color="var(--gradient-green)">
+              <CheckCircle2 size={24} />
+            </StatIcon>
+            <StatValue>
+              <AnimatedNumber value={stats.completedExercises} />/{stats.totalExercises}
+            </StatValue>
             <StatLabel>Exercícios Concluídos</StatLabel>
             <ProgressBar>
-              <ProgressFill percentage={stats.completionRate} color="var(--color-green-500)" />
+              <ProgressFill
+                $percentage={stats.completionRate}
+                $color="var(--gradient-green)"
+                initial={{ width: 0 }}
+                animate={{ width: `${stats.completionRate}%` }}
+                transition={{ duration: 1, delay: 0.3 }}
+              />
             </ProgressBar>
             <StatDescription>
               {stats.completionRate.toFixed(1)}% de conclusão
             </StatDescription>
           </StatCard>
 
-          <StatCard>
-            <StatValue>{stats.totalXp.toFixed(0)}</StatValue>
+          <StatCard
+            variants={cardVariants}
+            $gradient="var(--gradient-yellow)"
+          >
+            <StatIcon $color="var(--gradient-yellow)">
+              <Trophy size={24} />
+            </StatIcon>
+            <StatValue>
+              <AnimatedNumber value={stats.totalXp} />
+            </StatValue>
             <StatLabel>XP Total Conquistado</StatLabel>
             <StatDescription>
               No grupo {group.name}
             </StatDescription>
           </StatCard>
 
-          <StatCard>
-            <StatValue>#{stats.rankInGroup}</StatValue>
+          <StatCard
+            variants={cardVariants}
+            $gradient="var(--gradient-primary)"
+          >
+            <StatIcon $color="var(--gradient-primary)">
+              <Award size={24} />
+            </StatIcon>
+            <StatValue>
+              #{stats.rankInGroup || '-'}
+            </StatValue>
             <StatLabel>Posição no Ranking</StatLabel>
             <StatDescription>
               Entre {stats.memberCount} membros
             </StatDescription>
           </StatCard>
 
-          <StatCard>
-            <StatValue>{stats.averageDifficulty.toFixed(1)}/5</StatValue>
+          <StatCard
+            variants={cardVariants}
+            $gradient="var(--gradient-blue)"
+          >
+            <StatIcon $color="var(--gradient-blue)">
+              <TrendingUp size={24} />
+            </StatIcon>
+            <StatValue>
+              <AnimatedNumber value={stats.averageDifficulty} decimals={1} />/5
+            </StatValue>
             <StatLabel>Dificuldade Média</StatLabel>
             <StatDescription>
               Dos exercícios do grupo
             </StatDescription>
           </StatCard>
+        </StatsGrid>
 
-          <StatCardLarge>
-            <StatValue>📊 Resumo de Progresso</StatValue>
-            <StatLabel>Atividade no {group.name}</StatLabel>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginTop: '16px' }}>
-              <div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-green-600)' }}>
-                  {stats.completedExercises}
-                </div>
-                <div style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>Concluídos</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-yellow-600)' }}>
-                  {stats.inProgressExercises}
-                </div>
-                <div style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>Em Andamento</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-blue-600)' }}>
-                  {stats.totalExercises - stats.completedExercises - stats.inProgressExercises}
-                </div>
-                <div style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>Para Fazer</div>
-              </div>
-            </div>
-          </StatCardLarge>
-        </DashboardGrid>
+        <SummaryCard
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <SummaryHeader>
+            <BarChart3 size={24} color="var(--color-primary)" />
+            <SummaryTitle>Resumo de Progresso</SummaryTitle>
+          </SummaryHeader>
+          <SummaryGrid>
+            <SummaryItem
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: 0.5 }}
+            >
+              <SummaryValue $color="var(--color-green-500)">
+                <AnimatedNumber value={stats.completedExercises} />
+              </SummaryValue>
+              <SummaryLabel>Concluídos</SummaryLabel>
+            </SummaryItem>
+            <SummaryItem
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: 0.6 }}
+            >
+              <SummaryValue $color="var(--color-yellow-500)">
+                <AnimatedNumber value={stats.inProgressExercises} />
+              </SummaryValue>
+              <SummaryLabel>Em Andamento</SummaryLabel>
+            </SummaryItem>
+            <SummaryItem
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: 0.7 }}
+            >
+              <SummaryValue $color="var(--color-blue-500)">
+                <AnimatedNumber value={stats.totalExercises - stats.completedExercises - stats.inProgressExercises} />
+              </SummaryValue>
+              <SummaryLabel>Para Fazer</SummaryLabel>
+            </SummaryItem>
+          </SummaryGrid>
+        </SummaryCard>
 
-        <Section>
-          <SectionTitle>Meu Progresso nos Exercícios</SectionTitle>
+        <Section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
+        >
+          <SectionTitle>
+            <Target size={24} />
+            Meu Progresso nos Exercícios
+          </SectionTitle>
           <ExercisesList>
-            {progress.map((item) => (
-              <ExerciseItem key={item.exercise.id}>
-                <ExerciseInfo>
-                  <ExerciseIcon>💻</ExerciseIcon>
-                  <ExerciseDetails>
-                    <ExerciseName>{item.exercise.title}</ExerciseName>
-                    <ExerciseMeta>
-                      Dificuldade: {item.exercise.difficulty}/5 • 
-                      XP: {item.exercise.baseXp}
-                      {item.xpEarned && ` • Ganhou: ${item.xpEarned.toFixed(0)} XP`}
-                    </ExerciseMeta>
-                  </ExerciseDetails>
-                </ExerciseInfo>
-                <ExerciseStatus status={item.status}>
-                  {item.status === 'completed' && '✅ Concluído'}
-                  {item.status === 'in-progress' && '🔄 Em Andamento'}
-                  {item.status === 'not-started' && '⏳ Não Iniciado'}
-                </ExerciseStatus>
-              </ExerciseItem>
-            ))}
-          </ExercisesList>
-        </Section>
-
-        <Section>
-          <SectionTitle>Próximos Desafios Sugeridos</SectionTitle>
-          <ExercisesList>
-            {progress
-              .filter(item => item.status === 'not-started')
-              .slice(0, 3)
-              .map((item) => (
-                <ExerciseItem key={item.exercise.id}>
+            {progress.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-secondary)' }}>
+                Nenhum exercício encontrado neste grupo.
+              </div>
+            ) : (
+              progress.map((item, index) => (
+                <ExerciseItem
+                  key={item.exercise.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: 0.7 + index * 0.05 }}
+                >
                   <ExerciseInfo>
-                    <ExerciseIcon>🎯</ExerciseIcon>
+                    <ExerciseIcon $status={item.status}>
+                      {item.status === 'completed' && <CheckCircle2 size={20} />}
+                      {item.status === 'in-progress' && <Clock size={20} />}
+                      {item.status === 'not-started' && <Zap size={20} />}
+                    </ExerciseIcon>
                     <ExerciseDetails>
                       <ExerciseName>{item.exercise.title}</ExerciseName>
                       <ExerciseMeta>
-                        Dificuldade: {item.exercise.difficulty}/5 • 
-                        XP: {item.exercise.baseXp}
+                        <span>Dificuldade: {item.exercise.difficulty || 0}/5</span>
+                        <span>•</span>
+                        <span>XP: {item.exercise.baseXp || 0}</span>
+                        {item.xpEarned && (
+                          <>
+                            <span>•</span>
+                            <span style={{ color: 'var(--color-green-500)', fontWeight: 600 }}>
+                              Ganhou: {item.xpEarned.toFixed(0)} XP
+                            </span>
+                          </>
+                        )}
                       </ExerciseMeta>
                     </ExerciseDetails>
                   </ExerciseInfo>
-                  <Link 
-                    to={`/exercises/${item.exercise.id}`}
-                    style={{
-                      padding: '8px 16px',
-                      background: 'var(--color-blue-500)',
-                      color: 'white',
-                      borderRadius: '6px',
-                      textDecoration: 'none',
-                      fontSize: '0.875rem'
-                    }}
-                  >
-                    Iniciar
-                  </Link>
+                  <ExerciseStatus $status={item.status}>
+                    {item.status === 'completed' && (
+                      <>
+                        <CheckCircle2 size={14} />
+                        Concluído
+                      </>
+                    )}
+                    {item.status === 'in-progress' && (
+                      <>
+                        <Clock size={14} />
+                        Em Andamento
+                      </>
+                    )}
+                    {item.status === 'not-started' && (
+                      <>
+                        <Zap size={14} />
+                        Não Iniciado
+                      </>
+                    )}
+                  </ExerciseStatus>
                 </ExerciseItem>
-              ))}
+              ))
+            )}
           </ExercisesList>
         </Section>
+
+        {progress.filter(item => item.status === 'not-started').length > 0 && (
+          <Section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.8 }}
+          >
+            <SectionTitle>
+              <Target size={24} />
+              Próximos Desafios Sugeridos
+            </SectionTitle>
+            <ExercisesList>
+              {progress
+                .filter(item => item.status === 'not-started')
+                .slice(0, 3)
+                .map((item, index) => (
+                  <ExerciseItem
+                    key={item.exercise.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: 0.9 + index * 0.05 }}
+                  >
+                    <ExerciseInfo>
+                      <ExerciseIcon $status="not-started">
+                        <Target size={20} />
+                      </ExerciseIcon>
+                      <ExerciseDetails>
+                        <ExerciseName>{item.exercise.title}</ExerciseName>
+                        <ExerciseMeta>
+                          Dificuldade: {item.exercise.difficulty || 0}/5 • XP: {item.exercise.baseXp || 0}
+                        </ExerciseMeta>
+                      </ExerciseDetails>
+                    </ExerciseInfo>
+                    <StartButton to={`/dashboard?exercise=${item.exercise.id}`}>
+                      Iniciar
+                    </StartButton>
+                  </ExerciseItem>
+                ))}
+            </ExercisesList>
+          </Section>
+        )}
       </Container>
     </AuthenticatedLayout>
   );

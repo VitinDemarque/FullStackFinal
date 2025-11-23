@@ -9,7 +9,7 @@ import { IExercise } from '../models/Exercise.model';
 
 export interface Paging { skip: number; limit: number; }
 
-export async function listPublic({ skip, limit }: Paging) {
+export async function listPublic({ skip, limit }: Paging, userId?: string) {
   // Tipamos explicitamente o retorno do lean como array de IGroup
   const [items, total] = await Promise.all([
     Group.find({ visibility: 'PUBLIC' })
@@ -20,16 +20,39 @@ export async function listPublic({ skip, limit }: Paging) {
     Group.countDocuments({ visibility: 'PUBLIC' })
   ]);
 
-  // Para cada grupo, buscar a contagem de membros
+  // Para cada grupo, buscar a contagem de membros e verificar se o usuário é membro
   const itemsWithMembers = await Promise.all(
     items.map(async (group) => {
       const memberCount = await GroupMember.countDocuments({
         groupId: group._id
       });
       
+      // Se userId for fornecido, verificar se o usuário é membro e buscar a lista de membros
+      let members: Array<{ userId: string; role: string; joinedAt: Date }> | undefined;
+      if (userId) {
+        const userMembership = await GroupMember.findOne({
+          groupId: group._id,
+          userId: new Types.ObjectId(userId)
+        }).lean<IGroupMember | null>();
+        
+        // Se o usuário for membro, buscar todos os membros do grupo
+        if (userMembership) {
+          const allMembers = await GroupMember
+            .find({ groupId: group._id })
+            .lean<IGroupMember[]>();
+          
+          members = allMembers.map((m) => ({
+            userId: String(m.userId),
+            role: m.role,
+            joinedAt: m.joinedAt
+          }));
+        }
+      }
+      
       return {
         ...sanitize(group),
-        memberCount
+        memberCount,
+        ...(members && { members })
       };
     })
   );
@@ -71,16 +94,28 @@ export async function listMyGroups(userId: string, { skip, limit }: Paging) {
     .map(m => groupMap.get(String(m.groupId)))
     .filter(Boolean);
 
-  // Para cada grupo, buscar a contagem de membros
+  // Para cada grupo, buscar a contagem de membros e a lista completa de membros
   const itemsWithMembers = await Promise.all(
     orderedGroups.map(async ({ group, membership }) => {
       const memberCount = await GroupMember.countDocuments({
         groupId: group._id
       });
       
+      // Buscar todos os membros do grupo para incluir no retorno
+      const allMembers = await GroupMember
+        .find({ groupId: group._id })
+        .lean<IGroupMember[]>();
+      
+      const members = allMembers.map((m) => ({
+        userId: String(m.userId),
+        role: m.role,
+        joinedAt: m.joinedAt
+      }));
+      
       return {
         ...sanitize(group),
         memberCount,
+        members,
         role: membership.role,
         joinedAt: membership.joinedAt
       };
@@ -266,15 +301,32 @@ function sanitize(g: IGroup) {
   };
 }
 
-function sanitizeExerciseLite(e: IExercise) {
+function sanitizeExerciseLite(e: any) {
+  // Garantir que authorUserId seja extraído corretamente
+  const authorUserId = e.authorUserId 
+    ? (typeof e.authorUserId === 'object' && e.authorUserId._id 
+        ? String(e.authorUserId._id) 
+        : String(e.authorUserId))
+    : null;
+  
   return {
     id: String(e._id),
-    title: e.title,
-    languageId: e.languageId ? String(e.languageId) : null,
-    difficulty: e.difficulty,
+    authorUserId: authorUserId,
+    title: e.title || '',
+    description: e.description || null,
+    languageId: e.languageId ? (typeof e.languageId === 'object' ? String(e.languageId._id || e.languageId) : String(e.languageId)) : null,
+    language: e.languageId && typeof e.languageId === 'object' && e.languageId.name ? {
+      id: String(e.languageId._id || e.languageId),
+      name: e.languageId.name,
+      slug: e.languageId.slug
+    } : null,
+    difficulty: e.difficulty || 1,
+    baseXp: e.baseXp || 0,
     isPublic: !!e.isPublic,
-    status: e.status,
-    createdAt: e.createdAt
+    status: e.status || 'DRAFT',
+    publicCode: e.publicCode || null,
+    createdAt: e.createdAt,
+    updatedAt: e.updatedAt
   };
 }
 
@@ -304,6 +356,8 @@ export async function listExercisesForGroup(
 
   const [items, total] = await Promise.all([
       Exercise.find(where)
+          .select('authorUserId title description languageId difficulty baseXp isPublic status publicCode createdAt updatedAt')
+          .populate('languageId', 'name slug')
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(limit)

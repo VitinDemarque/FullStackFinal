@@ -17,6 +17,7 @@ interface ExerciseCardProps {
   onEdit?: () => void;
   onDelete?: () => void;
   onInactivate?: () => void;
+  onClick?: () => void;
 }
 
 export default function ExerciseCard({
@@ -31,12 +32,14 @@ export default function ExerciseCard({
   status,
   onEdit,
   onDelete,
-  onInactivate
+  onInactivate,
+  onClick
 }: ExerciseCardProps) {
   const isActive = status === 'PUBLISHED';
   const [copied, setCopied] = useState(false);
 
-  const handleCopyId = async () => {
+  const handleCopyId = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     try {
       const codeToCopy = publicCode ?? id;
       await navigator.clipboard.writeText(codeToCopy);
@@ -47,8 +50,14 @@ export default function ExerciseCard({
     }
   }
 
+  const handleCardClick = () => {
+    if (isActive && onClick) {
+      onClick();
+    }
+  }
+
   return (
-    <S.ExerciseCard $inactive={!isActive}>
+    <S.ExerciseCard $inactive={!isActive} onClick={handleCardClick} style={isActive && onClick ? { cursor: 'pointer' } : undefined}>
       <S.CardHeader>
         <S.CardIcon>
           {icon}
@@ -85,7 +94,7 @@ export default function ExerciseCard({
           Alterado a {lastModified}
         </S.LastModified>
 
-        <S.ActionsContainer>
+        <S.ActionsContainer onClick={(e) => e.stopPropagation()}>
           <ExerciseActionsMenu
             onEdit={onEdit || (() => { })}
             onDelete={onDelete || (() => { })}

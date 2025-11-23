@@ -396,8 +396,9 @@ export const CardHeader = styled.div<{ $isDark?: boolean }>`
   background: ${({ $isDark }) => ($isDark ? '#0f172a' : theme.colors.gray[50])};
   border-bottom: 1px solid ${({ $isDark }) => ($isDark ? '#334155' : theme.colors.gray[200])};
   transition: background 0.3s ease, border-color 0.3s ease;
-  overflow: hidden;
+  overflow: visible;
   border-radius: ${theme.borderRadius.lg} ${theme.borderRadius.lg} 0 0;
+  position: relative;
   
   @media (max-width: ${theme.breakpoints.tablet}) {
     padding: 1rem 1.25rem;

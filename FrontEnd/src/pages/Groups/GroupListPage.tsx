@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { Group } from "../../types/group.types";
 import { groupService } from "../../services/group.service";
 import GroupCard from "../../components/Groups/GroupCard";
+import { motion, AnimatePresence } from "framer-motion";
 import styled from "styled-components";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
 import { useGroupNotification } from "../../hooks/useGroupNotification";
@@ -31,7 +32,7 @@ const Header = styled.div`
   }
 `;
 
-const Title = styled.h1`
+const Title = styled(motion.h1)`
   font-size: ${({ theme }) => theme.fontSizes["4xl"]};
   font-weight: ${({ theme }) => theme.fontWeights.bold};
   color: var(--color-text-primary);
@@ -58,7 +59,7 @@ const Title = styled.h1`
   }
 `;
 
-const CreateButton = styled(Link)`
+const CreateButton = styled(motion(Link))`
   background: var(--color-surface);
   color: var(--color-text-primary);
   padding: 0.75rem 1.5rem;
@@ -82,17 +83,23 @@ const CreateButton = styled(Link)`
     background: var(--color-surface-hover);
     border-color: var(--color-blue-400);
     box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
   }
 `;
 
-const GroupsGrid = styled.div`
+const GroupsGrid = styled(motion.div)`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
   margin-bottom: 30px;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
+    gap: 20px;
   }
 `;
 
@@ -108,7 +115,7 @@ const Spinner = styled.div`
   color: #666;
 `;
 
-const EmptyState = styled.div`
+const EmptyState = styled(motion.div)`
   text-align: center;
   padding: 60px 20px;
   color: #666;
@@ -123,7 +130,7 @@ const EmptyStateText = styled.p`
   margin: 0 0 24px 0;
 `;
 
-const TabsContainer = styled.div`
+const TabsContainer = styled(motion.div)`
   display: flex;
   gap: 12px;
   margin-bottom: 24px;
@@ -131,7 +138,7 @@ const TabsContainer = styled.div`
   padding-bottom: 0;
 `;
 
-const TabButton = styled.button.withConfig({
+const TabButton = styled(motion.button).withConfig({
   shouldForwardProp: (prop) => prop !== 'active',
 })<{ active: boolean }>`
   background: none;
@@ -156,7 +163,6 @@ const GroupListPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'public' | 'my'>('public');
   const { user, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
   const { notifications, removeNotification, showError, showSuccess } = useGroupNotification();
 
   const loadGroups = async () => {
@@ -186,20 +192,36 @@ const GroupListPage: React.FC = () => {
   }, [activeTab, isAuthenticated]);
 
   const handleJoinGroup = async (groupId: string) => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !user?.id) {
       showError("Acesso negado", "Você precisa estar logado para entrar em um grupo");
       return;
     }
 
     try {
       await groupService.join(groupId);
+      
+      // Busca o grupo atualizado com a lista de membros
+      const updatedGroup = await groupService.getById(groupId);
+      
+      // Atualiza apenas o grupo específico no estado, garantindo que o grupo existe na lista
+      setGroups(prevGroups => {
+        const groupIndex = prevGroups.findIndex(g => g.id === groupId);
+        if (groupIndex !== -1) {
+          // Cria um novo array com o grupo atualizado
+          const newGroups = [...prevGroups];
+          newGroups[groupIndex] = updatedGroup;
+          return newGroups;
+        }
+        // Se o grupo não estiver na lista (caso raro), adiciona ele
+        return [...prevGroups, updatedGroup];
+      });
+      
       showSuccess("Sucesso!", "Você entrou no grupo com sucesso!");
-      // Recarrega a lista e depois navega para o grupo
-      await loadGroups();
-      // Navega para a página do grupo após entrar
-      setTimeout(() => {
-        navigate(`/grupos/${groupId}`);
-      }, 500); // Pequeno delay para mostrar a notificação de sucesso
+      
+      // Não redireciona automaticamente - deixa o usuário ver a atualização do botão
+      // Se quiser redirecionar, pode descomentar a linha abaixo:
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // setTimeout(() => { navigate(`/grupos/${groupId}`); }, 1500);
     } catch (error: any) {
       showError("Erro ao entrar no grupo", error.message || "Não foi possível entrar no grupo. Tente novamente.");
     }
@@ -207,6 +229,15 @@ const GroupListPage: React.FC = () => {
 
   // CORREÇÃO: Garantir que sempre retorna boolean
   const isUserMember = (group: Group): boolean => {
+    // Se estamos na aba "Meus Grupos", todos os grupos retornados são grupos em que o usuário é membro
+    if (activeTab === 'my') {
+      return true;
+    }
+    // Verifica se o grupo tem a propriedade 'role' (indica que o usuário é membro quando vem de listMyGroups)
+    if (group.role) {
+      return true;
+    }
+    // Verifica se o usuário está no array de membros
     return !!group.members?.some((member) => member.userId === user?.id);
   };
 
@@ -239,61 +270,117 @@ const GroupListPage: React.FC = () => {
         ))}
         
         <Header>
-          <Title>Grupos de Estudo</Title>
+          <Title
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            Grupos de Estudo
+          </Title>
           {isAuthenticated && (
-            <CreateButton to="/grupos/novo">Criar Novo Grupo</CreateButton>
+            <CreateButton 
+              to="/grupos/novo"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Criar Novo Grupo
+            </CreateButton>
           )}
         </Header>
 
-        {isAuthenticated && (
-          <TabsContainer>
-            <TabButton 
-              active={activeTab === 'public'} 
-              onClick={() => setActiveTab('public')}
+        <AnimatePresence mode="wait">
+          {isAuthenticated && (
+            <TabsContainer
+              key="tabs"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
             >
-              Grupos Públicos
-            </TabButton>
-            <TabButton 
-              active={activeTab === 'my'} 
-              onClick={() => setActiveTab('my')}
+              <TabButton 
+                active={activeTab === 'public'} 
+                onClick={() => setActiveTab('public')}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Grupos Públicos
+              </TabButton>
+              <TabButton 
+                active={activeTab === 'my'} 
+                onClick={() => setActiveTab('my')}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Meus Grupos
+              </TabButton>
+            </TabsContainer>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence mode="wait">
+          <GroupsGrid
+            key={activeTab}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {groups.map((group, index) => (
+              <motion.div
+                key={group.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }}
+                whileHover={{ y: -4 }}
+              >
+                <GroupCard
+                  group={group}
+                  isAuthenticated={isAuthenticated}
+                  isUserMember={isUserMember(group)}
+                  isUserOwner={isUserOwner(group)}
+                  onJoinGroup={handleJoinGroup}
+                />
+              </motion.div>
+            ))}
+          </GroupsGrid>
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {groups.length === 0 && !loading && (
+            <EmptyState
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.5 }}
             >
-              Meus Grupos
-            </TabButton>
-          </TabsContainer>
-        )}
-
-        <GroupsGrid>
-          {groups.map((group) => (
-            <GroupCard
-              key={group.id}
-              group={group}
-              isAuthenticated={isAuthenticated}
-              isUserMember={isUserMember(group)} // Agora sempre boolean
-              isUserOwner={isUserOwner(group)} // Agora sempre boolean
-              onJoinGroup={handleJoinGroup}
-            />
-          ))}
-        </GroupsGrid>
-
-        {groups.length === 0 && !loading && (
-          <EmptyState>
-            <EmptyStateTitle>
-              {activeTab === 'my' 
-                ? 'Você ainda não participa de nenhum grupo' 
-                : 'Nenhum grupo público encontrado'}
-            </EmptyStateTitle>
-            <EmptyStateText>
-              {activeTab === 'my' 
-                ? 'Explore os grupos públicos ou crie um novo grupo!' 
-                : 'Seja o primeiro a criar um grupo!'}
-            </EmptyStateText>
-            {isAuthenticated && (
-              <CreateButton to="/grupos/novo">
-                Criar Primeiro Grupo
-              </CreateButton>
-            )}
-          </EmptyState>
-        )}
+              <EmptyStateTitle>
+                {activeTab === 'my' 
+                  ? 'Você ainda não participa de nenhum grupo' 
+                  : 'Nenhum grupo público encontrado'}
+              </EmptyStateTitle>
+              <EmptyStateText>
+                {activeTab === 'my' 
+                  ? 'Explore os grupos públicos ou crie um novo grupo!' 
+                  : 'Seja o primeiro a criar um grupo!'}
+              </EmptyStateText>
+              {isAuthenticated && (
+                <CreateButton 
+                  to="/grupos/novo"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: 0.3 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Criar Primeiro Grupo
+                </CreateButton>
+              )}
+            </EmptyState>
+          )}
+        </AnimatePresence>
       </Container>
     </AuthenticatedLayout>
   );

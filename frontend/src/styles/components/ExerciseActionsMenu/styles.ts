@@ -3,6 +3,7 @@ import styled from 'styled-components';
 export const Container = styled.div`
   position: relative;
   display: inline-block;
+  z-index: 10000;
 `;
 
 export const MenuButton = styled.button`
@@ -36,7 +37,7 @@ export const Menu = styled.div`
   border-radius: ${({ theme }) => theme.borderRadius.md};
   box-shadow: var(--shadow-lg);
   min-width: 160px;
-  z-index: 1000;
+  z-index: 10000;
   margin-top: 0.25rem;
   overflow: hidden;
 `;

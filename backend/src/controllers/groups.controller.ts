@@ -5,11 +5,13 @@ import * as GroupsService from '../services/groups.service';
 import { parsePagination, toMongoPagination } from '../utils/pagination';
 import { BadRequestError } from '../utils/httpErrors';
 
-export async function listPublic(req: Request, res: Response, next: NextFunction) {
+export async function listPublic(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const page = parsePagination(req.query);
     const { skip, limit } = toMongoPagination(page);
-    const result = await GroupsService.listPublic({ skip, limit });
+    // Se o usuário estiver autenticado, passar o userId para incluir informações de membership
+    const userId = req.user?.user_id;
+    const result = await GroupsService.listPublic({ skip, limit }, userId);
     return res.json(result);
   } catch (err) {
     return next(err);
