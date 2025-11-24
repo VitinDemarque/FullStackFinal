@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTheme } from "@contexts/ThemeContext";
-import { FaTrophy, FaCheckCircle, FaChartLine } from "react-icons/fa";
+import { FaTrophy, FaCheckCircle } from "react-icons/fa";
+
 import { Group } from "../../types/group.types";
 import { Exercise } from "../../types";
 import { ThemedButton } from "../../styles/themed-components";
@@ -150,13 +151,6 @@ const FilterSelect = styled.select`
 const ClearFiltersButton = styled(ThemedButton)`
   padding: 10px 16px;
   font-size: 0.875rem;
-`;
-
-const ExercisesGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 24px;
-  margin-bottom: 40px;
 `;
 
 const LoadingContainer = styled.div`
@@ -450,7 +444,7 @@ const GroupExercisesPage: React.FC = () => {
     if (filters.status !== 'all' && exercise.status !== filters.status) {
       return false;
     }
-    if (filters.languageId !== 'all' && exercise.languageId !== filters.languageId) {
+    if (filters.languageId !== 'all' && exercise.language?.slug !== filters.languageId) {
       return false;
     }
     return true;
@@ -894,7 +888,16 @@ const GroupExercisesPage: React.FC = () => {
 
         {selectedExercise && (
           <ChallengeModal
-            exercise={selectedExercise}
+            exercise={{
+              id: selectedExercise.id,
+              title: selectedExercise.title,
+              description: selectedExercise.description ?? null,
+              difficulty: selectedExercise.difficulty,
+              baseXp: selectedExercise.baseXp,
+              publicCode: (selectedExercise as any).publicCode,
+              codeTemplate: (selectedExercise as any).codeTemplate,
+              isCompleted: (selectedExercise as any).isCompleted,
+            }}
             onClose={() => setSelectedExercise(null)}
             onTest={handleTestChallenge}
             onSubmit={handleSubmitChallenge}

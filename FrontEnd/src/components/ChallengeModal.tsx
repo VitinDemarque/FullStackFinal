@@ -602,7 +602,7 @@ interface ChallengeModalProps {
   exercise: {
     id: string;
     title: string;
-    description: string;
+    description: string | null;
     difficulty: number;
     baseXp: number;
     publicCode?: string;
@@ -869,7 +869,7 @@ export default function ChallengeModal({
         <Content>
           <LeftPanel $isDark={isDark}>
             <SectionTitle $isDark={isDark}>📋 Descrição do Desafio</SectionTitle>
-            <Description $isDark={isDark}>{exercise.description}</Description>
+            <Description $isDark={isDark}>{exercise.description ?? ""}</Description>
 
             <SectionTitle $isDark={isDark}>🎯 Objetivo</SectionTitle>
             <Description $isDark={isDark}>
