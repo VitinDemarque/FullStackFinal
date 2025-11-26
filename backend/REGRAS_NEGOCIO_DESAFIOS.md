@@ -23,7 +23,11 @@ Este documento define as regras de negócio para o sistema de exercícios, inclu
 1. **Validação com Testes**: Executa código do usuário contra todos os testes do exercício
 2. **Cálculo de Score**: Baseado na porcentagem de testes passados
 3. **Análise de Complexidade**: Avalia complexidade ciclomática, linhas de código, aninhamento e recursão
-4. **Bônus de Pontos**: Até 20 pontos extras para códigos com baixa complexidade
+4. **Bônus de Pontos (Sistema Híbrido)**: 
+   - 100% dos testes: até 20 pontos extras (100% do bônus)
+   - 90-99% dos testes: até 10 pontos extras (50% do bônus)
+   - 80-89% dos testes: até 5 pontos extras (25% do bônus)
+   - < 80% dos testes: sem bônus
 5. **Score Final**: Score dos testes + bônus de complexidade (máximo 100)
 
 ### **Sistema de Ranking**
@@ -343,19 +347,52 @@ Cada teste contém:
   - ✅ Penalidade máxima: 100 (score = 0)
   - ✅ Score de complexidade: 0-100
 
-#### 4.4 Bônus de Pontos
+#### 4.4 Bônus de Pontos (Sistema Híbrido)
 
 - **Aplicação do bônus**:
-  - ✅ Bônus = `(complexityScore / 100) × 20` (máximo 20 pontos)
-  - ✅ Aplicado APENAS se submissão for `'ACCEPTED'`
-  - ✅ Score final = Score dos testes + Bônus de complexidade
+  - ✅ Bônus base = `(complexityScore / 100) × 20` (máximo 20 pontos)
+  - ✅ Bônus final = `Bônus base × Multiplicador`
+  - ✅ Score final = Score dos testes + Bônus final
   - ✅ Score final limitado a 100 (não pode ultrapassar)
 
-- **Exemplo**:
+- **Multiplicadores por faixa de testScore**:
+  - ✅ **100%**: Multiplicador 1.0 (100% do bônus) - Código perfeito
+  - ✅ **90-99%**: Multiplicador 0.5 (50% do bônus) - Quase perfeito
+  - ✅ **80-89%**: Multiplicador 0.25 (25% do bônus) - Bom desempenho
+  - ❌ **< 80%**: Multiplicador 0 (sem bônus) - Precisa melhorar
+
+- **Exemplos**:
+
+  **Exemplo 1: Código perfeito e limpo**
+  - Score dos testes: 100
+  - Score de complexidade: 90
+  - Bônus base: (90/100) × 20 = 18 pontos
+  - Multiplicador: 1.0 (100%)
+  - Bônus final: 18 × 1.0 = 18 pontos
+  - Score final: 100 (limitado, pois 100 + 18 > 100)
+
+  **Exemplo 2: Quase perfeito e limpo**
+  - Score dos testes: 90
+  - Score de complexidade: 90
+  - Bônus base: (90/100) × 20 = 18 pontos
+  - Multiplicador: 0.5 (50%)
+  - Bônus final: 18 × 0.5 = 9 pontos
+  - Score final: 90 + 9 = 99 pontos
+
+  **Exemplo 3: Bom desempenho e limpo**
   - Score dos testes: 80
   - Score de complexidade: 90
-  - Bônus: (90/100) × 20 = 18 pontos
-  - Score final: 80 + 18 = 98 pontos
+  - Bônus base: (90/100) × 20 = 18 pontos
+  - Multiplicador: 0.25 (25%)
+  - Bônus final: 18 × 0.25 = 4.5 pontos
+  - Score final: 80 + 4.5 = 84.5 pontos
+
+  **Exemplo 4: Passou raspando, mesmo com código limpo**
+  - Score dos testes: 60
+  - Score de complexidade: 90
+  - Multiplicador: 0 (sem bônus)
+  - Bônus final: 0 pontos
+  - Score final: 60 pontos
 
 #### 4.5 Armazenamento
 
@@ -451,6 +488,11 @@ Cada teste contém:
   - Usuário B: Score 100, Complexity 90, Tempo 3000ms
   - Usuário C: Score 95, Complexity 100, Tempo 2000ms
   - **Ranking**: A (1º), B (2º), C (3º)
+  
+  **Explicação do exemplo:**
+  - A e B têm mesmo score final (100), mas A tem maior complexityScore (95 > 90)
+  - C tem menor score final (95), então fica em 3º mesmo com maior complexityScore
+  - **Regra:** Score final é sempre o critério principal!
 
 #### 7.3 Armazenamento do Ranking
 
@@ -523,15 +565,21 @@ Cada teste contém:
 
 ### Pontos de Atenção
 
-1. **Validação de Score**: Atualmente o score é recebido do frontend. Considerar validação automática via Judge0 no futuro.
+1. **Sistema Híbrido de Bônus**: O sistema premia primeiramente a correção (testes passando), depois a qualidade (complexidade). Isso incentiva a mentalidade "primeiro funciona, depois otimiza".
 
-2. **Limite de Tentativas**: Atualmente não há limite de tentativas para exercícios rejeitados.
+2. **Justificativa Pedagógica do Bônus**:
+   - **100%**: Código perfeito merece bônus completo - incentiva excelência
+   - **90-99%**: Quase perfeito ainda merece reconhecimento - mantém motivação
+   - **80-89%**: Código bom com margem de melhoria - incentiva refinamento
+   - **< 80%**: Foco deve ser fazer funcionar antes de otimizar - pedagogicamente correto
 
-3. **Tempo de Submissão**: O tempo é calculado no frontend. Considerar validação no backend.
+3. **Limite de Tentativas**: Atualmente não há limite de tentativas para exercícios rejeitados.
 
-4. **Código Público**: Pode haver colisões raras. O fallback com timestamp resolve isso.
+4. **Tempo de Submissão**: O tempo é calculado no frontend. Considerar validação no backend.
 
-5. **Badges**: Apenas administradores podem configurar badges. Usuários comuns recebem badges configurados pelos admins.
+5. **Código Público**: Pode haver colisões raras. O fallback com timestamp resolve isso.
+
+6. **Badges**: Apenas administradores podem configurar badges. Usuários comuns recebem badges configurados pelos admins.
 
 ---
 
@@ -554,26 +602,30 @@ Cada teste contém:
 1. Usuário autenticado faz POST /submissions
 2. Valida se exercício existe e está publicado
 3. Valida se usuário não completou anteriormente
-4. Valida se exercício tem pelo menos 3 testes
+4. Valida se exercício tem pelo menos 2 testes
 5. Executa código do usuário com cada teste do exercício
-6. Compara saídas e calcula score (testes passados / total)
+6. Compara saídas e calcula testScore (testes passados / total × 100)
 7. Analisa complexidade do código:
    - Calcula complexidade ciclomática
    - Conta linhas de código
    - Mede profundidade de aninhamento
    - Detecta recursão
    - Calcula score de complexidade (0-100)
-8. Calcula bônus de pontos (máximo 20 pontos)
-9. Calcula score final (score testes + bônus, máximo 100)
+8. Calcula bônus de pontos com sistema híbrido:
+   - testScore = 100%: bônus completo (até 20 pontos)
+   - testScore 90-99%: 50% do bônus (até 10 pontos)
+   - testScore 80-89%: 25% do bônus (até 5 pontos)
+   - testScore < 80%: sem bônus
+9. Calcula score final (testScore + bônus, máximo 100)
 10. Determina status (ACCEPTED se score final >= 60)
 11. Calcula XP (base + multiplicador de raridade)
 12. Cria submissão no banco com:
-    - Score dos testes
-    - Score de complexidade
-    - Bônus concedido
-    - Score final
-    - Resultados de cada teste
-    - Métricas de complexidade
+    - testScore: Score baseado nos testes
+    - complexityScore: Score de complexidade
+    - bonusPoints: Bônus concedido (com multiplicador)
+    - finalScore: Score final (testScore + bonusPoints)
+    - testResults: Resultados detalhados de cada teste
+    - complexityMetrics: Métricas de complexidade
 13. Se ACCEPTED:
     - Credita XP e atualiza nível
     - Concede badges (triumphant e highScore se aplicável)
@@ -607,16 +659,19 @@ Cada teste contém:
 - [ ] **Código executa sem erros de compilação**
 - [ ] **Código executa sem erros de runtime**
 - [ ] **Todos os testes são executados**
-- [ ] **Score calculado corretamente (testes passados / total)**
+- [ ] **testScore calculado corretamente (testes passados / total × 100)**
 - [ ] **Complexidade analisada (ciclo, linhas, aninhamento, recursão)**
 - [ ] **Score de complexidade calculado (0-100)**
-- [ ] **Bônus de pontos calculado (máximo 20)**
-- [ ] **Score final calculado (testes + bônus, máximo 100)**
-- [ ] Status determinado corretamente (score final >= 60)
+- [ ] **Sistema híbrido de bônus aplicado:**
+  - [ ] testScore = 100%: bônus completo (1.0x)
+  - [ ] testScore 90-99%: bônus parcial (0.5x)
+  - [ ] testScore 80-89%: bônus mínimo (0.25x)
+  - [ ] testScore < 80%: sem bônus (0x)
+- [ ] **Score final calculado (testScore + bonusPoints, máximo 100)**
+- [ ] Status determinado corretamente (finalScore >= 60 = ACCEPTED)
 - [ ] Tempo >= 0
 - [ ] XP calculado corretamente
-- [ ] **Ranking atualizado (score final > complexity > tempo)**
-- [ ] Status determinado corretamente
+- [ ] **Ranking atualizado (finalScore > complexityScore > timeSpentMs)**
 - [ ] Badges concedidos (se aplicável)
 - [ ] Estatísticas atualizadas
 

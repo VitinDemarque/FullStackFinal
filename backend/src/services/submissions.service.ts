@@ -86,15 +86,25 @@ export async function create(input: CreateSubmissionInput) {
     complexityScore = complexityAnalysis.complexityScore;
     complexityMetrics = complexityAnalysis.metrics;
 
-    // Bônus de complexidade é aplicado APENAS se o código passar em 100% dos testes (testScore = 100)
-    // Se não passar em todos os testes, não recebe bônus mesmo que o código seja simples
+    // Sistema híbrido de bônus baseado no testScore:
+    // - 100%: Bônus completo (100% do bônus de complexidade)
+    // - 90-99%: Bônus parcial alto (50% do bônus de complexidade)
+    // - 80-89%: Bônus parcial baixo (25% do bônus de complexidade)
+    // - < 80%: Sem bônus
+    let bonusMultiplier = 0;
+    
     if (testScore === 100) {
-      bonusPoints = complexityAnalysis.bonusPoints;
-      finalScore = Math.min(100, testScore + bonusPoints);
+      bonusMultiplier = 1.0;  // 100% do bônus - código perfeito
+    } else if (testScore >= 90) {
+      bonusMultiplier = 0.5;  // 50% do bônus - quase perfeito
+    } else if (testScore >= 80) {
+      bonusMultiplier = 0.25; // 25% do bônus - bom desempenho
     } else {
-      bonusPoints = 0; // Não recebe bônus se não passou em 100% dos testes
-      finalScore = testScore; // Score final = apenas score dos testes
+      bonusMultiplier = 0;    // Sem bônus - precisa melhorar
     }
+    
+    bonusPoints = Math.round(complexityAnalysis.bonusPoints * bonusMultiplier * 100) / 100;
+    finalScore = Math.min(100, testScore + bonusPoints);
   } else {
     finalScore = Number(score ?? 0);
     testScore = finalScore;

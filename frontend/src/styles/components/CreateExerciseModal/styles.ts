@@ -209,6 +209,11 @@ export const EditorPanel = styled.div`
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  width: 100%;
+  
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    max-height: none;
+  }
 `;
 
 export const EditorHeader = styled.div`

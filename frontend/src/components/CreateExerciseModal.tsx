@@ -29,7 +29,12 @@ const EditorContainerStyled = styled.div<{ $isDark: boolean }>`
   position: relative;
   overflow: auto;
   background: ${({ $isDark }) => ($isDark ? "#0c1220" : "#1e1e1e")};
-  min-height: 300px;
+  min-height: 250px;
+  max-height: 350px;
+  
+  @media (max-width: 968px) {
+    max-height: 300px;
+  }
 `;
 
 const LineNumbers = styled.div<{ $isDark: boolean }>`
@@ -84,12 +89,22 @@ const CodeTextareaStyled = styled.textarea<{ $isDark: boolean }>`
 const TestOutputContainer = styled.div<{ $isDark: boolean }>`
   background: ${({ $isDark }) => ($isDark ? "#0f172a" : "#111827")};
   border-top: 1px solid ${({ $isDark }) => ($isDark ? "#1e293b" : "#1f2937")};
-  padding: 1.5rem;
+  padding: 1rem;
   color: ${({ $isDark }) => ($isDark ? "#cbd5e1" : "#e2e8f0")};
-  min-height: 150px;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  
+  @media (max-width: 968px) {
+    padding: 0.875rem;
+  }
+  
+  @media (max-width: 576px) {
+    padding: 0.75rem;
+  }
 `;
 
 const TestOutputHeader = styled.div`
@@ -113,6 +128,150 @@ const TestOutputContent = styled.pre<{ $isDark: boolean }>`
   overflow-x: auto;
   white-space: pre-wrap;
   word-wrap: break-word;
+`;
+
+const TestConsoleContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  width: 100%;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+`;
+
+const TestConsolePanel = styled.div<{ $isDark: boolean; $type: 'input' | 'output' }>`
+  display: flex;
+  flex-direction: column;
+  background: ${({ $isDark }) => ($isDark ? "#1e293b" : "#ffffff")};
+  border: 1.5px solid ${({ $isDark, $type }) => {
+    if ($type === 'input') {
+      return $isDark ? "#3b82f6" : "#60a5fa";
+    }
+    return $isDark ? "#10b981" : "#34d399";
+  }};
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  height: 180px;
+  
+  &:focus-within {
+    box-shadow: 0 0 0 3px ${({ $isDark, $type }) => {
+      if ($type === 'input') {
+        return $isDark ? "rgba(59, 130, 246, 0.15)" : "rgba(96, 165, 250, 0.15)";
+      }
+      return $isDark ? "rgba(16, 185, 129, 0.15)" : "rgba(52, 211, 153, 0.15)";
+    }};
+  }
+  
+  @media (max-width: 968px) {
+    height: 160px;
+  }
+`;
+
+const TestConsolePanelHeader = styled.div<{ $isDark: boolean; $type: 'input' | 'output' }>`
+  padding: 0.5rem 0.75rem;
+  background: ${({ $isDark, $type }) => {
+    if ($type === 'input') {
+      return $isDark ? "#1e3a8a" : "#dbeafe";
+    }
+    return $isDark ? "#065f46" : "#d1fae5";
+  }};
+  color: ${({ $isDark, $type }) => {
+    if ($type === 'input') {
+      return $isDark ? "#93c5fd" : "#1e40af";
+    }
+    return $isDark ? "#6ee7b7" : "#065f46";
+  }};
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  letter-spacing: 0.5px;
+  
+  @media (max-width: 576px) {
+    font-size: 0.7rem;
+    padding: 0.4rem 0.625rem;
+  }
+`;
+
+const TestConsoleTextarea = styled.textarea<{ $isDark: boolean }>`
+  flex: 1;
+  padding: 0.75rem;
+  background: transparent;
+  border: none;
+  color: ${({ $isDark }) => ($isDark ? "#e2e8f0" : "#1a202c")};
+  font-size: 0.8rem;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+  resize: none;
+  line-height: 1.4;
+  
+  &:focus {
+    outline: none;
+  }
+
+  &::placeholder {
+    color: ${({ $isDark }) => ($isDark ? "#64748b" : "#a0aec0")};
+  }
+  
+  @media (max-width: 968px) {
+    font-size: 0.75rem;
+    padding: 0.625rem;
+  }
+  
+  @media (max-width: 576px) {
+    font-size: 0.7rem;
+  }
+`;
+
+const TestConsoleOutput = styled.pre<{ $isDark: boolean }>`
+  flex: 1;
+  padding: 0.75rem;
+  margin: 0;
+  background: transparent;
+  color: ${({ $isDark }) => ($isDark ? "#e2e8f0" : "#1a202c")};
+  font-size: 0.8rem;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-y: auto;
+  word-break: break-word;
+  
+  @media (max-width: 968px) {
+    font-size: 0.75rem;
+    padding: 0.625rem;
+  }
+  
+  @media (max-width: 576px) {
+    font-size: 0.7rem;
+  }
+`;
+
+const TestConsoleHint = styled.div<{ $isDark: boolean }>`
+  padding: 0 0.75rem 0.75rem 0.75rem;
+  font-size: 0.7rem;
+  color: ${({ $isDark }) => ($isDark ? "#94a3b8" : "#718096")};
+  line-height: 1.4;
+  
+  code {
+    background: ${({ $isDark }) => ($isDark ? "rgba(148, 163, 184, 0.1)" : "rgba(0, 0, 0, 0.05)")};
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+    font-size: 0.7rem;
+  }
+  
+  @media (max-width: 968px) {
+    font-size: 0.65rem;
+    padding: 0 0.625rem 0.625rem 0.625rem;
+  }
+  
+  @media (max-width: 576px) {
+    display: none;
+  }
 `;
 
 const TestButton = styled.button<{ $isDark: boolean; $isTesting: boolean }>`
@@ -970,26 +1129,6 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit, codeTem
               {isTesting ? 'Testando...' : 'Testar Código'}
             </TestButton>
           </EditorHeaderStyled>
-          <div style={{ 
-            padding: '0.75rem 1rem', 
-            borderBottom: `1px solid ${isDark ? '#1e293b' : '#e2e8f0'}`,
-            background: isDark ? '#0f172a' : '#f8fafc'
-          }}>
-            <TestLabel style={{ marginBottom: '0.5rem', display: 'block' }}>
-              Entrada para Teste (stdin) <span style={{ fontSize: '0.7rem', fontWeight: 400, color: 'var(--color-text-secondary)' }}>Opcional</span>
-            </TestLabel>
-            <TestTextarea
-              $isDark={isDark}
-              value={testInput}
-              onChange={(e) => setTestInput(e.target.value)}
-              placeholder="Ex: 17 (para testar com número 17) ou deixe vazio"
-              rows={2}
-              style={{ width: '100%', marginBottom: 0 }}
-            />
-            <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)', marginTop: '0.25rem' }}>
-              💡 Se seu código usa Scanner, digite a entrada aqui. Ex: "17" para testar com o número 17
-            </div>
-          </div>
           <EditorContainerStyled $isDark={isDark}>
             <LineNumbers $isDark={isDark}>
               {Array.from({ length: lineCount }, (_, i) => (
@@ -1004,19 +1143,57 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit, codeTem
               spellCheck={false}
             />
           </EditorContainerStyled>
-          {(testResult || testError) && (
-            <TestOutputContainer $isDark={isDark}>
-              <TestOutputHeader>
-                <FaCode />
-                {testError ? 'Erro' : 'Resultado do Teste'}
-              </TestOutputHeader>
-              {testError ? (
-                <ErrorMessage $isDark={isDark}>{testError}</ErrorMessage>
-              ) : (
-                <TestOutputContent $isDark={isDark}>{testResult}</TestOutputContent>
-              )}
-            </TestOutputContainer>
-          )}
+          <TestOutputContainer $isDark={isDark}>
+            <TestOutputHeader>
+              <FaPlayCircle />
+              Resultado do Teste
+            </TestOutputHeader>
+            <TestConsoleContainer>
+              <TestConsolePanel $isDark={isDark} $type="input">
+                <TestConsolePanelHeader $isDark={isDark} $type="input">
+                  📥 Input (stdin)
+                </TestConsolePanelHeader>
+                <TestConsoleTextarea
+                  $isDark={isDark}
+                  value={testInput}
+                  onChange={(e) => setTestInput(e.target.value)}
+                  placeholder="Digite as entradas aqui&#10;Uma por linha&#10;&#10;Exemplo para somar 5 + 3:&#10;5&#10;3"
+                />
+                <TestConsoleHint $isDark={isDark}>
+                  💡 <strong>Uma entrada por linha.</strong> Para somar 5 e 3, digite:<br/>
+                  <code>5</code> (Enter) <code>3</code>
+                </TestConsoleHint>
+              </TestConsolePanel>
+              
+              <TestConsolePanel $isDark={isDark} $type="output">
+                <TestConsolePanelHeader $isDark={isDark} $type="output">
+                  📤 Output (resultado)
+                </TestConsolePanelHeader>
+                {isTesting ? (
+                  <TestConsoleOutput $isDark={isDark}>
+                    Executando seu código...
+                  </TestConsoleOutput>
+                ) : testResult ? (
+                  <TestConsoleOutput $isDark={isDark}>
+                    {testResult}
+                  </TestConsoleOutput>
+                ) : testError ? (
+                  <TestConsoleOutput $isDark={isDark} style={{ color: '#f87171' }}>
+                    ❌ Erro: {testError}
+                  </TestConsoleOutput>
+                ) : (
+                  <TestConsoleOutput $isDark={isDark} style={{ opacity: 0.5 }}>
+                    Execute um teste para ver a saída aqui...
+                  </TestConsoleOutput>
+                )}
+                {testResult && !isTesting && (
+                  <TestConsoleHint $isDark={isDark}>
+                    ✅ Código executado com sucesso!
+                  </TestConsoleHint>
+                )}
+              </TestConsolePanel>
+            </TestConsoleContainer>
+          </TestOutputContainer>
         </S.EditorPanel>
         </S.ContentGrid>
 
