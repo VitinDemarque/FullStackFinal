@@ -159,62 +159,131 @@ penalty = (8 × 2) + (80 / 10) + (4 × 5) + 10
 complexityScore = 100 - 54 = 46
 ```
 
-## 💰 Sistema de Bônus
+## 💰 Sistema de Bônus Híbrido
 
 ### Cálculo do Bônus
 
 ```typescript
-bonusPoints = (complexityScore / 100) × 20
+bonusBase = (complexityScore / 100) × 20
+
+// Multiplicador baseado no testScore
+if (testScore === 100) {
+  bonusMultiplier = 1.0;  // 100% do bônus
+} else if (testScore >= 90) {
+  bonusMultiplier = 0.5;  // 50% do bônus
+} else if (testScore >= 80) {
+  bonusMultiplier = 0.25; // 25% do bônus
+} else {
+  bonusMultiplier = 0;    // Sem bônus
+}
+
+bonusPoints = bonusBase × bonusMultiplier
+finalScore = Math.min(100, testScore + bonusPoints)
 ```
 
 **Características**:
-- **Máximo**: 20 pontos
-- **Aplicado apenas**: Se submissão for `ACCEPTED` (score dos testes ≥ 60)
+- **Máximo**: 20 pontos (se testScore = 100 e complexityScore = 100)
+- **Sistema híbrido**: Bônus proporcional ao testScore
 - **Score final**: `testScore + bonusPoints` (limitado a 100)
 
-### Exemplo Prático
+### Tabela de Multiplicadores
 
-**Cenário 1**: Código simples e correto
+| testScore | Multiplicador | Descrição | Bônus Máximo |
+|-----------|---------------|-----------|--------------|
+| 100% | 1.0 (100%) | Código perfeito | Até 20 pontos |
+| 90-99% | 0.5 (50%) | Quase perfeito | Até 10 pontos |
+| 80-89% | 0.25 (25%) | Bom desempenho | Até 5 pontos |
+| < 80% | 0 (0%) | Precisa melhorar | 0 pontos |
+
+### Exemplos Práticos
+
+**Cenário 1**: Código perfeito (100%) e limpo
 - Score dos testes: 100
 - Score de complexidade: 90
-- Bônus: (90/100) × 20 = 18 pontos
+- Bônus base: (90/100) × 20 = 18 pontos
+- Multiplicador: 1.0 (100%)
+- Bônus final: 18 × 1.0 = 18 pontos
 - **Score final**: 100 (limitado, pois 100 + 18 > 100)
+- 🏆 **EXCELÊNCIA TOTAL**
 
-**Cenário 2**: Código correto mas complexo
-- Score dos testes: 80
+**Cenário 2**: Quase perfeito (95%) e limpo
+- Score dos testes: 95
+- Score de complexidade: 90
+- Bônus base: (90/100) × 20 = 18 pontos
+- Multiplicador: 0.5 (50%)
+- Bônus final: 18 × 0.5 = 9 pontos
+- **Score final**: 95 + 9 = **104 → 100** (limitado a 100)
+- ✅ **QUASE PERFEITO**
+
+**Cenário 3**: Bom desempenho (85%) e limpo
+- Score dos testes: 85
+- Score de complexidade: 90
+- Bônus base: (90/100) × 20 = 18 pontos
+- Multiplicador: 0.25 (25%)
+- Bônus final: 18 × 0.25 = 4.5 pontos
+- **Score final**: 85 + 4.5 = **89.5**
+- 👍 **BOM TRABALHO**
+
+**Cenário 4**: Código correto mas complexo (100%)
+- Score dos testes: 100
 - Score de complexidade: 50
-- Bônus: (50/100) × 20 = 10 pontos
-- **Score final**: 80 + 10 = 90
+- Bônus base: (50/100) × 20 = 10 pontos
+- Multiplicador: 1.0 (100%)
+- Bônus final: 10 × 1.0 = 10 pontos
+- **Score final**: 100 (limitado)
+- ⚠️ **Funciona, mas pode melhorar a qualidade**
 
-**Cenário 3**: Código rejeitado
-- Score dos testes: 50 (rejeitado)
+**Cenário 5**: Passou raspando (60%), mesmo com código limpo
+- Score dos testes: 60
 - Score de complexidade: 95
-- Bônus: **NÃO aplicado** (submissão rejeitada)
-- **Score final**: 50
+- Multiplicador: 0 (sem bônus)
+- Bônus final: 0 pontos
+- **Score final**: 60
+- 📚 **Foque em fazer funcionar primeiro**
 
 ## 🏆 Sistema de Ranking
 
-### Ordenação
+### Ordenação (Critérios de Prioridade)
 
 O ranking ordena submissões por:
 
-1. **Score Final** (DESC) - maior é melhor
-2. **Score de Complexidade** (DESC) - maior é melhor (desempate)
-3. **Tempo Gasto** (ASC) - menor é melhor (desempate final)
+1. **Score Final** (DESC) - maior é melhor → **CRITÉRIO PRINCIPAL**
+2. **Score de Complexidade** (DESC) - maior é melhor → **DESEMPATE**
+3. **Tempo Gasto** (ASC) - menor é melhor → **DESEMPATE FINAL**
+
+### Filosofia do Ranking
+
+> **"Primeiro funciona, depois otimiza."**
+
+O **score final** (correção + bônus) é sempre o critério principal porque:
+- ✅ Premia quem resolve o problema corretamente
+- ✅ Complexidade serve como desempate entre soluções igualmente corretas
+- ✅ Tempo serve como desempate final quando tudo mais é igual
 
 ### Exemplo de Ranking
 
 ```
-Posição | Usuário | Score Final | Complexity | Tempo
---------|--------|-------------|------------|-------
-1       | Alice  | 100         | 95         | 5000ms
-2       | Bob    | 100         | 90         | 3000ms
-3       | Carol  | 95          | 100        | 2000ms
+Posição | Usuário | Score Final | Complexity | Tempo    | Análise
+--------|---------|-------------|------------|----------|---------------------------
+1       | Alice   | 100         | 95         | 5000ms   | Perfeito + Muito limpo
+2       | Bob     | 100         | 90         | 3000ms   | Perfeito + Limpo
+3       | Diana   | 99          | 90         | 2000ms   | Quase perfeito (95% testes)
+4       | Carol   | 95          | 100        | 2000ms   | Bom, mas não passou em tudo
 ```
 
-**Explicação**:
-- Alice e Bob têm mesmo score final (100), mas Alice tem maior complexity score
-- Carol tem score final menor (95), mesmo com maior complexity score
+**Explicação detalhada**:
+- **Alice (1º)**: Score final 100, maior complexity score (95) entre os que têm 100
+- **Bob (2º)**: Score final 100, mas complexity menor (90) que Alice
+- **Diana (3º)**: Score final 99 (testScore 95 + bônus 4), muito próxima mas não 100%
+- **Carol (4º)**: Score final 95, mesmo com complexity perfeito (100), ficou em 4º porque score final é menor
+
+### Justificativa
+
+Este sistema garante que:
+1. **Correção > Qualidade > Velocidade**
+2. Não se premia código "elegante" que não funciona completamente
+3. Bônus de complexidade influencia o ranking através do score final
+4. Entre soluções igualmente corretas, código mais limpo vence
 
 ## 🔍 Implementação Técnica
 
@@ -290,17 +359,21 @@ Ranking
 - Não considera contexto do problema
 - Recursão sempre penaliza, mesmo quando apropriada
 
-### 4. Bônus Apenas para Aceitos
-- Códigos rejeitados não recebem bônus
-- Pode desencorajar otimização de código que falha nos testes
+### 4. Sistema Híbrido de Bônus
+- ✅ **Novo**: Bônus proporcional ao testScore (100%, 50%, 25%, 0%)
+- ✅ Incentiva código limpo mesmo sem 100%
+- ✅ Mas prioriza fazer funcionar primeiro (pedagogicamente correto)
+- ✅ Diferencia níveis de maestria (100% vs 90% vs 80%)
 
 ## ✅ Pontos Positivos
 
-1. **Incentiva Código Limpo**: Penaliza complexidade desnecessária
-2. **Sistema Justo**: Bônus proporcional à qualidade
-3. **Ranking Inteligente**: Usa complexity como desempate
-4. **Métricas Completas**: Fornece feedback detalhado
-5. **Integração Completa**: Funciona end-to-end
+1. **Sistema Híbrido de Bônus**: Reconhece código limpo em diferentes níveis (100%, 90%, 80%)
+2. **Pedagogicamente Correto**: "Primeiro funciona, depois otimiza"
+3. **Incentiva Código Limpo**: Penaliza complexidade desnecessária
+4. **Ranking Justo**: Prioriza correção (finalScore) sobre qualidade (complexity)
+5. **Diferenciação de Níveis**: Excelência (100%) vs Quase lá (90%) vs Bom (80%)
+6. **Métricas Completas**: Fornece feedback detalhado
+7. **Integração Completa**: Funciona end-to-end
 
 ## 🔧 Possíveis Melhorias
 
@@ -312,12 +385,29 @@ Ranking
 
 ## 📝 Conclusão
 
-O sistema de análise de complexidade está **funcionando corretamente** e integrado ao fluxo de submissão. Ele:
+O sistema de análise de complexidade está **otimizado e funcionando corretamente** com o novo sistema híbrido. Ele:
 
-- ✅ Calcula métricas precisas
-- ✅ Aplica bônus corretamente
-- ✅ Integra com ranking
-- ✅ Exibe informações no frontend
+- ✅ Calcula métricas precisas (ciclomática, linhas, aninhamento, recursão)
+- ✅ Aplica bônus híbrido baseado no testScore (100%, 50%, 25%, 0%)
+- ✅ Integra com ranking priorizando finalScore > complexity > time
+- ✅ Incentiva a mentalidade correta: "Primeiro funciona, depois otimiza"
+- ✅ Diferencia níveis de maestria com bônus proporcional
+- ✅ Exibe informações detalhadas no frontend
 
-A implementação segue as regras de negócio definidas e incentiva os desenvolvedores a escrever código mais limpo e eficiente.
+### Por que o Sistema Híbrido é Melhor?
+
+**Antes** (tudo ou nada):
+- testScore 100%: bônus completo ✅
+- testScore 90%: sem bônus ❌ (desmotivador)
+- testScore 60%: sem bônus ✅ (correto)
+
+**Agora** (proporcional):
+- testScore 100%: bônus completo (1.0x) ✅
+- testScore 90%: bônus parcial (0.5x) ✅ (reconhece esforço)
+- testScore 60%: sem bônus ✅ (foque em fazer funcionar)
+
+A implementação segue as melhores práticas pedagógicas e incentiva desenvolvedores a:
+1. **Fazer funcionar** (testScore alto)
+2. **Fazer bem feito** (complexidade baixa)
+3. **Fazer rápido** (tempo otimizado)
 

@@ -509,46 +509,77 @@ const TestOutputError = styled.div`
   font-weight: 500;
 `;
 
-const TestInputContainer = styled.div<{ $isDark: boolean }>`
-  padding: 0.75rem 0;
+const TestConsoleContainer = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
   margin-bottom: 1rem;
-  border-bottom: 1px solid ${({ $isDark }) => ($isDark ? "#1e293b" : "#1f2937")};
-`;
-
-const TestInputLabel = styled.label<{ $isDark: boolean }>`
-  display: block;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: ${({ $isDark }) => ($isDark ? "#cbd5e1" : "#4a5568")};
-  margin-bottom: 0.4rem;
   
-  span {
-    font-size: 0.7rem;
-    font-weight: 400;
-    color: ${({ $isDark }) => ($isDark ? "#94a3b8" : "#718096")};
-    margin-left: 0.25rem;
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
   }
 `;
 
-const TestInputField = styled.textarea<{ $isDark: boolean }>`
-  width: 100%;
-  padding: 0.6rem;
+const TestConsolePanel = styled.div<{ $isDark: boolean; $type: 'input' | 'output' }>`
+  display: flex;
+  flex-direction: column;
   background: ${({ $isDark }) => ($isDark ? "#1e293b" : "#ffffff")};
-  border: 1.5px solid ${({ $isDark }) => ($isDark ? "#334155" : "#e2e8f0")};
-  border-radius: 6px;
+  border: 1.5px solid ${({ $isDark, $type }) => {
+    if ($type === 'input') {
+      return $isDark ? "#3b82f6" : "#60a5fa";
+    }
+    return $isDark ? "#10b981" : "#34d399";
+  }};
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  
+  &:focus-within {
+    box-shadow: 0 0 0 3px ${({ $isDark, $type }) => {
+      if ($type === 'input') {
+        return $isDark ? "rgba(59, 130, 246, 0.15)" : "rgba(96, 165, 250, 0.15)";
+      }
+      return $isDark ? "rgba(16, 185, 129, 0.15)" : "rgba(52, 211, 153, 0.15)";
+    }};
+  }
+`;
+
+const TestConsolePanelHeader = styled.div<{ $isDark: boolean; $type: 'input' | 'output' }>`
+  padding: 0.5rem 0.75rem;
+  background: ${({ $isDark, $type }) => {
+    if ($type === 'input') {
+      return $isDark ? "#1e3a8a" : "#dbeafe";
+    }
+    return $isDark ? "#065f46" : "#d1fae5";
+  }};
+  color: ${({ $isDark, $type }) => {
+    if ($type === 'input') {
+      return $isDark ? "#93c5fd" : "#1e40af";
+    }
+    return $isDark ? "#6ee7b7" : "#065f46";
+  }};
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  letter-spacing: 0.5px;
+`;
+
+const TestConsoleTextarea = styled.textarea<{ $isDark: boolean }>`
+  flex: 1;
+  padding: 0.75rem;
+  background: transparent;
+  border: none;
   color: ${({ $isDark }) => ($isDark ? "#e2e8f0" : "#1a202c")};
   font-size: 0.85rem;
   font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
-  resize: vertical;
-  min-height: 45px;
-  max-height: 80px;
-  line-height: 1.4;
-  transition: all 0.2s ease;
-
+  resize: none;
+  min-height: 100px;
+  line-height: 1.5;
+  
   &:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px ${({ $isDark }) => ($isDark ? "rgba(102, 126, 234, 0.1)" : "rgba(102, 126, 234, 0.1)")};
   }
 
   &::placeholder {
@@ -556,11 +587,33 @@ const TestInputField = styled.textarea<{ $isDark: boolean }>`
   }
 `;
 
-const TestInputHint = styled.div<{ $isDark: boolean }>`
+const TestConsoleOutput = styled.pre<{ $isDark: boolean }>`
+  flex: 1;
+  padding: 0.75rem;
+  margin: 0;
+  background: transparent;
+  color: ${({ $isDark }) => ($isDark ? "#e2e8f0" : "#1a202c")};
+  font-size: 0.85rem;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-y: auto;
+  min-height: 100px;
+`;
+
+const TestConsoleHint = styled.div<{ $isDark: boolean }>`
+  padding: 0 0.75rem 0.75rem 0.75rem;
   font-size: 0.7rem;
   color: ${({ $isDark }) => ($isDark ? "#94a3b8" : "#718096")};
-  margin-top: 0.4rem;
-  line-height: 1.3;
+  line-height: 1.4;
+  
+  code {
+    background: ${({ $isDark }) => ($isDark ? "rgba(148, 163, 184, 0.1)" : "rgba(0, 0, 0, 0.05)")};
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+    font-size: 0.7rem;
+  }
 `;
 
 const CompletedOverlay = styled.div<{ $isDark: boolean }>`
@@ -940,38 +993,57 @@ export default function ChallengeModal({
               </TestOutputHeader>
               <TestOutputContentWrapper $isMinimized={isTestOutputMinimized}>
                 {!exercise.isCompleted && (
-                  <TestInputContainer $isDark={isDark}>
-                    <TestInputLabel $isDark={isDark}>
-                      Entrada para Teste (stdin) <span>Opcional</span>
-                    </TestInputLabel>
-                    <TestInputField
-                      $isDark={isDark}
-                      value={testInput}
-                      onChange={(e) => setTestInput(e.target.value)}
-                      placeholder="Ex: 17 (para testar com número 17) ou deixe vazio"
-                      rows={2}
-                    />
-                    <TestInputHint $isDark={isDark}>
-                      💡 Se seu código usa Scanner/input(), digite a entrada aqui. Ex: "17" para testar com o número 17
-                    </TestInputHint>
-                  </TestInputContainer>
+                  <TestConsoleContainer>
+                    <TestConsolePanel $isDark={isDark} $type="input">
+                      <TestConsolePanelHeader $isDark={isDark} $type="input">
+                        📥 Input (stdin)
+                      </TestConsolePanelHeader>
+                      <TestConsoleTextarea
+                        $isDark={isDark}
+                        value={testInput}
+                        onChange={(e) => setTestInput(e.target.value)}
+                        placeholder="Digite as entradas aqui&#10;Uma por linha&#10;&#10;Exemplo para somar 5 + 3:&#10;5&#10;3"
+                      />
+                      <TestConsoleHint $isDark={isDark}>
+                        💡 <strong>Uma entrada por linha.</strong> Para somar 5 e 3, digite:<br/>
+                        <code>5</code> (Enter) <code>3</code>
+                      </TestConsoleHint>
+                    </TestConsolePanel>
+                    
+                    <TestConsolePanel $isDark={isDark} $type="output">
+                      <TestConsolePanelHeader $isDark={isDark} $type="output">
+                        📤 Output (resultado)
+                      </TestConsolePanelHeader>
+                      {isTesting ? (
+                        <TestConsoleOutput $isDark={isDark}>
+                          Executando seu código...
+                        </TestConsoleOutput>
+                      ) : testResult ? (
+                        <TestConsoleOutput $isDark={isDark}>
+                          {testResult}
+                        </TestConsoleOutput>
+                      ) : testError ? (
+                        <TestConsoleOutput $isDark={isDark} style={{ color: '#f87171' }}>
+                          ❌ Erro: {testError}
+                        </TestConsoleOutput>
+                      ) : (
+                        <TestConsoleOutput $isDark={isDark} style={{ opacity: 0.5 }}>
+                          Execute um teste para ver a saída aqui...
+                        </TestConsoleOutput>
+                      )}
+                      {testResult && !isTesting && (
+                        <TestConsoleHint $isDark={isDark}>
+                          ✅ Código executado com sucesso!
+                        </TestConsoleHint>
+                      )}
+                    </TestConsolePanel>
+                  </TestConsoleContainer>
                 )}
-                {isTesting && (
-                  <TestOutputPlaceholder>
-                    Executando seu código...
+                {exercise.isCompleted && (
+                  <TestOutputPlaceholder style={{ textAlign: 'center', padding: '2rem' }}>
+                    ✅ Desafio concluído! Teste não disponível.
                   </TestOutputPlaceholder>
                 )}
-                {!isTesting && testResult && (
-                  <TestOutputContent $isDark={isDark}>
-                    {testResult}
-                  </TestOutputContent>
-                )}
-                {!isTesting && !testResult && !testError && (
-                  <TestOutputPlaceholder>
-                    Execute um teste para visualizar a saída do seu código.
-                  </TestOutputPlaceholder>
-                )}
-                {testError && <TestOutputError>{testError}</TestOutputError>}
               </TestOutputContentWrapper>
             </TestOutputContainer>
           </RightPanel>

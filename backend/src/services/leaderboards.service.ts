@@ -16,6 +16,17 @@ export async function general({ skip, limit }: Paging) {
     .limit(limit)
     .lean();
 
+  // Buscar contagem de desafios completados para cada usuário
+  const userIds = users.map((u: any) => u._id);
+  const submissionCounts = await Submission.aggregate([
+    { $match: { userId: { $in: userIds }, status: 'ACCEPTED' } },
+    { $group: { _id: '$userId', completedChallenges: { $sum: 1 } } }
+  ]);
+
+  const countsMap = new Map(
+    submissionCounts.map((s: any) => [String(s._id), s.completedChallenges])
+  );
+
   return users.map((user: any, idx: number) => ({
     position: skip + idx + 1,
     userId: String(user._id),
@@ -24,7 +35,9 @@ export async function general({ skip, limit }: Paging) {
     avatarUrl: user.avatarUrl ?? null,
     collegeId: user.collegeId ? String(user.collegeId) : null,
     points: user.xpTotal,
-    xpTotal: user.xpTotal
+    xpTotal: user.xpTotal,
+    level: user.level ?? 1,
+    completedChallenges: countsMap.get(String(user._id)) || 0
   }));
 }
 
@@ -40,7 +53,7 @@ export async function byLanguage(languageId: string, { skip, limit }: Paging) {
     { $group: { _id: '$userId', points: { $sum: '$xpAwarded' } } },
     { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user' } },
     { $unwind: '$user' },
-    { $project: { _id: 0, userId: '$_id', points: 1, xpTotal: '$user.xpTotal', name: '$user.name', handle: '$user.handle', collegeId: '$user.collegeId', avatarUrl: '$user.avatarUrl' } },
+    { $project: { _id: 0, userId: '$_id', points: 1, xpTotal: '$user.xpTotal', level: '$user.level', name: '$user.name', handle: '$user.handle', collegeId: '$user.collegeId', avatarUrl: '$user.avatarUrl' } },
     { $sort: { points: -1 } },
     { $skip: skip },
     { $limit: limit }
@@ -55,7 +68,8 @@ export async function byLanguage(languageId: string, { skip, limit }: Paging) {
     avatarUrl: r.avatarUrl ?? null,
     collegeId: r.collegeId ? String(r.collegeId) : null,
     points: r.points,
-    xpTotal: r.xpTotal
+    xpTotal: r.xpTotal,
+    level: r.level || 1
   }));
 }
 
@@ -71,7 +85,7 @@ export async function byGroup(groupId: string, { skip, limit }: Paging) {
     { $group: { _id: '$userId', points: { $sum: '$xpAwarded' } } },
     { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user' } },
     { $unwind: '$user' },
-    { $project: { _id: 0, userId: '$_id', points: 1, xpTotal: '$user.xpTotal', name: '$user.name', handle: '$user.handle', collegeId: '$user.collegeId', avatarUrl: '$user.avatarUrl' } },
+    { $project: { _id: 0, userId: '$_id', points: 1, xpTotal: '$user.xpTotal', level: '$user.level', name: '$user.name', handle: '$user.handle', collegeId: '$user.collegeId', avatarUrl: '$user.avatarUrl' } },
     { $sort: { points: -1 } },
     { $skip: skip },
     { $limit: limit }
@@ -86,7 +100,8 @@ export async function byGroup(groupId: string, { skip, limit }: Paging) {
     avatarUrl: r.avatarUrl ?? null,
     collegeId: r.collegeId ? String(r.collegeId) : null,
     points: r.points,
-    xpTotal: r.xpTotal
+    xpTotal: r.xpTotal,
+    level: r.level || 1
   }));
 }
 
@@ -99,7 +114,7 @@ export async function bySeason(seasonId: string, { skip, limit }: Paging) {
     { $group: { _id: '$userId', points: { $sum: '$xpAwarded' } } },
     { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user' } },
     { $unwind: '$user' },
-    { $project: { _id: 0, userId: '$_id', points: 1, xpTotal: '$user.xpTotal', name: '$user.name', handle: '$user.handle', collegeId: '$user.collegeId', avatarUrl: '$user.avatarUrl' } },
+    { $project: { _id: 0, userId: '$_id', points: 1, xpTotal: '$user.xpTotal', level: '$user.level', name: '$user.name', handle: '$user.handle', collegeId: '$user.collegeId', avatarUrl: '$user.avatarUrl' } },
     { $sort: { points: -1 } },
     { $skip: skip },
     { $limit: limit }
@@ -114,7 +129,8 @@ export async function bySeason(seasonId: string, { skip, limit }: Paging) {
     avatarUrl: r.avatarUrl ?? null,
     collegeId: r.collegeId ? String(r.collegeId) : null,
     points: r.points,
-    xpTotal: r.xpTotal
+    xpTotal: r.xpTotal,
+    level: r.level || 1
   }));
 }
 
@@ -130,7 +146,7 @@ export async function byCollege(collegeId: string, { skip, limit }: Paging) {
     { $group: { _id: '$userId', points: { $sum: '$xpAwarded' } } },
     { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user2' } },
     { $unwind: '$user2' },
-    { $project: { _id: 0, userId: '$_id', points: 1, xpTotal: '$user2.xpTotal', name: '$user2.name', handle: '$user2.handle', collegeId: '$user2.collegeId', avatarUrl: '$user2.avatarUrl' } },
+    { $project: { _id: 0, userId: '$_id', points: 1, xpTotal: '$user2.xpTotal', level: '$user2.level', name: '$user2.name', handle: '$user2.handle', collegeId: '$user2.collegeId', avatarUrl: '$user2.avatarUrl' } },
     { $sort: { points: -1 } },
     { $skip: skip },
     { $limit: limit }
@@ -145,7 +161,8 @@ export async function byCollege(collegeId: string, { skip, limit }: Paging) {
     avatarUrl: r.avatarUrl ?? null,
     collegeId: r.collegeId ? String(r.collegeId) : null,
     points: r.points,
-    xpTotal: r.xpTotal
+    xpTotal: r.xpTotal,
+    level: r.level || 1
   }));
 }
 
@@ -158,7 +175,7 @@ export async function byExercise(exerciseId: string, { skip, limit }: Paging) {
     { $group: { _id: '$userId', points: { $sum: '$xpAwarded' } } },
     { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user' } },
     { $unwind: '$user' },
-    { $project: { _id: 0, userId: '$_id', points: 1, xpTotal: '$user.xpTotal', name: '$user.name', handle: '$user.handle', collegeId: '$user.collegeId', avatarUrl: '$user.avatarUrl' } },
+    { $project: { _id: 0, userId: '$_id', points: 1, xpTotal: '$user.xpTotal', level: '$user.level', name: '$user.name', handle: '$user.handle', collegeId: '$user.collegeId', avatarUrl: '$user.avatarUrl' } },
     { $sort: { points: -1 } },
     { $skip: skip },
     { $limit: limit }
@@ -173,6 +190,7 @@ export async function byExercise(exerciseId: string, { skip, limit }: Paging) {
     avatarUrl: r.avatarUrl ?? null,
     collegeId: r.collegeId ? String(r.collegeId) : null,
     points: r.points,
-    xpTotal: r.xpTotal
+    xpTotal: r.xpTotal,
+    level: r.level || 1
   }));
 }

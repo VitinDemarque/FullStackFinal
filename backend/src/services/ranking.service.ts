@@ -32,12 +32,14 @@ export interface RankingResult {
 /**
  * Calcula o ranking de um exercício
  * 
- * Ordenação (priorizando complexidade):
- * 1. Score de complexidade (DESC) - maior é melhor (códigos menos complexos primeiro)
- * 2. Tempo gasto (ASC) - menor é melhor (desempate)
+ * Ordenação (critérios de prioridade):
+ * 1. Score Final (DESC) - maior é melhor (testes + bônus de complexidade)
+ * 2. Score de Complexidade (DESC) - maior é melhor (desempate - código mais limpo)
+ * 3. Tempo gasto (ASC) - menor é melhor (desempate final - mais rápido)
  * 
- * NOTA: Complexidade é o critério principal. Códigos menos complexos (maior complexityScore)
- * ficam no topo, independente do score final. Tempo é usado apenas para desempate.
+ * NOTA: O score final é o critério principal pois reflete a correção da solução.
+ * Complexidade e tempo servem como critérios de desempate para diferenciar soluções
+ * igualmente corretas.
  * 
  * @param exerciseId - ID do exercício
  * @param limit - Limite de resultados (padrão: 100)
@@ -60,8 +62,9 @@ export async function getExerciseRanking(
     finalScore: { $ne: null }
   })
     .sort({
-      complexityScore: -1,  // Prioridade 1: Complexidade (maior score = menos complexo)
-      timeSpentMs: 1        // Prioridade 2: Tempo (menor é melhor)
+      finalScore: -1,        // Prioridade 1: Score final (testes + bônus)
+      complexityScore: -1,   // Prioridade 2: Complexidade (desempate - código mais limpo)
+      timeSpentMs: 1         // Prioridade 3: Tempo (desempate final - mais rápido)
     })
     .limit(limit)
     .lean<ISubmission[]>();
@@ -122,19 +125,25 @@ export async function getUserRankingPosition(
     return 0;
   }
 
+  const userFinalScore = userSubmission.finalScore ?? userSubmission.score ?? 0;
   const userComplexityScore = userSubmission.complexityScore ?? 0;
   const userTimeSpentMs = userSubmission.timeSpentMs ?? 0;
 
-  // Ordenação priorizando complexidade, depois tempo
+  // Ordenação: finalScore > complexityScore > timeSpentMs
   const aheadCount = await Submission.countDocuments({
     exerciseId: new Types.ObjectId(exerciseId),
     status: 'ACCEPTED',
     finalScore: { $ne: null },
     $or: [
-      { complexityScore: { $gt: userComplexityScore } },  // Complexidade maior (menos complexo)
+      { finalScore: { $gt: userFinalScore } },  // Score final maior
       {
+        finalScore: userFinalScore,
+        complexityScore: { $gt: userComplexityScore }  // Mesmo score, complexidade maior (código mais limpo)
+      },
+      {
+        finalScore: userFinalScore,
         complexityScore: userComplexityScore,
-        timeSpentMs: { $lt: userTimeSpentMs }  // Mesma complexidade, mas tempo menor
+        timeSpentMs: { $lt: userTimeSpentMs }  // Mesmo score e complexidade, tempo menor
       }
     ]
   });
@@ -164,8 +173,9 @@ export async function updateHighScoreBadge(exerciseId: string): Promise<void> {
     finalScore: { $ne: null }
   })
     .sort({
-      complexityScore: -1,  // Prioridade: Complexidade (maior score = menos complexo)
-      timeSpentMs: 1        // Desempate: Tempo (menor é melhor)
+      finalScore: -1,        // Prioridade 1: Score final (maior é melhor)
+      complexityScore: -1,   // Prioridade 2: Complexidade (desempate - código mais limpo)
+      timeSpentMs: 1         // Prioridade 3: Tempo (desempate final - mais rápido)
     })
     .lean<ISubmission | null>();
 

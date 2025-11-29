@@ -9,6 +9,8 @@ export interface LeaderboardEntry {
     collegeId: string | null
     points: number
     xpTotal: number
+    level?: number
+    completedChallenges?: number
 }
 
 export interface LeaderboardFilters {

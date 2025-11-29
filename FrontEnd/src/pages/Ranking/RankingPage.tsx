@@ -47,15 +47,13 @@ export default function RankingPage() {
   const topThree = leaderboard?.slice(0, 3) || [];
   const globalRanking = leaderboard || [];
 
-  // Calcular dados adicionais para cada entrada (mock por enquanto)
+  // Dados reais vindos do backend
   const getEntryStats = (entry: any) => {
-    // Mock data - substituir por dados reais do backend
     return {
-      wins: Math.floor(entry.points / 100) || 0,
-      matches: Math.floor(entry.points / 50) || 0,
-      victories: Math.floor(entry.points / 120) || 0,
-      bestWinMins: Math.floor(Math.random() * 5) + 1,
-      spentTime: Math.floor(entry.points / 10) || 0,
+      level: entry.level ?? 1,
+      xpTotal: entry.xpTotal || entry.points,
+      points: entry.points,
+      completedChallenges: entry.completedChallenges || 0,
     };
   };
 
@@ -179,16 +177,16 @@ export default function RankingPage() {
                           return (
                             <>
                               <S.TopThreeStatItem $isDark={isDark}>
-                                <span>VITÓRIAS</span>
-                                <strong>{stats.wins}</strong>
+                                <span>DESAFIOS</span>
+                                <strong>{stats.completedChallenges}</strong>
                               </S.TopThreeStatItem>
                               <S.TopThreeStatItem $isDark={isDark}>
-                                <span>PARTIDAS</span>
-                                <strong>{stats.matches}</strong>
+                                <span>NÍVEL</span>
+                                <strong>{stats.level}</strong>
                               </S.TopThreeStatItem>
                               <S.TopThreeStatItem $isDark={isDark}>
-                                <span>PONTOS</span>
-                                <strong>{entry.points.toLocaleString()}</strong>
+                                <span>XP TOTAL</span>
+                                <strong>{stats.xpTotal.toLocaleString()}</strong>
                               </S.TopThreeStatItem>
                             </>
                           );
@@ -213,12 +211,11 @@ export default function RankingPage() {
             <S.LeaderboardTable $noScroll>
               <S.TableHeader $isDark={isDark}>
                 <S.HeaderCell width="8%" $isDark={isDark}>Rank</S.HeaderCell>
-                <S.HeaderCell width="25%" $isDark={isDark}>Nome do Usuário</S.HeaderCell>
-                <S.HeaderCell width="12%" $isDark={isDark}>Vitórias</S.HeaderCell>
-                <S.HeaderCell width="12%" $isDark={isDark}>Tempo Gasto</S.HeaderCell>
-                <S.HeaderCell width="12%" $isDark={isDark}>Conquistas</S.HeaderCell>
-                <S.HeaderCell width="12%" $isDark={isDark}>Melhor Vitória (min)</S.HeaderCell>
-                <S.HeaderCell width="12%" $isDark={isDark}>Pontos</S.HeaderCell>
+                <S.HeaderCell width="30%" $isDark={isDark}>Nome do Usuário</S.HeaderCell>
+                <S.HeaderCell width="15%" $isDark={isDark}>Desafios Feitos</S.HeaderCell>
+                <S.HeaderCell width="12%" $isDark={isDark}>Nível</S.HeaderCell>
+                <S.HeaderCell width="15%" $isDark={isDark}>XP Total</S.HeaderCell>
+                <S.HeaderCell width="15%" $isDark={isDark}>Pontos</S.HeaderCell>
               </S.TableHeader>
 
               <S.TableBody>
@@ -233,19 +230,16 @@ export default function RankingPage() {
                         <S.SkeletonText width="120px" $isDark={isDark} />
                       </S.TableCell>
                       <S.TableCell $isDark={isDark}>
-                        <S.SkeletonText width="40px" $isDark={isDark} />
-                      </S.TableCell>
-                      <S.TableCell $isDark={isDark}>
-                        <S.SkeletonText width="40px" $isDark={isDark} />
-                      </S.TableCell>
-                      <S.TableCell $isDark={isDark}>
-                        <S.SkeletonText width="40px" $isDark={isDark} />
-                      </S.TableCell>
-                      <S.TableCell $isDark={isDark}>
-                        <S.SkeletonText width="40px" $isDark={isDark} />
-                      </S.TableCell>
-                      <S.TableCell $isDark={isDark}>
-                        <S.SkeletonText width="60px" $isDark={isDark} />
+                      <S.SkeletonText width="40px" $isDark={isDark} />
+                    </S.TableCell>
+                    <S.TableCell $isDark={isDark}>
+                      <S.SkeletonText width="40px" $isDark={isDark} />
+                    </S.TableCell>
+                    <S.TableCell $isDark={isDark}>
+                      <S.SkeletonText width="50px" $isDark={isDark} />
+                    </S.TableCell>
+                    <S.TableCell $isDark={isDark}>
+                      <S.SkeletonText width="60px" $isDark={isDark} />
                       </S.TableCell>
                     </S.TableRow>
                   ))
@@ -287,16 +281,13 @@ export default function RankingPage() {
                           </S.UserInfo>
                         </S.TableCell>
                         <S.TableCell $isDark={isDark}>
-                          <S.StatValueSmall $isDark={isDark}>{stats.wins}</S.StatValueSmall>
+                          <S.StatValueSmall $isDark={isDark}>{stats.completedChallenges}</S.StatValueSmall>
                         </S.TableCell>
                         <S.TableCell $isDark={isDark}>
-                          <S.StatValueSmall $isDark={isDark}>{stats.spentTime}</S.StatValueSmall>
+                          <S.StatValueSmall $isDark={isDark}>Nível {stats.level}</S.StatValueSmall>
                         </S.TableCell>
                         <S.TableCell $isDark={isDark}>
-                          <S.StatValueSmall $isDark={isDark}>{stats.victories}</S.StatValueSmall>
-                        </S.TableCell>
-                        <S.TableCell $isDark={isDark}>
-                          <S.StatValueSmall $isDark={isDark}>{stats.bestWinMins}:{String(Math.floor(Math.random() * 60)).padStart(2, '0')}</S.StatValueSmall>
+                          <S.StatValueSmall $isDark={isDark}>{stats.xpTotal.toLocaleString()}</S.StatValueSmall>
                         </S.TableCell>
                         <S.TableCell $isDark={isDark}>
                           <S.Points>{entry.points.toLocaleString()}</S.Points>
@@ -306,7 +297,7 @@ export default function RankingPage() {
                   })
                 ) : (
                   <S.NoDataRow $isDark={isDark}>
-                    <S.NoDataCell colSpan={7}>
+                    <S.NoDataCell colSpan={6}>
                       <S.NoDataMessage $isDark={isDark}>
                         Nenhum dado disponível no momento.
                       </S.NoDataMessage>
