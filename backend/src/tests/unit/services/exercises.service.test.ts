@@ -5,6 +5,11 @@ import * as exercisesService from '@/services/exercises.service';
 import Exercise from '@/models/Exercise.model';
 import Language from '@/models/Language.model';
 import UserStat from '@/models/UserStat.model';
+import User from '@/models/User.model';
+import Forum from '@/models/Forum.model';
+import ForumTopic from '@/models/ForumTopic.model';
+import ForumComment from '@/models/ForumComment.model';
+import Submission from '@/models/Submission.model';
 import { ForbiddenError, NotFoundError } from '@/utils/httpErrors';
 import { Types } from 'mongoose';
 
@@ -14,12 +19,32 @@ jest.mock('@/models/Exercise.model', () => ({
   countDocuments: jest.fn(),
   findById: jest.fn(),
   create: jest.fn(),
+  findOne: jest.fn(),
+  updateOne: jest.fn(),
+  deleteMany: jest.fn(),
 }));
 jest.mock('@/models/Language.model', () => ({
   findById: jest.fn(),
 }));
 jest.mock('@/models/UserStat.model', () => ({
   updateOne: jest.fn(),
+  findOne: jest.fn(),
+}));
+jest.mock('@/models/User.model', () => ({
+  findById: jest.fn(),
+}));
+jest.mock('@/models/Forum.model', () => ({
+  find: jest.fn(),
+}));
+jest.mock('@/models/ForumTopic.model', () => ({
+  find: jest.fn(),
+  deleteMany: jest.fn(),
+}));
+jest.mock('@/models/ForumComment.model', () => ({
+  deleteMany: jest.fn(),
+}));
+jest.mock('@/models/Submission.model', () => ({
+  findOne: jest.fn(),
 }));
 
 const mockExercise = {
@@ -80,12 +105,20 @@ describe('exercises.service', () => {
       ];
 
       (Exercise.find as jest.Mock).mockReturnValueOnce({
+        populate: jest.fn().mockReturnThis(),
         sort: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
         limit: jest.fn().mockReturnThis(),
         lean: jest.fn().mockResolvedValueOnce(mockExercises),
       });
       (Exercise.countDocuments as jest.Mock).mockResolvedValueOnce(1);
+      (Exercise.findOne as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockResolvedValue(null),
+      });
+      (Exercise.updateOne as jest.Mock).mockResolvedValue({});
+      (Submission.findOne as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockResolvedValue(null),
+      });
 
       const result = await exercisesService.list({
         q: 'hello',
@@ -112,7 +145,15 @@ describe('exercises.service', () => {
 
     it('deve retornar exercício se encontrado', async () => {
       (Exercise.findById as jest.Mock).mockReturnValueOnce({
+        populate: jest.fn().mockReturnThis(),
         lean: jest.fn().mockResolvedValueOnce(mockExercise),
+      });
+      (Exercise.findOne as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockResolvedValue(null),
+      });
+      (Exercise.updateOne as jest.Mock).mockResolvedValue({});
+      (Submission.findOne as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockResolvedValue(null),
       });
 
       // Use exercisesService.getById
@@ -125,6 +166,7 @@ describe('exercises.service', () => {
 
     it('deve lançar NotFoundError se não encontrado', async () => {
       (Exercise.findById as jest.Mock).mockReturnValueOnce({
+        populate: jest.fn().mockReturnThis(),
         lean: jest.fn().mockResolvedValueOnce(null),
       });
 
@@ -135,8 +177,14 @@ describe('exercises.service', () => {
   // Verificando a funcao create
   describe('create', () => {
     it('deve criar exercício e atualizar estatísticas', async () => {
+      (User.findById as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValueOnce({ _id: userId, role: 'USER' }),
+      });
       (Language.findById as jest.Mock).mockReturnValueOnce({
         lean: jest.fn().mockResolvedValueOnce({ _id: langId }),
+      });
+      (Exercise.findOne as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValueOnce(null),
       });
 
       const mockDoc = {
@@ -164,6 +212,9 @@ describe('exercises.service', () => {
     });
 
     it('deve lançar erro se linguagem não existir', async () => {
+      (User.findById as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValueOnce({ _id: userId, role: 'USER' }),
+      });
       (Language.findById as jest.Mock).mockReturnValueOnce({
         lean: jest.fn().mockResolvedValueOnce(null),
       });
@@ -181,11 +232,19 @@ describe('exercises.service', () => {
         _id: exId,
         authorUserId: userId,
         status: 'DRAFT',
+        title: 'Updated',
         save: jest.fn(),
         toObject: jest.fn().mockReturnValue({ _id: exId, authorUserId: userId, title: 'Updated' }),
       };
 
       (Exercise.findById as jest.Mock).mockResolvedValueOnce(mockEx);
+      (User.findById as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValueOnce({ _id: userId, role: 'USER' }),
+      });
+      (Exercise.findById as jest.Mock).mockReturnValueOnce({
+        populate: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValueOnce({ _id: exId, authorUserId: userId, title: 'Updated' }),
+      });
 
       const result = await exercisesService.update(userId, exId, { title: 'Updated' });
 
@@ -214,6 +273,9 @@ describe('exercises.service', () => {
         toObject: jest.fn().mockReturnValue({}),
       };
       (Exercise.findById as jest.Mock).mockResolvedValueOnce(mockEx);
+      (User.findById as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValueOnce({ _id: userId, role: 'USER' }),
+      });
       (Language.findById as jest.Mock).mockReturnValueOnce({
         lean: jest.fn().mockResolvedValueOnce(null),
       });
@@ -227,8 +289,16 @@ describe('exercises.service', () => {
   // Verificando a funcao remove
   describe('remove', () => {
     it('deve deletar se for autor', async () => {
-      const mockEx: any = { authorUserId: userId, deleteOne: jest.fn() };
+      const mockEx: any = { _id: exId, authorUserId: userId, deleteOne: jest.fn().mockResolvedValueOnce({}) };
       (Exercise.findById as jest.Mock).mockResolvedValueOnce(mockEx);
+      (Forum.find as jest.Mock).mockReturnValueOnce({
+        select: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValueOnce([]),
+      });
+      (UserStat.findOne as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValueOnce({ userId, exercisesCreatedCount: 1 }),
+      });
+      (UserStat.updateOne as jest.Mock).mockResolvedValueOnce({});
 
       await exercisesService.remove(userId, exId);
 
@@ -260,8 +330,18 @@ describe('exercises.service', () => {
     });
 
     it('publish deve publicar exercício', async () => {
-      const mockEx = mockExBase(userId);
+      const mockEx = {
+        ...mockExBase(userId),
+        tests: [
+          { input: 'input1', expectedOutput: 'output1' },
+          { input: 'input2', expectedOutput: 'output2' }
+        ]
+      };
       (Exercise.findById as jest.Mock).mockResolvedValueOnce(mockEx);
+      (Exercise.findById as jest.Mock).mockReturnValueOnce({
+        populate: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValueOnce({ ...mockEx, status: 'PUBLISHED' }),
+      });
 
       const result = await exercisesService.publish(userId, exId);
       expect(mockEx.status).toBe('PUBLISHED');
@@ -276,6 +356,10 @@ describe('exercises.service', () => {
     it('unpublish deve alterar para DRAFT', async () => {
       const mockEx = mockExBase(userId);
       (Exercise.findById as jest.Mock).mockResolvedValueOnce(mockEx);
+      (Exercise.findById as jest.Mock).mockReturnValueOnce({
+        populate: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValueOnce({ ...mockEx, status: 'DRAFT' }),
+      });
       const result = await exercisesService.unpublish(userId, exId);
       expect(mockEx.status).toBe('DRAFT');
       expect(result.id).toBe(exId);
@@ -284,6 +368,10 @@ describe('exercises.service', () => {
     it('setVisibility deve mudar visibilidade', async () => {
       const mockEx = mockExBase(userId);
       (Exercise.findById as jest.Mock).mockResolvedValueOnce(mockEx);
+      (Exercise.findById as jest.Mock).mockReturnValueOnce({
+        populate: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValueOnce({ ...mockEx, isPublic: false }),
+      });
       const result = await exercisesService.setVisibility(userId, exId, false);
       expect(mockEx.isPublic).toBe(false);
       expect(result.id).toBe(exId);
@@ -300,6 +388,7 @@ describe('exercises.service', () => {
 
     it('list deve retornar lista vazia se nenhum exercício for encontrado', async () => {
       (Exercise.find as jest.Mock).mockReturnValueOnce({
+        populate: jest.fn().mockReturnThis(),
         sort: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
         limit: jest.fn().mockReturnThis(),
@@ -324,7 +413,15 @@ describe('exercises.service', () => {
       };
 
       (Exercise.findById as jest.Mock).mockReturnValueOnce({
+        populate: jest.fn().mockReturnThis(),
         lean: jest.fn().mockResolvedValue(mockExercise),
+      });
+      (Exercise.findOne as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockResolvedValue(null),
+      });
+      (Exercise.updateOne as jest.Mock).mockResolvedValue({});
+      (Submission.findOne as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockResolvedValue(null),
       });
 
       const result = await exercisesService.getById('e1', 'anyUserId');
@@ -336,8 +433,14 @@ describe('exercises.service', () => {
 
 
     it('create deve lançar erro se falhar ao criar exercício', async () => {
+      (User.findById as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValueOnce({ _id: 'user', role: 'USER' }),
+      });
       (Language.findById as jest.Mock).mockReturnValueOnce({
         lean: jest.fn().mockResolvedValueOnce({ _id: 'lang' }),
+      });
+      (Exercise.findOne as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValueOnce(null),
       });
       (Exercise.create as jest.Mock).mockRejectedValueOnce(new Error('DB error'));
 
@@ -347,8 +450,14 @@ describe('exercises.service', () => {
     });
 
     it('create deve lançar erro se UserStat.updateOne falhar', async () => {
+      (User.findById as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValueOnce({ _id: 'user', role: 'USER' }),
+      });
       (Language.findById as jest.Mock).mockReturnValueOnce({
         lean: jest.fn().mockResolvedValueOnce({ _id: 'lang' }),
+      });
+      (Exercise.findOne as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValueOnce(null),
       });
       const mockDoc = {
         _id: 'e1',
@@ -376,6 +485,142 @@ describe('exercises.service', () => {
     it('setVisibility deve lançar NotFoundError se exercício não encontrado', async () => {
       (Exercise.findById as jest.Mock).mockResolvedValueOnce(null);
       await expect(exercisesService.setVisibility('user', 'none', true)).rejects.toThrow(NotFoundError);
+    });
+  });
+
+  // Testes de validação de entrada e saída obrigatórias nos testes
+  describe('validateTestsStructure - validação de input obrigatório', () => {
+    beforeEach(() => jest.clearAllMocks());
+
+    it('create deve lançar erro se teste não tiver input', async () => {
+      (User.findById as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValueOnce({ _id: 'user', role: 'USER' }),
+      });
+      (Language.findById as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValueOnce({ _id: 'lang' }),
+      });
+
+      const invalidTests = [
+        { expectedOutput: 'output1', description: 'teste sem input' },
+        { input: 'input2', expectedOutput: 'output2' }
+      ];
+
+      await expect(
+        exercisesService.create('user', { 
+          languageId: 'lang',
+          title: 'Test',
+          tests: invalidTests
+        })
+      ).rejects.toThrow('Teste 1 deve ter uma entrada (input) configurada');
+    });
+
+    it('create deve lançar erro se teste tiver input vazio', async () => {
+      (User.findById as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValueOnce({ _id: 'user', role: 'USER' }),
+      });
+      (Language.findById as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValueOnce({ _id: 'lang' }),
+      });
+
+      const invalidTests = [
+        { input: '  ', expectedOutput: 'output1' },
+        { input: 'input2', expectedOutput: 'output2' }
+      ];
+
+      await expect(
+        exercisesService.create('user', { 
+          languageId: 'lang',
+          title: 'Test',
+          tests: invalidTests
+        })
+      ).rejects.toThrow('Teste 1 deve ter uma entrada (input) configurada');
+    });
+
+    it('create deve lançar erro se teste tiver input null', async () => {
+      (User.findById as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValueOnce({ _id: 'user', role: 'USER' }),
+      });
+      (Language.findById as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValueOnce({ _id: 'lang' }),
+      });
+
+      const invalidTests = [
+        { input: null, expectedOutput: 'output1' },
+        { input: 'input2', expectedOutput: 'output2' }
+      ];
+
+      await expect(
+        exercisesService.create('user', { 
+          languageId: 'lang',
+          title: 'Test',
+          tests: invalidTests
+        })
+      ).rejects.toThrow('Teste 1 deve ter uma entrada (input) configurada');
+    });
+
+    it('create deve aceitar teste com input e expectedOutput válidos', async () => {
+      (User.findById as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValueOnce({ _id: 'user', role: 'USER' }),
+      });
+      (Language.findById as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValueOnce({ _id: 'lang' }),
+      });
+      (Exercise.findOne as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValueOnce(null),
+      });
+
+      const mockDoc = {
+        _id: 'e1',
+        authorUserId: 'user',
+        toObject: jest.fn().mockReturnValue({ 
+          _id: 'e1', 
+          authorUserId: 'user',
+          tests: [
+            { input: 'input1', expectedOutput: 'output1' },
+            { input: 'input2', expectedOutput: 'output2' }
+          ]
+        }),
+      };
+
+      (Exercise.create as jest.Mock).mockResolvedValueOnce(mockDoc);
+      (UserStat.updateOne as jest.Mock).mockResolvedValueOnce({});
+
+      const validTests = [
+        { input: 'input1', expectedOutput: 'output1' },
+        { input: 'input2', expectedOutput: 'output2' }
+      ];
+
+      const result = await exercisesService.create('user', { 
+        languageId: 'lang',
+        title: 'Test',
+        tests: validTests
+      });
+
+      expect(result.id).toBe('e1');
+      expect(Exercise.create).toHaveBeenCalled();
+    });
+
+    it('update deve lançar erro se teste não tiver input', async () => {
+      const mockEx: any = {
+        _id: 'e1',
+        authorUserId: 'user',
+        save: jest.fn(),
+        toObject: jest.fn().mockReturnValue({ _id: 'e1', authorUserId: 'user' }),
+      };
+
+      (Exercise.findById as jest.Mock).mockResolvedValueOnce(mockEx);
+      (User.findById as jest.Mock).mockReturnValueOnce({
+        lean: jest.fn().mockResolvedValueOnce({ _id: 'user', role: 'USER' }),
+      });
+
+      const invalidTests = [
+        { expectedOutput: 'output1' },
+        { input: 'input2', expectedOutput: 'output2' }
+      ];
+
+      await expect(
+        exercisesService.update('user', 'e1', { tests: invalidTests })
+      ).rejects.toThrow('Teste 1 deve ter uma entrada (input) configurada');
     });
   });
 });

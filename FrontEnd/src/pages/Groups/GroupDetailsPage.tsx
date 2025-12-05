@@ -18,6 +18,8 @@ import EditGroupExerciseModal, { UpdateGroupExerciseData } from "../../component
 import { useGroupNotification } from "../../hooks/useGroupNotification";
 import GroupNotification from "../../components/Groups/GroupNotification";
 import ConfirmationModal from "@/components/ConfirmationModal";
+import { useConfirmModal } from "@/hooks/useConfirmModal";
+import ConfirmModal from "@/components/ConfirmModal";
 import { judge0Service, submissionsService } from "@services/index";
 import * as S from "@/styles/pages/Dashboard/styles";
 
@@ -559,6 +561,7 @@ const GroupDetailsPage: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const { theme } = useTheme();
   const isDark = theme === "dark";
+  const confirmModal = useConfirmModal();
 
   const [group, setGroup] = useState<Group | null>(null);
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -802,7 +805,15 @@ const GroupDetailsPage: React.FC = () => {
   };
 
   const handleDeleteExercise = async (exerciseId: string) => {
-    if (!confirm('Tem certeza que deseja excluir este Desafio?')) return;
+    const confirmed = await confirmModal.confirm({
+      title: 'Excluir Desafio',
+      message: 'Tem certeza que deseja excluir este Desafio? Esta ação não pode ser desfeita.',
+      confirmText: 'Excluir',
+      cancelText: 'Cancelar',
+      type: 'danger'
+    });
+    
+    if (!confirmed) return;
 
     try {
       await exercisesService.delete(exerciseId);
@@ -820,7 +831,15 @@ const GroupDetailsPage: React.FC = () => {
     const newStatus = exercise.status === 'PUBLISHED' ? 'ARCHIVED' : 'PUBLISHED';
     const action = newStatus === 'ARCHIVED' ? 'inativar' : 'ativar';
 
-    if (!confirm(`Tem certeza que deseja ${action} o Desafio "${exercise.title}"?`)) return;
+    const confirmed = await confirmModal.confirm({
+      title: `${newStatus === 'ARCHIVED' ? 'Inativar' : 'Ativar'} Desafio`,
+      message: `Tem certeza que deseja ${action} o Desafio "${exercise.title}"?`,
+      confirmText: newStatus === 'ARCHIVED' ? 'Inativar' : 'Ativar',
+      cancelText: 'Cancelar',
+      type: 'warning'
+    });
+    
+    if (!confirmed) return;
 
     try {
       setActionLoading(true);
@@ -1527,6 +1546,18 @@ const GroupDetailsPage: React.FC = () => {
             onSubmit={handleSubmitChallenge}
           />
         )}
+
+        <ConfirmModal
+          isOpen={confirmModal.isOpen}
+          onClose={confirmModal.handleCancel}
+          onConfirm={confirmModal.handleConfirm}
+          title={confirmModal.options.title}
+          message={confirmModal.options.message}
+          confirmText={confirmModal.options.confirmText}
+          cancelText={confirmModal.options.cancelText}
+          type={confirmModal.options.type}
+          isLoading={confirmModal.isLoading}
+        />
       </Container>
     </AuthenticatedLayout>
   );

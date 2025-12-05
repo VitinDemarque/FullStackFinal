@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@contexts/AuthContext";
 import { useTheme } from "@contexts/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNotification } from "@components/Notification";
 import { 
   Code, 
   Trophy, 
@@ -53,6 +54,7 @@ export default function DashboardPage() {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const navigate = useNavigate();
+  const { addNotification, NotificationContainer } = useNotification();
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [rankingExercise, setRankingExercise] = useState<Exercise | null>(null);
 
@@ -197,7 +199,7 @@ export default function DashboardPage() {
 
     // Bloquear submissão se o desafio já foi concluído
     if (selectedExercise.isCompleted) {
-      alert('Este desafio já foi concluído. Não é possível refazê-lo.');
+      addNotification('Este desafio já foi concluído. Não é possível refazê-lo.', 'warning', 4000);
       setSelectedExercise(null);
       return;
     }
@@ -223,7 +225,7 @@ export default function DashboardPage() {
         ? `\nTestes passados: ${submission.passedTests || 0}/${submission.totalTests}`
         : '';
 
-      alert(`${statusMessage}\n\n${scoreMessage}${testsMessage}`);
+      addNotification(`${statusMessage}\n\n${scoreMessage}${testsMessage}`, submission.status === "ACCEPTED" ? 'success' : 'info', 6000);
 
       if (submission.status === "ACCEPTED") {
         await attemptsService.deleteAttempt(selectedExercise.id).catch(() => {});
@@ -246,13 +248,13 @@ export default function DashboardPage() {
         || 'Erro desconhecido';
       
       if (errorMessage.includes('já foi concluído') || errorMessage.includes('não é possível refazê-lo')) {
-        alert(errorMessage);
+        addNotification(errorMessage, 'warning', 5000);
         setSelectedExercise(null);
         refetch(); // Recarregar para atualizar o status
         return;
       }
       
-      alert(`Erro ao submeter desafio: ${errorMessage}`);
+      addNotification(`Erro ao submeter desafio: ${errorMessage}`, 'error', 5000);
       throw error;
     }
   };
@@ -649,6 +651,7 @@ export default function DashboardPage() {
           </S.Section>
         </S.DashboardContainer>
       </S.DashboardPage>
+      <NotificationContainer />
     </AuthenticatedLayout>
   );
 }

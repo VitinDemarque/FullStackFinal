@@ -6,6 +6,7 @@ import type { College } from '@/types/index'
 import styled from 'styled-components'
 import { brUniversitiesService } from '@services/brUniversities.service'
 import { FaPlus, FaArrowLeft } from 'react-icons/fa'
+import { useNotification } from '@components/Notification'
 
 const PageContainer = styled.div`
   max-width: 760px;
@@ -193,6 +194,7 @@ const SecondaryButton = styled.button`
 
 export default function CollegeCreatePage() {
   const navigate = useNavigate()
+  const { addNotification, NotificationContainer } = useNotification()
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState<{ name: string; acronym?: string; city?: string; state?: string }>({
     name: '',
@@ -255,7 +257,7 @@ export default function CollegeCreatePage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!form.name.trim()) {
-      alert('Informe o nome da faculdade')
+      addNotification('Informe o nome da faculdade', 'warning', 4000)
       return
     }
     setLoading(true)
@@ -267,16 +269,16 @@ export default function CollegeCreatePage() {
         state: form.state?.trim() || undefined,
       })
 
-      alert('✅ Faculdade criada com sucesso!')
-      navigate(`/profile/editar?newCollegeId=${created.id}`)
+      addNotification('Faculdade criada com sucesso!', 'success', 4000)
+      setTimeout(() => navigate(`/profile/editar?newCollegeId=${created.id}`), 1000)
     } catch (err: any) {
       const message = err?.message || 'Erro ao criar faculdade'
       if (err?.statusCode === 403) {
-        alert('Você não tem permissão para criar faculdades. Contate um administrador.')
+        addNotification('Você não tem permissão para criar faculdades. Contate um administrador.', 'error', 5000)
       } else if (err?.statusCode === 409) {
-        alert('Já existe uma faculdade com esse nome.')
+        addNotification('Já existe uma faculdade com esse nome.', 'error', 5000)
       } else {
-        alert(`❌ ${message}`)
+        addNotification(message, 'error', 5000)
       }
     } finally {
       setLoading(false)
@@ -359,6 +361,7 @@ export default function CollegeCreatePage() {
           </Form>
         </Card>
       </PageContainer>
+      <NotificationContainer />
     </AuthenticatedLayout>
   )
 }

@@ -593,13 +593,18 @@ function validateTestsStructure(tests: any[]): void {
       throw new BadRequestError(`Teste ${i + 1} deve ser um objeto`);
     }
 
+    // input é obrigatório (não pode ser undefined, null ou string vazia após trim)
+    if (test.input === undefined || test.input === null || typeof test.input !== 'string' || test.input.trim().length === 0) {
+      throw new BadRequestError(`Teste ${i + 1} deve ter uma entrada (input) configurada`);
+    }
+
     // expectedOutput é obrigatório
     if (!test.expectedOutput || typeof test.expectedOutput !== 'string' || test.expectedOutput.trim().length === 0) {
       throw new BadRequestError(`Teste ${i + 1} deve ter uma saída esperada (expectedOutput) configurada`);
     }
 
     // Validar tamanhos máximos
-    if (test.input && test.input.length > 10000) {
+    if (test.input.length > 10000) {
       throw new BadRequestError(`Teste ${i + 1}: entrada (input) excede o limite de 10000 caracteres`);
     }
 
