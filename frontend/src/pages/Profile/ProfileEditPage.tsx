@@ -8,6 +8,7 @@ import type { College } from '@/types/index'
 import { FaArrowLeft, FaSave, FaUserEdit, FaKey, FaPlus } from 'react-icons/fa'
 import styled from 'styled-components'
 import CollegeAutocomplete from '@components/Colleges/CollegeAutocomplete'
+import { useNotification } from '@components/Notification'
 
 const PageContainer = styled.div`
   max-width: 960px;
@@ -231,6 +232,7 @@ export default function ProfileEditPage() {
   const navigate = useNavigate()
   const [newCollegeId, setNewCollegeId] = useState<string | null>(null)
   const { user, updateUser } = useAuth()
+  const { addNotification, NotificationContainer } = useNotification()
 
   const [loading, setLoading] = useState(false)
   const [colleges, setColleges] = useState<College[]>([])
@@ -308,12 +310,12 @@ export default function ProfileEditPage() {
       // Alterar senha se informada
       if (form.currentPassword || form.newPassword || form.confirmNewPassword) {
         if (!form.currentPassword || !form.newPassword || !form.confirmNewPassword) {
-          alert('❌ Para alterar a senha, preencha os três campos: senha atual, nova senha e confirmação.')
+          addNotification('Para alterar a senha, preencha os três campos: senha atual, nova senha e confirmação.', 'warning', 5000)
           setLoading(false)
           return
         }
         if (form.newPassword !== form.confirmNewPassword) {
-          alert('❌ As novas senhas não coincidem. Verifique e tente novamente.')
+          addNotification('As novas senhas não coincidem. Verifique e tente novamente.', 'error', 5000)
           setLoading(false)
           return
         }
@@ -323,10 +325,10 @@ export default function ProfileEditPage() {
         })
       }
 
-      alert('✅ Perfil atualizado com sucesso!')
-      navigate('/profile')
+      addNotification('Perfil atualizado com sucesso!', 'success', 4000)
+      setTimeout(() => navigate('/profile'), 1000)
     } catch (error: any) {
-      alert(`❌ Erro ao atualizar perfil: ${error?.message || 'Tente novamente'}`)
+      addNotification(`Erro ao atualizar perfil: ${error?.message || 'Tente novamente'}`, 'error', 5000)
     } finally {
       setLoading(false)
     }
@@ -425,6 +427,7 @@ export default function ProfileEditPage() {
           </Form>
         </Card>
       </PageContainer>
+      <NotificationContainer />
     </AuthenticatedLayout>
   )
 }

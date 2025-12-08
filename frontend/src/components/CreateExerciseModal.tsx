@@ -689,7 +689,7 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit, codeTem
     onClose();
   };
 
-  const handleInputChange = (field: keyof CreateExerciseData, value: string | number | boolean) => {
+  const handleInputChange = (field: keyof CreateExerciseData, value: string | number | boolean | undefined) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -801,6 +801,7 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit, codeTem
   };
 
   const validTestsCount = (formData.tests || []).filter(test => 
+    test.input && test.input.trim().length > 0 &&
     test.expectedOutput && test.expectedOutput.trim().length > 0
   ).length;
 
@@ -1041,16 +1042,21 @@ export default function CreateExerciseModal({ isOpen, onClose, onSubmit, codeTem
                   <TestFields>
                     <TestField>
                       <TestLabel>
-                        Entrada (stdin) <span>Opcional</span>
+                        Entrada (stdin) <span style={{ color: '#ef4444' }}>*</span>
                       </TestLabel>
                       <TestTextarea
                         $isDark={isDark}
                         value={test.input}
                         onChange={(e) => updateTest(index, 'input', e.target.value)}
-                        placeholder="Ex: 5 10 ou deixe vazio"
+                        placeholder="Ex: 5 10"
                         rows={1}
+                        required
                         maxLength={10000}
+                        $hasError={!test.input.trim()}
                       />
+                      {!test.input.trim() && (
+                        <TestError>Entrada é obrigatória</TestError>
+                      )}
                     </TestField>
 
                     <TestField>

@@ -9,6 +9,7 @@ import { titlesService } from "@services/titles.service";
 import { leaderboardService } from "@services/leaderboard.service";
 import { exercisesService, submissionsService, badgesService } from "@services/index";
 import AuthenticatedLayout from "@components/Layout/AuthenticatedLayout";
+import { useNotification } from "@components/Notification";
 import type { Exercise } from "@/types";
 import { deriveLevelFromXp, getProgressToNextLevel } from "@utils/levels";
 import {
@@ -57,6 +58,7 @@ export default function ProfilePage() {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const navigate = useNavigate();
+  const { addNotification, NotificationContainer } = useNotification();
   const {
     data: scoreboard,
     loading,
@@ -621,12 +623,12 @@ export default function ProfilePage() {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      alert("Por favor, selecione uma imagem válida");
+      addNotification("Por favor, selecione uma imagem válida", 'warning', 4000);
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert("A imagem deve ter no máximo 5MB");
+      addNotification("A imagem deve ter no máximo 5MB", 'warning', 4000);
       return;
     }
 
@@ -640,16 +642,16 @@ export default function ProfilePage() {
           const resolved = resolvePublicUrl(updated.avatarUrl || null);
           setProfileImage(resolved);
           updateUser({ avatarUrl: resolved || null });
-          alert("Foto de perfil atualizada com sucesso!");
+          addNotification("Foto de perfil atualizada com sucesso!", 'success', 4000);
         } catch (err) {
-          alert("Erro ao enviar a imagem ao servidor.");
+          addNotification("Erro ao enviar a imagem ao servidor.", 'error', 4000);
         } finally {
           setUploadingImage(false);
         }
       };
       reader.readAsDataURL(file);
     } catch (error) {
-      alert("Erro ao processar a imagem.");
+      addNotification("Erro ao processar a imagem.", 'error', 4000);
       setUploadingImage(false);
     }
   }
@@ -1030,6 +1032,7 @@ export default function ProfilePage() {
               )}
         </S.ContentArea>
       </S.ProfilePageContainer>
+      <NotificationContainer />
     </AuthenticatedLayout>
   );
 }

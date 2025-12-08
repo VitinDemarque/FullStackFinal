@@ -4,7 +4,7 @@ export type ExerciseStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 
 // Interface para um teste do exercício
 export interface ITest {
-  input: string;           // Entrada do teste (pode ser vazio)
+  input: string;           // Entrada do teste (obrigatório)
   expectedOutput: string;  // Saída esperada (obrigatório)
   description?: string;    // Descrição opcional do teste
 }
@@ -63,7 +63,7 @@ const ExerciseSchema = new Schema<IExercise>(
     highScoreWinnerTime: { type: Number, default: null },
     highScoreAwardedAt: { type: Date, default: null },
     tests: [{
-      input: { type: String, default: '', maxlength: 10000 },
+      input: { type: String, required: true, maxlength: 10000 },
       expectedOutput: { type: String, required: true, maxlength: 10000 },
       description: { type: String, default: '', maxlength: 500 }
     }]

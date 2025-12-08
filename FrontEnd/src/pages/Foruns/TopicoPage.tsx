@@ -6,6 +6,8 @@ import { forumCommentService } from '@/services/forumComment.service'
 import { forunsService } from '@/services/forum.services'
 import { exercisesService } from '@/services/exercises.service'
 import { useAuth } from '@/contexts/AuthContext'
+import { useConfirmModal } from '@/hooks/useConfirmModal'
+import ConfirmModal from '@/components/ConfirmModal'
 import * as S from '@/styles/pages/Foruns/styles'
 import type { ForumComment, ForumTopic } from '@/types/forum'
 
@@ -13,6 +15,7 @@ export default function TopicoPage() {
   const { id, topicId } = useParams<{ id: string; topicId: string }>()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const confirmModal = useConfirmModal()
 
   const [topico, setTopico] = useState<ForumTopic | null>(null)
   const [comentarios, setComentarios] = useState<ForumComment[]>([])
@@ -82,8 +85,17 @@ export default function TopicoPage() {
 
   const handleExcluirComentario = async (commentId: string) => {
     if (!commentId) return
-    const confirmar = window.confirm('Excluir este comentário?')
-    if (!confirmar) return
+    
+    const confirmed = await confirmModal.confirm({
+      title: 'Excluir Comentário',
+      message: 'Tem certeza que deseja excluir este comentário? Esta ação não pode ser desfeita.',
+      confirmText: 'Excluir',
+      cancelText: 'Cancelar',
+      type: 'danger'
+    })
+    
+    if (!confirmed) return
+    
     try {
       setExcluindoId(commentId)
       await forumCommentService.excluir(commentId)
@@ -198,6 +210,18 @@ export default function TopicoPage() {
           </S.DetailContainer>
         )}
       </S.Container>
+      
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={confirmModal.handleCancel}
+        onConfirm={confirmModal.handleConfirm}
+        title={confirmModal.options.title}
+        message={confirmModal.options.message}
+        confirmText={confirmModal.options.confirmText}
+        cancelText={confirmModal.options.cancelText}
+        type={confirmModal.options.type}
+        isLoading={confirmModal.isLoading}
+      />
     </AuthenticatedLayout>
   )
 }

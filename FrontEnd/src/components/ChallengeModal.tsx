@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { useTheme } from "@contexts/ThemeContext";
 import attemptsService from "@services/attempts.service";
 import ConfirmationModal from "@components/ConfirmationModal";
+import { useNotification } from "@components/Notification";
 
 const Overlay = styled.div<{ $isDark: boolean }>`
   position: fixed;
@@ -675,6 +676,7 @@ export default function ChallengeModal({
 }: ChallengeModalProps) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
+  const { addNotification, NotificationContainer } = useNotification();
   
   // Template básico para quem está resolvendo o desafio
   // Não usa o codeTemplate completo para evitar mostrar a solução
@@ -774,7 +776,7 @@ export default function ChallengeModal({
   const handleSubmitClick = () => {
     // Bloquear submissão se o desafio já foi concluído
     if (exercise.isCompleted) {
-      alert('Este desafio já foi concluído. Não é possível refazê-lo.');
+      addNotification('Este desafio já foi concluído. Não é possível refazê-lo.', 'warning', 4000);
       onClose();
       return;
     }
@@ -802,7 +804,7 @@ export default function ChallengeModal({
   const handleTest = async () => {
     // Bloquear teste se o desafio já foi concluído
     if (exercise.isCompleted) {
-      alert('Este desafio já foi concluído. Não é possível testar novamente.');
+      addNotification('Este desafio já foi concluído. Não é possível testar novamente.', 'warning', 4000);
       return;
     }
 
@@ -830,7 +832,7 @@ export default function ChallengeModal({
   const handleSaveDraft = async (closeAfter = false) => {
     // Bloquear salvamento se o desafio já foi concluído
     if (exercise.isCompleted) {
-      alert('Este desafio já foi concluído. Não é possível salvar progresso.');
+      addNotification('Este desafio já foi concluído. Não é possível salvar progresso.', 'warning', 4000);
       if (closeAfter) {
         onClose();
       }
@@ -857,7 +859,7 @@ export default function ChallengeModal({
         console.error("Erro ao salvar progresso do desafio:", error);
       }
       if (!closeAfter) {
-        alert("Não foi possível salvar seu progresso. Tente novamente.");
+        addNotification("Não foi possível salvar seu progresso. Tente novamente.", 'error', 4000);
       }
     } finally {
       setIsSavingDraft(false);
@@ -1107,6 +1109,8 @@ export default function ChallengeModal({
         cancelText="Cancelar"
         type="warning"
       />
+      
+      <NotificationContainer />
     </Overlay>
   );
 }

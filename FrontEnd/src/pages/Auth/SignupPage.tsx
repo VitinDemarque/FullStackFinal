@@ -52,6 +52,7 @@ export default function SignupPage() {
     lastName: "",
     email: "",
     password: "",
+    confirmPassword: "",
     handle: "",
     college: "",
   });
@@ -119,6 +120,15 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
+      if (formData.password !== formData.confirmPassword) {
+        setNotification({
+          type: "error",
+          message: "As senhas são diferentes.",
+        });
+        setLoading(false);
+        return;
+      }
+
       const signupData = {
         name: `${formData.firstName} ${formData.lastName}`.trim(),
         email: formData.email,
@@ -261,6 +271,18 @@ export default function SignupPage() {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="Digite sua senha"
+                required
+              />
+            </S.FormGroup>
+
+            <S.FormGroup>
+              <S.FormLabel>Confirmar Senha</S.FormLabel>
+              <S.FormInput
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                placeholder="Confirme sua senha"
                 required
               />
             </S.FormGroup>
