@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import * as AuthService from '../services/auth.service';
 import { BadRequestError } from '../utils/httpErrors';
+import { AuthenticatedRequest } from '../middlewares/auth';
 
 export async function signup(req: Request, res: Response, next: NextFunction) {
   try {
@@ -34,6 +35,27 @@ export async function refreshToken(req: Request, res: Response, next: NextFuncti
     const { refreshToken } = req.body ?? {};
     if (!refreshToken) throw new BadRequestError('Missing refreshToken');
     const result = await AuthService.refreshToken(refreshToken);
+    return res.status(200).json(result);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export async function logout(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { refreshToken } = req.body ?? {};
+    if (!refreshToken) throw new BadRequestError('Missing refreshToken');
+    const result = await AuthService.logout(refreshToken);
+    return res.status(200).json(result);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export async function logoutAll(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user?.user_id) throw new BadRequestError('User not authenticated');
+    const result = await AuthService.logoutAll(req.user.user_id);
     return res.status(200).json(result);
   } catch (err) {
     return next(err);
