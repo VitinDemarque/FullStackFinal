@@ -1,6 +1,6 @@
 # Regras de Negócio - Exercícios
 
-## 📋 Índice
+## Índice
 1. [Regras para Criação de Exercícios](#regras-para-criação-de-exercícios)
 2. [Regras para Análise de Exercícios](#regras-para-análise-de-exercícios)
 3. [Sistema de Testes Automatizados](#sistema-de-testes-automatizados)
@@ -9,7 +9,7 @@
 
 ---
 
-## 🎯 Resumo Executivo
+## Resumo Executivo
 
 Este documento define as regras de negócio para o sistema de exercícios, incluindo:
 
@@ -45,294 +45,294 @@ Usuário Resolve → Executa Testes → Analisa Complexidade → Calcula Score F
 
 ---
 
-## 🎯 Regras para Criação de Exercícios
+## Regras para Criação de Exercícios
 
 ### 1. Validações Obrigatórias
 
 #### 1.1 Campos Obrigatórios
 - **Título** (`title`): 
-  - ✅ Obrigatório
-  - ✅ Mínimo de 3 caracteres
-  - ✅ Máximo de 200 caracteres
-  - ✅ Não pode ser apenas espaços em branco
+  - Obrigatório
+  -  Mínimo de 3 caracteres
+  -  Máximo de 200 caracteres
+  -  Não pode ser apenas espaços em branco
 
 - **Autor** (`authorUserId`):
-  - ✅ Obrigatório (obtido do token de autenticação)
-  - ✅ Usuário deve existir no sistema
+  - Obrigatório (obtido do token de autenticação)
+  -  Usuário deve existir no sistema
 
 #### 1.2 Campos Opcionais com Validações
 
 - **Linguagem** (`languageId`):
-  - ⚠️ Opcional
-  - ✅ Se fornecido, deve existir no sistema
-  - ✅ Se não fornecido, exercício fica sem linguagem específica
+  - Opcional
+  -  Se fornecido, deve existir no sistema
+  -  Se não fornecido, exercício fica sem linguagem específica
 
 - **Assunto** (`subject`):
-  - ⚠️ Opcional
-  - ✅ Máximo de 100 caracteres
-  - ✅ Padrão: string vazia
+  - Opcional
+  -  Máximo de 100 caracteres
+  -  Padrão: string vazia
 
 - **Descrição** (`description`):
-  - ⚠️ Opcional
-  - ✅ Máximo de 5000 caracteres
-  - ✅ Padrão: string vazia
+  - Opcional
+  -  Máximo de 5000 caracteres
+  -  Padrão: string vazia
 
 - **Dificuldade** (`difficulty`):
-  - ⚠️ Opcional
-  - ✅ Valor entre 1 e 5 (inclusive)
-  - ✅ Padrão: 1
-  - ✅ Números inteiros apenas
+  - Opcional
+  -  Valor entre 1 e 5 (inclusive)
+  -  Padrão: 1
+  -  Números inteiros apenas
 
 - **XP Base** (`baseXp`):
-  - ⚠️ Opcional
-  - ✅ Valor mínimo: 0
-  - ✅ Padrão: 100
-  - ✅ Números inteiros apenas
+  - Opcional
+  -  Valor mínimo: 0
+  -  Padrão: 100
+  -  Números inteiros apenas
 
 - **Template de Código** (`codeTemplate`):
-  - ⚠️ Opcional
-  - ✅ Padrão: `"// start coding..."`
-  - ✅ Máximo de 50000 caracteres
+  - Opcional
+  -  Padrão: `"// start coding..."`
+  -  Máximo de 50000 caracteres
 
 - **Visibilidade** (`isPublic`):
-  - ⚠️ Opcional
-  - ✅ Padrão: `true`
-  - ✅ Se `groupId` for fornecido, automaticamente vira `false`
+  - Opcional
+  -  Padrão: `true`
+  -  Se `groupId` for fornecido, automaticamente vira `false`
 
 - **Status** (`status`):
-  - ⚠️ Opcional
-  - ✅ Valores permitidos: `'DRAFT'`, `'PUBLISHED'`, `'ARCHIVED'`
-  - ✅ Padrão: `'PUBLISHED'` se `isPublic = true`, senão `'DRAFT'`
+  - Opcional
+  -  Valores permitidos: `'DRAFT'`, `'PUBLISHED'`, `'ARCHIVED'`
+  -  Padrão: `'PUBLISHED'` se `isPublic = true`, senão `'DRAFT'`
 
 ### 2. Regras de Permissões
 
 #### 2.1 Permissões por Papel do Usuário
 
 - **Usuário Comum**:
-  - ✅ Pode criar exercícios
-  - ❌ Não pode configurar badges (`triumphantBadgeId`, `highScoreBadgeId`)
-  - ❌ Não pode alterar `badgeRarity` (sempre `'COMMON'`)
-  - ❌ Não pode configurar `highScoreThreshold`
+  - Pode criar exercícios
+  - Não pode configurar badges (`triumphantBadgeId`, `highScoreBadgeId`)
+  - Não pode alterar `badgeRarity` (sempre `'COMMON'`)
+  - Não pode configurar `highScoreThreshold`
 
 - **Administrador**:
-  - ✅ Pode criar exercícios
-  - ✅ Pode configurar todos os badges
-  - ✅ Pode alterar `badgeRarity` (`'COMMON'`, `'RARE'`, `'EPIC'`, `'LEGENDARY'`)
-  - ✅ Pode configurar `highScoreThreshold` (0-100)
+  - Pode criar exercícios
+  - Pode configurar todos os badges
+  - Pode alterar `badgeRarity` (`'COMMON'`, `'RARE'`, `'EPIC'`, `'LEGENDARY'`)
+  - Pode configurar `highScoreThreshold` (0-100)
 
 ### 3. Regras de Grupo
 
 #### 3.1 Exercícios para Grupos
 
 - **Se `groupId` for fornecido**:
-  - ✅ Usuário deve ser membro do grupo
-  - ✅ Grupo deve existir no sistema
-  - ✅ `isPublic` automaticamente vira `false`
-  - ✅ Exercício fica visível apenas para membros do grupo
-  - ✅ Status padrão: `'DRAFT'` (pode ser alterado para `'PUBLISHED'`)
+  - Usuário deve ser membro do grupo
+  - Grupo deve existir no sistema
+  - `isPublic` automaticamente vira `false`
+  - Exercício fica visível apenas para membros do grupo
+  - Status padrão: `'DRAFT'` (pode ser alterado para `'PUBLISHED'`)
 
 - **Se `groupId` não for fornecido**:
-  - ✅ Exercício pode ser público ou privado
-  - ✅ Se `isPublic = true`, status padrão: `'PUBLISHED'`
+  - Exercício pode ser público ou privado
+  - Se `isPublic = true`, status padrão: `'PUBLISHED'`
 
 ### 4. Geração de Código Público
 
 - **Código Público** (`publicCode`):
-  - ✅ Gerado automaticamente
-  - ✅ Formato: `#AAAA0000` (4 letras maiúsculas + 4 dígitos)
-  - ✅ Deve ser único no sistema
-  - ✅ Tentativas: até 10 tentativas aleatórias
-  - ✅ Fallback: `#EX` + timestamp (últimos 8 dígitos)
+  - Gerado automaticamente
+  - Formato: `#AAAA0000` (4 letras maiúsculas + 4 dígitos)
+  - Deve ser único no sistema
+  - Tentativas: até 10 tentativas aleatórias
+  - Fallback: `#EX` + timestamp (últimos 8 dígitos)
 
 ### 5. Sistema de Testes do Exercício
 
 #### 5.1 Testes Obrigatórios
 
 - **Mínimo de 2 testes obrigatórios**:
-  - ✅ Todo exercício DEVE ter pelo menos 2 testes
-  - ✅ Testes são obrigatórios para publicação
-  - ❌ Não é possível publicar exercício sem pelo menos 2 testes
+  - Todo exercício DEVE ter pelo menos 2 testes
+  - Testes são obrigatórios para publicação
+  - Não é possível publicar exercício sem pelo menos 2 testes
 
 #### 5.2 Estrutura de um Teste
 
 Cada teste contém:
 - **Entrada** (`input`):
-  - ✅ String contendo a entrada do teste
-  - ✅ Pode ser vazio se o teste não requer entrada
-  - ✅ Máximo de 10000 caracteres
+  - String contendo a entrada do teste
+  - Obrigatório (não pode ser vazio após as alterações recentes)
+  - Máximo de 10000 caracteres
 
 - **Saída Esperada** (`expectedOutput`):
-  - ✅ String contendo a saída esperada
-  - ✅ Obrigatório
-  - ✅ Máximo de 10000 caracteres
-  - ✅ Será comparada exatamente com a saída do código do usuário
+  - String contendo a saída esperada
+  - Obrigatório
+  - Máximo de 10000 caracteres
+  - Será comparada exatamente com a saída do código do usuário
 
 - **Descrição** (`description`):
-  - ⚠️ Opcional
-  - ✅ Máximo de 500 caracteres
-  - ✅ Usado para documentar o que o teste valida
+  - Opcional
+  - Máximo de 500 caracteres
+  - Usado para documentar o que o teste valida
 
 #### 5.3 Testes Opcionais Adicionais
 
 - **Após os 2 obrigatórios**:
-  - ✅ Autor pode adicionar testes opcionais adicionais
-  - ✅ Não há limite máximo de testes
-  - ✅ Recomendado: 3-5 testes para boa cobertura
+  - Autor pode adicionar testes opcionais adicionais
+  - Não há limite máximo de testes
+  - Recomendado: 3-5 testes para boa cobertura
 
 #### 5.4 Validação dos Testes
 
 - **Ao criar/editar exercício**:
-  - ✅ Valida que há pelo menos 2 testes
-  - ✅ Valida que cada teste tem `expectedOutput`
-  - ✅ Valida tamanhos máximos dos campos
-  - ❌ Não permite publicar se não tiver 2 testes válidos
+  - Valida que há pelo menos 2 testes
+  - Valida que cada teste tem `expectedOutput`
+  - Valida tamanhos máximos dos campos
+  - Não permite publicar se não tiver 2 testes válidos
 
 #### 5.5 Armazenamento
 
 - **Estrutura no banco**:
-  - ✅ Array de objetos `tests` no modelo `Exercise`
-  - ✅ Cada teste tem: `input`, `expectedOutput`, `description` (opcional)
-  - ✅ Ordem dos testes é preservada
+  - Array de objetos `tests` no modelo `Exercise`
+  - Cada teste tem: `input`, `expectedOutput`, `description` (opcional)
+  - Ordem dos testes é preservada
 
 ### 6. Estatísticas
 
 - **Ao criar exercício**:
-  - ✅ Incrementa `exercisesCreatedCount` do autor em `UserStat`
-  - ✅ Cria registro se não existir
+  - Incrementa `exercisesCreatedCount` do autor em `UserStat`
+  - Cria registro se não existir
 
 ---
 
-## 🔍 Regras para Análise de Exercícios
+## Regras para Análise de Exercícios
 
 ### 1. Validações Pré-Submissão
 
 #### 1.1 Verificações Obrigatórias
 
 - **Exercício existe**:
-  - ✅ Exercício deve existir no banco de dados
-  - ❌ Se não existir: `NotFoundError('Exercise not found')`
+  - Exercício deve existir no banco de dados
+  - Se não existir: `NotFoundError('Exercise not found')`
 
 - **Exercício publicado**:
-  - ✅ Status deve ser `'PUBLISHED'`
-  - ❌ Se não publicado: `BadRequestError('Exercise not published')`
+  - Status deve ser `'PUBLISHED'`
+  - Se não publicado: `BadRequestError('Exercise not published')`
 
 - **Usuário não completou anteriormente**:
-  - ✅ Não pode ter submissão `'ACCEPTED'` para este exercício
-  - ❌ Se já completou: `BadRequestError('Este desafio já foi concluído. Não é possível refazê-lo.')`
+  - Não pode ter submissão `'ACCEPTED'` para este exercício
+  - Se já completou: `BadRequestError('Este desafio já foi concluído. Não é possível refazê-lo.')`
 
 #### 1.2 Dados da Submissão
 
 - **Código** (`code`):
-  - ⚠️ Opcional
-  - ✅ Se fornecido, armazenado na submissão
-  - ✅ Máximo de 50000 caracteres
+  - Opcional
+  - Se fornecido, armazenado na submissão
+  - Máximo de 50000 caracteres
 
 - **Score** (`score`):
-  - ⚠️ Opcional
-  - ✅ Valor entre 0 e 100 (inclusive)
-  - ✅ Padrão: 0
-  - ✅ Números decimais permitidos
+  - Opcional
+  - Valor entre 0 e 100 (inclusive)
+  - Padrão: 0
+  - Números decimais permitidos
 
 - **Tempo Gasto** (`timeSpentMs`):
-  - ⚠️ Opcional
-  - ✅ Valor mínimo: 0
-  - ✅ Padrão: 0
-  - ✅ Em milissegundos
+  - Opcional
+  - Valor mínimo: 0
+  - Padrão: 0
+  - Em milissegundos
 
 ### 2. Validação Automática com Testes
 
 #### 2.1 Execução dos Testes
 
 - **Processo de validação**:
-  1. ✅ Recebe código do usuário
-  2. ✅ Executa código via Judge0 com cada teste do exercício
-  3. ✅ Compara saída do código com `expectedOutput` de cada teste
-  4. ✅ Conta quantos testes passaram
-  5. ✅ Calcula score baseado na porcentagem de testes passados
+  1. Recebe código do usuário
+  2. Executa código via Judge0 com cada teste do exercício
+  3. Compara saída do código com `expectedOutput` de cada teste
+  4. Conta quantos testes passaram
+  5. Calcula score baseado na porcentagem de testes passados
 
 #### 2.2 Cálculo de Score
 
 - **Fórmula de Score**:
-  - ✅ `Score = (Testes Passados / Total de Testes) × 100`
-  - ✅ Arredondado para 2 casas decimais
-  - ✅ Exemplo: 3 de 5 testes = 60.00 pontos
+  - `Score = (Testes Passados / Total de Testes) × 100`
+  - Arredondado para 2 casas decimais
+  - Exemplo: 3 de 5 testes = 60.00 pontos
 
 - **Validação de Saída**:
-  - ✅ Comparação exata (trim de espaços em branco no início/fim)
-  - ✅ Case-sensitive (maiúsculas/minúsculas importam)
-  - ✅ Quebras de linha são preservadas
+  - Comparação exata (trim de espaços em branco no início/fim)
+  - Case-sensitive (maiúsculas/minúsculas importam)
+  - Quebras de linha são preservadas
 
 #### 2.3 Tratamento de Erros na Execução
 
 - **Erros de compilação**:
-  - ❌ Score = 0
-  - ❌ Status = `'REJECTED'`
-  - ✅ Mensagem de erro retornada ao usuário
+  - Score = 0
+  - Status = `'REJECTED'`
+  - Mensagem de erro retornada ao usuário
 
 - **Erros de runtime**:
-  - ❌ Score = 0
-  - ❌ Status = `'REJECTED'`
-  - ✅ Mensagem de erro retornada ao usuário
+  - Score = 0
+  - Status = `'REJECTED'`
+  - Mensagem de erro retornada ao usuário
 
 - **Timeout**:
-  - ❌ Score = 0
-  - ❌ Status = `'REJECTED'`
-  - ✅ Mensagem de timeout retornada
+  - Score = 0
+  - Status = `'REJECTED'`
+  - Mensagem de timeout retornada
 
 #### 2.4 Resultado dos Testes
 
 - **Armazenamento**:
-  - ✅ Cada submissão armazena quais testes passaram/falharam
-  - ✅ Array de resultados: `[{ testIndex, passed, actualOutput, expectedOutput }]`
-  - ✅ Usado para feedback ao usuário
+  - Cada submissão armazena quais testes passaram/falharam
+  - Array de resultados: `[{ testIndex, passed, actualOutput, expectedOutput }]`
+  - Usado para feedback ao usuário
 
 ### 3. Cálculo de Status
 
 #### 3.1 Regra de Aprovação/Rejeição
 
 - **Status `'ACCEPTED'`**:
-  - ✅ Score >= 60 (pelo menos 60% dos testes passaram)
-  - ✅ Exercício considerado concluído
-  - ✅ Usuário não pode mais submeter para este exercício
+  - Score >= 60 (pelo menos 60% dos testes passaram)
+  - Exercício considerado concluído
+  - Usuário não pode mais submeter para este exercício
 
 - **Status `'REJECTED'`**:
-  - ✅ Score < 60 (menos de 60% dos testes passaram)
-  - ✅ Exercício não considerado concluído
-  - ✅ Usuário pode tentar novamente (sem limite de tentativas)
+  - Score < 60 (menos de 60% dos testes passaram)
+  - Exercício não considerado concluído
+  - Usuário pode tentar novamente (sem limite de tentativas)
 
 ### 4. Análise de Complexidade
 
 #### 4.1 Objetivo
 
 - **Análise automática**:
-  - ✅ Avalia a complexidade do código submetido
-  - ✅ Dá bônus de pontos se o código não for muito complexo
-  - ✅ Incentiva soluções elegantes e eficientes
+  - Avalia a complexidade do código submetido
+  - Dá bônus de pontos se o código não for muito complexo
+  - Incentiva soluções elegantes e eficientes
 
 #### 4.2 Métricas de Complexidade
 
 - **Complexidade Ciclomática**:
-  - ✅ Conta estruturas de controle (if, for, while, switch, etc.)
-  - ✅ Quanto mais estruturas, maior a complexidade
+  - Conta estruturas de controle (if, for, while, switch, etc.)
+  - Quanto mais estruturas, maior a complexidade
 
 - **Linhas de Código**:
-  - ✅ Conta linhas não vazias e não comentadas
-  - ✅ Códigos muito longos são penalizados
+  - Conta linhas não vazias e não comentadas
+  - Códigos muito longos são penalizados
 
 - **Profundidade de Aninhamento**:
-  - ✅ Mede o nível máximo de aninhamento (if dentro de if, etc.)
-  - ✅ Aninhamento profundo aumenta complexidade
+  - Mede o nível máximo de aninhamento (if dentro de if, etc.)
+  - Aninhamento profundo aumenta complexidade
 
 - **Uso de Recursão**:
-  - ✅ Detecta chamadas recursivas
-  - ✅ Recursão pode aumentar complexidade (dependendo do contexto)
+  - Detecta chamadas recursivas
+  - Recursão pode aumentar complexidade (dependendo do contexto)
 
 #### 4.3 Cálculo do Score de Complexidade
 
 - **Score de Complexidade** (0-100):
-  - ✅ `complexityScore = 100 - (complexityPenalty)`
-  - ✅ Penalidade baseada nas métricas acima
-  - ✅ Quanto menor a complexidade, maior o score
+  - `complexityScore = 100 - (complexityPenalty)`
+  - Penalidade baseada nas métricas acima
+  - Quanto menor a complexidade, maior o score
 
 - **Fórmula de Penalidade**:
   ```
@@ -343,23 +343,23 @@ Cada teste contém:
   ```
 
 - **Limites**:
-  - ✅ Penalidade mínima: 0
-  - ✅ Penalidade máxima: 100 (score = 0)
-  - ✅ Score de complexidade: 0-100
+  - Penalidade mínima: 0
+  - Penalidade máxima: 100 (score = 0)
+  - Score de complexidade: 0-100
 
 #### 4.4 Bônus de Pontos (Sistema Híbrido)
 
 - **Aplicação do bônus**:
-  - ✅ Bônus base = `(complexityScore / 100) × 20` (máximo 20 pontos)
-  - ✅ Bônus final = `Bônus base × Multiplicador`
-  - ✅ Score final = Score dos testes + Bônus final
-  - ✅ Score final limitado a 100 (não pode ultrapassar)
+  - Bônus base = `(complexityScore / 100) × 20` (máximo 20 pontos)
+  - Bônus final = `Bônus base × Multiplicador`
+  - Score final = Score dos testes + Bônus final
+  - Score final limitado a 100 (não pode ultrapassar)
 
 - **Multiplicadores por faixa de testScore**:
-  - ✅ **100%**: Multiplicador 1.0 (100% do bônus) - Código perfeito
-  - ✅ **90-99%**: Multiplicador 0.5 (50% do bônus) - Quase perfeito
-  - ✅ **80-89%**: Multiplicador 0.25 (25% do bônus) - Bom desempenho
-  - ❌ **< 80%**: Multiplicador 0 (sem bônus) - Precisa melhorar
+  - **100%**: Multiplicador 1.0 (100% do bônus) - Código perfeito
+  - **90-99%**: Multiplicador 0.5 (50% do bônus) - Quase perfeito
+  - **80-89%**: Multiplicador 0.25 (25% do bônus) - Bom desempenho
+  - **< 80%**: Multiplicador 0 (sem bônus) - Precisa melhorar
 
 - **Exemplos**:
 
@@ -397,18 +397,18 @@ Cada teste contém:
 #### 4.5 Armazenamento
 
 - **Campos na submissão**:
-  - ✅ `complexityScore`: Score de complexidade (0-100)
-  - ✅ `complexityMetrics`: Objeto com métricas detalhadas
-  - ✅ `bonusPoints`: Pontos de bônus concedidos
-  - ✅ `finalScore`: Score final (testes + bônus)
+  - `complexityScore`: Score de complexidade (0-100)
+  - `complexityMetrics`: Objeto com métricas detalhadas
+  - `bonusPoints`: Pontos de bônus concedidos
+  - `finalScore`: Score final (testes + bônus)
 
 ### 5. Cálculo de XP
 
 #### 5.1 Fórmula Base
 
 - **XP Calculado**:
-  - ✅ Usa função `calculateXp()` centralizada
-  - ✅ Parâmetros:
+  - Usa função `calculateXp()` centralizada
+  - Parâmetros:
     - `baseXp`: XP base do exercício (padrão: 100)
     - `difficulty`: Dificuldade (1-5)
     - `score`: Score final da submissão (testes + bônus, 0-100)
@@ -423,32 +423,32 @@ Cada teste contém:
   - `'LEGENDARY'`: 1.5x
 
 - **XP Final**:
-  - ✅ `XP Final = XP Calculado × Multiplicador de Raridade`
-  - ✅ Arredondado para inteiro
+  - `XP Final = XP Calculado × Multiplicador de Raridade`
+  - Arredondado para inteiro
 
 ### 6. Processamento de Submissão Aceita
 
 #### 6.1 Crédito de XP e Nível
 
 - **Se status = `'ACCEPTED'`**:
-  - ✅ Credita XP ao usuário (`user.xpTotal += finalXpAwarded`)
-  - ✅ Recalcula nível do usuário baseado nas regras de `LevelRule`
-  - ✅ Atualiza `user.level` se necessário
+  - Credita XP ao usuário (`user.xpTotal += finalXpAwarded`)
+  - Recalcula nível do usuário baseado nas regras de `LevelRule`
+  - Atualiza `user.level` se necessário
 
 #### 6.2 Concessão de Badges
 
 - **Badge Triunfante** (`triumphantBadgeId`):
-  - ✅ Se exercício tem `triumphantBadgeId` configurado
-  - ✅ Concede badge ao usuário ao completar
-  - ✅ Usa função `grantTriumphantBadgesForExerciseCompletion()`
+  - Se exercício tem `triumphantBadgeId` configurado
+  - Concede badge ao usuário ao completar
+  - Usa função `grantTriumphantBadgesForExerciseCompletion()`
 
 - **Badge de Alta Pontuação** (`highScoreBadgeId`):
-  - ✅ Se exercício tem `highScoreBadgeId` configurado
-  - ✅ Verifica se é o melhor no ranking:
+  - Se exercício tem `highScoreBadgeId` configurado
+  - Verifica se é o melhor no ranking:
     - Score final maior que o atual, OU
     - Score final igual mas complexity score maior, OU
     - Score final e complexity iguais mas tempo menor
-  - ✅ Se for o melhor:
+  - Se for o melhor:
     - Atualiza campos no exercício:
       - `highScoreAwarded = true`
       - `highScoreWinnerUserId = userId`
@@ -462,17 +462,17 @@ Cada teste contém:
 #### 6.3 Limpeza de Tentativas
 
 - **Ao aceitar submissão**:
-  - ✅ Remove tentativas salvas (`ChallengeAttempt`) do usuário para este exercício
-  - ✅ Usa `AttemptsService.deleteAttempt()`
+  - Remove tentativas salvas (`ChallengeAttempt`) do usuário para este exercício
+  - Usa `AttemptsService.deleteAttempt()`
 
 ### 7. Sistema de Ranking
 
 #### 7.1 Critérios de Ranking
 
 - **Ordem de prioridade**:
-  1. ✅ **Score Final** (testes + bônus de complexidade) - maior é melhor
-  2. ✅ **Score de Complexidade** - maior é melhor (desempate)
-  3. ✅ **Tempo Gasto** - menor é melhor (desempate final)
+  1. **Score Final** (testes + bônus de complexidade) - maior é melhor
+  2. **Score de Complexidade** - maior é melhor (desempate)
+  3. **Tempo Gasto** - menor é melhor (desempate final)
 
 #### 7.2 Cálculo da Posição no Ranking
 
@@ -497,71 +497,71 @@ Cada teste contém:
 #### 7.3 Armazenamento do Ranking
 
 - **Campos na submissão para ranking**:
-  - ✅ `finalScore`: Score final (testes + bônus)
-  - ✅ `complexityScore`: Score de complexidade
-  - ✅ `timeSpentMs`: Tempo gasto
-  - ✅ `rankingPosition`: Posição no ranking (calculada dinamicamente)
+  - `finalScore`: Score final (testes + bônus)
+  - `complexityScore`: Score de complexidade
+  - `timeSpentMs`: Tempo gasto
+  - `rankingPosition`: Posição no ranking (calculada dinamicamente)
 
 #### 7.4 Atualização do Ranking
 
 - **Quando atualizar**:
-  - ✅ Toda vez que uma nova submissão `'ACCEPTED'` é criada
-  - ✅ Recalcula posições de todos os usuários para aquele exercício
-  - ✅ Mantém histórico de rankings por exercício
+  - Toda vez que uma nova submissão `'ACCEPTED'` é criada
+  - Recalcula posições de todos os usuários para aquele exercício
+  - Mantém histórico de rankings por exercício
 
 #### 7.5 Badge de Alta Pontuação
 
 - **Atualização**:
-  - ✅ Badge de alta pontuação agora considera ranking completo
-  - ✅ Vencedor: melhor posição no ranking (score final > complexity > tempo)
-  - ✅ Se empate em tudo, mantém o primeiro que alcançou
+  - Badge de alta pontuação agora considera ranking completo
+  - Vencedor: melhor posição no ranking (score final > complexity > tempo)
+  - Se empate em tudo, mantém o primeiro que alcançou
 
 ### 8. Temporadas (Seasons)
 
 #### 8.1 Associação com Temporada
 
 - **Temporada Ativa**:
-  - ✅ Verifica se existe temporada ativa no momento da submissão
-  - ✅ Critérios:
+  - Verifica se existe temporada ativa no momento da submissão
+  - Critérios:
     - `isActive = true`
     - `startDate <= now`
     - `endDate >= now`
-  - ✅ Se existir, associa `seasonId` à submissão
+  - Se existir, associa `seasonId` à submissão
 
 ### 6. Estatísticas
 
 #### 9.1 Estatísticas do Usuário
 
 - **UserStat**:
-  - ✅ Incrementa `exercisesSolvedCount` se status = `'ACCEPTED'`
-  - ✅ Atualiza `lastUpdatedAt`
-  - ✅ Cria registro se não existir (`upsert: true`)
+  - Incrementa `exercisesSolvedCount` se status = `'ACCEPTED'`
+  - Atualiza `lastUpdatedAt`
+  - Cria registro se não existir (`upsert: true`)
 
 #### 9.2 Estatísticas do Exercício
 
 - **ExerciseStat**:
-  - ✅ Incrementa `solvesCount` (independente do status)
-  - ✅ Atualiza `lastSolveAt`
-  - ✅ Cria registro se não existir (`upsert: true`)
+  - Incrementa `solvesCount` (independente do status)
+  - Atualiza `lastSolveAt`
+  - Cria registro se não existir (`upsert: true`)
 
 ### 10. Tratamento de Erros
 
 #### 10.1 Erros Críticos
 
 - **Erros que impedem submissão**:
-  - ❌ Exercício não encontrado
-  - ❌ Exercício não publicado
-  - ❌ Usuário já completou o exercício
+  - Exercício não encontrado
+  - Exercício não publicado
+  - Usuário já completou o exercício
 
 #### 10.2 Erros Não-Críticos
 
 - **Erros que não impedem submissão**:
-  - ⚠️ Falha ao atualizar estatísticas (silenciosamente ignorado)
-  - ⚠️ Falha ao deletar tentativas (silenciosamente ignorado)
+  - Falha ao atualizar estatísticas (silenciosamente ignorado)
+  - Falha ao deletar tentativas (silenciosamente ignorado)
 
 ---
 
-## 📝 Notas de Implementação
+## Notas de Implementação
 
 ### Pontos de Atenção
 
@@ -583,7 +583,7 @@ Cada teste contém:
 
 ---
 
-## 🔄 Fluxo Completo
+## Fluxo Completo
 
 ### Criação de Exercício
 ```
@@ -637,7 +637,7 @@ Cada teste contém:
 
 ---
 
-## ✅ Checklist de Validações
+## Checklist de Validações
 
 ### Criação
 - [ ] Título válido (3-200 caracteres)
