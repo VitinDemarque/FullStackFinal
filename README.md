@@ -158,3 +158,47 @@ npm run preview
 
 ## Licença
 Este projeto não define uma licença explícita.
+
+## 👨🏽‍💻 Colaboradores
+
+<div align="center">
+  <table>
+    <tr>
+    <td align="center">
+        <a href="https://github.com/VitinDemarque" style="text-decoration: none;">
+          <img src="https://avatars.githubusercontent.com/u/126296402?v=4" width="100" height="100" style="border-radius: 50%;">
+          <br>
+          Victor Demarque
+        </a>
+      </td>
+      <td align="center">
+        <a href="https://github.com/Samuel-SouzaZz" style="text-decoration: none;">
+          <img src="https://avatars.githubusercontent.com/u/129301287?v=4" width="100" height="100" style="border-radius: 50%;">
+          <br>
+          Samuel Souza
+        </a>
+      </td>
+      <td align="center">
+        <a href="https://github.com/JoaoASouzaN" style="text-decoration: none;">
+          <img src="https://avatars.githubusercontent.com/u/127859422?v=4" width="100" height="100" style="border-radius: 50%;">
+          <br>
+          João Antônio Souza
+        </a>
+      </td>
+      <td align="center">
+        <a href="https://github.com/ArthurSilva902" style="text-decoration: none;">
+          <img src="https://avatars.githubusercontent.com/u/180798363?v=4" width="100" height="100" style="border-radius: 50%;">
+          <br>
+          Arthur Silva
+        </a>
+      </td>
+      <td align="center">
+        <a href="https://github.com/mts3324" style="text-decoration: none;">
+          <img src="https://avatars.githubusercontent.com/u/133476027?v=4" width="100" height="100" style="border-radius: 50%;">
+          <br>
+          Mateus Silva
+        </a>
+      </td>
+    </tr>
+  </table>
+</div>
